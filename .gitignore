@@ -30,8 +30,7 @@ dist/
 # Wails
 build/bin
 
-# Test / temp configs
-_test_*.yaml
+# Temp files
 _user_msgs.txt
 
 # IDE

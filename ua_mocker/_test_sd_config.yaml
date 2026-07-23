@@ -1,0 +1,29 @@
+cycle: 1000
+namespace_index: 1
+nodes:
+- change: false
+  count: 1
+  default: hello
+  name: mock_String_wr_
+  type: String
+  writable: true
+- change: false
+  count: 1
+  default: '2025-01-01T00:00:00Z'
+  name: mock_DateTime_wr_
+  type: DateTime
+  writable: true
+- change: false
+  count: 1
+  default: 0.0
+  name: mock_Double_wr_
+  type: Double
+  writable: true
+- change: true
+  count: 1
+  default: 0
+  name: mock_hb
+  type: Int32
+  writable: false
+port: 18970
+server: 0.0.0.0
