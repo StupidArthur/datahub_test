@@ -1,0 +1,7 @@
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "case: human-readable test case metadata",
+    "integration: requires a real DataHub environment",
+    "destructive: creates, modifies, or deletes DataHub resources",
+]
