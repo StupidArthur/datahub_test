@@ -49,7 +49,8 @@ def api(settings: Settings):
         if not settings.user or not settings.password:
             pytest.skip("DATAHUB_USER / DATAHUB_PASSWORD not set")
         client.login(settings.user, settings.password, settings.tenant_id)
-    return client
+    yield client
+    client.client.close()
 
 
 @pytest.fixture(scope="session")
