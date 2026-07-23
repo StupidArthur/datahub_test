@@ -1,0 +1,412 @@
+{
+  "schemaVersion": 1,
+  "cases": [
+    {
+      "id": "UA-1-1-01",
+      "chapter": "UA-1-1",
+      "title": "正常连接(URL 无 path)",
+      "nodeid": "tests/integration/ua1/test_connection_establishment.py::test_normal_connection_no_path",
+      "preconditions": [
+        "mock 已启动，端口可达"
+      ],
+      "steps": [
+        "add_ds_info(url=opc.tcp://ip:port)，不带 path",
+        "启用数据源",
+        "创建一次位号绑定 mocker 节点",
+        "等待实时值出现",
+        "验证实时值与质量码"
+      ],
+      "expected": [
+        "alive=true",
+        "getRTValue 返回有效值",
+        "quality 有效(非0)"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-1-1-02",
+      "chapter": "UA-1-1",
+      "title": "正常连接(URL 有 path)",
+      "nodeid": "tests/integration/ua1/test_connection_establishment.py::test_normal_connection_with_path",
+      "preconditions": [
+        "mock 已启动，endpoint 带 path"
+      ],
+      "steps": [
+        "add_ds_info(url=opc.tcp://ip:port/path)",
+        "启用数据源",
+        "创建位号",
+        "等待实时值"
+      ],
+      "expected": [
+        "alive=true",
+        "getRTValue 返回有效值"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-1-1-03",
+      "chapter": "UA-1-1",
+      "title": "两种 URL 格式区别",
+      "nodeid": "tests/integration/ua1/test_connection_establishment.py::test_two_url_formats",
+      "preconditions": [
+        "同一 mock server"
+      ],
+      "steps": [
+        "用 opc.tcp://ip:port 注册数据源 A",
+        "用 opc.tcp://ip:port/path 注册数据源 B",
+        "都启用",
+        "各注册位号并读取 RT"
+      ],
+      "expected": [
+        "两条数据源都 alive=true",
+        "位号独立采集"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-1-1-04",
+      "chapter": "UA-1-1",
+      "title": "不可达地址",
+      "nodeid": "tests/integration/ua1/test_connection_establishment.py::test_unreachable_address",
+      "preconditions": [
+        "目标端口未监听"
+      ],
+      "steps": [
+        "获取动态空闲端口(确保未监听)",
+        "add_ds_info 指向该端口",
+        "启用数据源",
+        "观察窗口内持续检查 alive"
+      ],
+      "expected": [
+        "alive=false",
+        "系统不崩溃"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-1-1-05",
+      "chapter": "UA-1-1",
+      "title": "不可达变可达",
+      "nodeid": "tests/integration/ua1/test_connection_establishment.py::test_offline_to_online",
+      "preconditions": [
+        "数据源已配置但 alive=false"
+      ],
+      "steps": [
+        "获取动态空闲端口",
+        "创建数据源指向该端口(未启动)",
+        "启用，确认 alive=false",
+        "在同一端口启动 mocker",
+        "轮询 alive 变 true",
+        "验证位号 RT 值出现",
+        "停止 mocker，清理"
+      ],
+      "expected": [
+        "alive 从 false 变 true",
+        "RT 值出现"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-1-1-06",
+      "chapter": "UA-1-1",
+      "title": "数据源有鉴权，不配凭据",
+      "nodeid": "tests/integration/ua1/test_connection_establishment.py::test_auth_required_no_creds",
+      "preconditions": [
+        "mock 配置用户名密码鉴权"
+      ],
+      "steps": [
+        "启动带认证的 mocker",
+        "add_ds_info 不带凭据",
+        "启用数据源",
+        "等待观察 alive"
+      ],
+      "expected": [
+        "alive=false（鉴权失败）"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-1-1-07",
+      "chapter": "UA-1-1",
+      "title": "数据源有鉴权，配正确凭据",
+      "nodeid": "tests/integration/ua1/test_connection_establishment.py::test_auth_correct_creds",
+      "preconditions": [
+        "mock 配置用户名密码鉴权"
+      ],
+      "steps": [
+        "启动带认证的 mocker",
+        "add_ds_info 带正确 dsExtInfo 凭据",
+        "启用数据源",
+        "创建位号，验证 RT"
+      ],
+      "expected": [
+        "alive=true",
+        "getRTValue 返回值正确"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-1-1-08",
+      "chapter": "UA-1-1",
+      "title": "数据源无鉴权，配了凭据",
+      "nodeid": "tests/integration/ua1/test_connection_establishment.py::test_no_auth_extra_creds",
+      "preconditions": [
+        "mock 无鉴权"
+      ],
+      "steps": [
+        "add_ds_info 带多余 dsExtInfo 凭据",
+        "启用数据源",
+        "创建位号，验证 RT"
+      ],
+      "expected": [
+        "alive=true（多余凭据不影响连接）",
+        "getRTValue 返回值正确"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-1-1-09",
+      "chapter": "UA-1-1",
+      "title": "不配好值质量码",
+      "nodeid": "tests/integration/ua1/test_connection_establishment.py::test_quality_default",
+      "preconditions": [
+        "mock 已启动"
+      ],
+      "steps": [
+        "add_ds_info 不设好值质量码",
+        "启用，创建位号",
+        "读取 RT quality"
+      ],
+      "expected": [
+        "RT quality 为平台默认好值(192)",
+        "值正常采集"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-1-1-10",
+      "chapter": "UA-1-1",
+      "title": "配置正常好值(192)",
+      "nodeid": "tests/integration/ua1/test_connection_establishment.py::test_quality_192",
+      "preconditions": [
+        "mock 已启动"
+      ],
+      "steps": [
+        "add_ds_info 好值质量码=192",
+        "启用，创建位号",
+        "读取 RT quality"
+      ],
+      "expected": [
+        "RT quality=192",
+        "值正常采集"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-1-1-11",
+      "chapter": "UA-1-1",
+      "title": "配置非标准好值(如 0)",
+      "nodeid": "tests/integration/ua1/test_connection_establishment.py::test_quality_zero",
+      "preconditions": [
+        "mock 已启动"
+      ],
+      "steps": [
+        "add_ds_info 好值质量码=0",
+        "启用，创建位号",
+        "读取 RT quality 和采集行为"
+      ],
+      "expected": [
+        "quality=0 的值被系统视为好值正常采集",
+        "RT 有值"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-1-1-12",
+      "chapter": "UA-1-1",
+      "title": "重复地址注册",
+      "nodeid": "tests/integration/ua1/test_connection_establishment.py::test_duplicate_url_rejected",
+      "preconditions": [
+        "已有数据源指向 url-A"
+      ],
+      "steps": [
+        "创建数据源 A 指向 mocker endpoint",
+        "再次 add_ds_info 使用相同 url-A"
+      ],
+      "expected": [
+        "第二次请求抛出 TptAPIError",
+        "错误码为 A0001",
+        "错误信息包含 Duplicate"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-1-2-01",
+      "chapter": "UA-1-2",
+      "title": "禁用运行中数据源",
+      "nodeid": "tests/integration/ua1/test_lifecycle_control.py::test_disable_running_datasource",
+      "preconditions": [
+        "mock 配置 change=true；数据源 alive=true，位号正常采集"
+      ],
+      "steps": [
+        "连续 getRTValue 2 次，确认值在变化",
+        "change_ds_state(enabled=false)",
+        "等待",
+        "检查 alive 和 RT"
+      ],
+      "expected": [
+        "alive=false",
+        "RT quality 降级为 0"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-1-2-02",
+      "chapter": "UA-1-2",
+      "title": "禁用后位号 RT 状态",
+      "nodeid": "tests/integration/ua1/test_lifecycle_control.py::test_rt_state_after_disable",
+      "preconditions": [
+        "数据源已禁用"
+      ],
+      "steps": [
+        "禁用数据源",
+        "getRTValue 读原位号"
+      ],
+      "expected": [
+        "RT 仍有返回",
+        "quality=0"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-1-2-04",
+      "chapter": "UA-1-2",
+      "title": "重新启用已禁用数据源",
+      "nodeid": "tests/integration/ua1/test_lifecycle_control.py::test_reenable_disabled_datasource",
+      "preconditions": [
+        "mock 仍在运行；数据源已禁用"
+      ],
+      "steps": [
+        "禁用数据源",
+        "change_ds_state(enabled=true)",
+        "等待 alive",
+        "连续 getRTValue 确认值变化"
+      ],
+      "expected": [
+        "alive=true",
+        "RT quality 恢复非0",
+        "采集值恢复变化"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-1-2-06",
+      "chapter": "UA-1-2",
+      "title": "重复启用",
+      "nodeid": "tests/integration/ua1/test_lifecycle_control.py::test_repeat_enable",
+      "preconditions": [
+        "已 alive=true"
+      ],
+      "steps": [
+        "change_ds_state(enabled=true)"
+      ],
+      "expected": [
+        "无异常",
+        "状态保持 alive=true"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-1-2-07",
+      "chapter": "UA-1-2",
+      "title": "重复禁用",
+      "nodeid": "tests/integration/ua1/test_lifecycle_control.py::test_repeat_disable",
+      "preconditions": [
+        "已 alive=false"
+      ],
+      "steps": [
+        "禁用数据源",
+        "再次 change_ds_state(enabled=false)"
+      ],
+      "expected": [
+        "无异常",
+        "状态保持 alive=false"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-1-2-08",
+      "chapter": "UA-1-2",
+      "title": "多次启停循环",
+      "nodeid": "tests/integration/ua1/test_lifecycle_control.py::test_multiple_start_stop_cycles",
+      "preconditions": [
+        "mock 配置 change=true；数据源正常"
+      ],
+      "steps": [
+        "禁用->等->启用->等->禁用->等->启用",
+        "每步验证状态和 RT"
+      ],
+      "expected": [
+        "每次状态正确切换",
+        "禁用时 quality=0",
+        "启用时 quality 恢复",
+        "最终 alive=true"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    }
+  ]
+}

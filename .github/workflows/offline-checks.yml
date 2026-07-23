@@ -1,0 +1,37 @@
+name: offline-checks
+
+on:
+  push:
+    branches: [main, "refactor/**"]
+  pull_request:
+    branches: [main]
+
+jobs:
+  offline:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install -e ./tpt_api/python
+          pip install pytest pyyaml
+
+      - name: Compile check
+        run: python -m compileall -q tests tools ua_test_harness tpt_api/python/tpt_api ua_mocker
+
+      - name: Unit tests
+        run: pytest tests/unit -q
+
+      - name: Collection check
+        run: pytest --collect-only -q tests
+
+      - name: Doc generation check
+        run: python -m tools.generate_case_docs --check
+
+      - name: tpt_api unit tests
+        run: pytest tpt_api/python/tests -q

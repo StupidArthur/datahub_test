@@ -2,11 +2,13 @@
 
 Usage:
     python -m tools.generate_case_docs
+    python -m tools.generate_case_docs --check
 """
 from __future__ import annotations
 
-import subprocess
+import json
 import sys
+import tempfile
 from pathlib import Path
 
 REQUIRED_FIELDS = ("id", "chapter", "title", "steps", "expected")
@@ -35,13 +37,19 @@ def collect_cases() -> list[dict]:
                     continue
                 kw = dict(marker.kwargs)
                 kw["nodeid"] = item.nodeid
+                kw["markers"] = [
+                    m.name for m in item.iter_markers()
+                    if m.name in ("integration", "destructive")
+                ]
                 self.cases.append(kw)
 
     collector = _Collector()
-    pytest.main(
+    exit_code = pytest.main(
         ["--collect-only", "-q", "tests"],
         plugins=[collector],
     )
+    if exit_code != 0:
+        raise RuntimeError(f"pytest collection failed with exit code {exit_code}")
     return collector.cases
 
 
@@ -90,10 +98,28 @@ def render_case(c: dict) -> str:
     return "\n".join(lines)
 
 
+def build_manifest(cases: list[dict]) -> dict:
+    manifest_cases = []
+    for c in sorted(cases, key=lambda x: x["id"]):
+        manifest_cases.append({
+            "id": c["id"],
+            "chapter": c["chapter"],
+            "title": c["title"],
+            "nodeid": c["nodeid"],
+            "preconditions": c.get("preconditions") or [],
+            "steps": c["steps"],
+            "expected": c["expected"],
+            "markers": c.get("markers") or [],
+        })
+    return {"schemaVersion": 1, "cases": manifest_cases}
+
+
 def generate(cases: list[dict], output_dir: Path | None = None) -> dict[str, str]:
     validate_cases(cases)
     out = output_dir or DOCS_DIR
     out.mkdir(parents=True, exist_ok=True)
+
+    _remove_stale(cases, out)
 
     chapters: dict[str, list[dict]] = {}
     for c in cases:
@@ -109,14 +135,72 @@ def generate(cases: list[dict], output_dir: Path | None = None) -> dict[str, str
         filename = f"{chapter}.md"
         (out / filename).write_text(content, encoding="utf-8")
         written[filename] = content
+
+    manifest = build_manifest(cases)
+    manifest_json = json.dumps(manifest, ensure_ascii=False, indent=2) + "\n"
+    (out / "case-manifest.json").write_text(manifest_json, encoding="utf-8")
+    written["case-manifest.json"] = manifest_json
+
     return written
 
 
+def _remove_stale(cases: list[dict], out: Path) -> None:
+    active_chapters = {c["chapter"] for c in cases}
+    for f in out.iterdir():
+        if not f.is_file():
+            continue
+        if f.name == "case-manifest.json":
+            continue
+        if not f.suffix == ".md":
+            continue
+        content = f.read_text(encoding="utf-8")
+        if not content.startswith(HEADER.split("\n")[0]):
+            continue
+        chapter = f.stem
+        if chapter not in active_chapters:
+            f.unlink()
+
+
+def check(cases: list[dict]) -> int:
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp_path = Path(tmp)
+        generated = generate(cases, output_dir=tmp_path)
+
+    diffs: list[str] = []
+    for name, content in sorted(generated.items()):
+        target = DOCS_DIR / name
+        if not target.exists():
+            diffs.append(f"missing: {name}")
+        elif target.read_text(encoding="utf-8") != content:
+            diffs.append(f"changed: {name}")
+
+    if DOCS_DIR.exists():
+        for f in sorted(DOCS_DIR.iterdir()):
+            if f.name not in generated and f.suffix in (".md", ".json"):
+                content = f.read_text(encoding="utf-8")
+                if content.startswith(HEADER.split("\n")[0]) or f.name == "case-manifest.json":
+                    diffs.append(f"stale: {f.name}")
+
+    if diffs:
+        for d in diffs:
+            print(f"  {d}", file=sys.stderr)
+        return 1
+    return 0
+
+
 def main() -> None:
+    check_mode = "--check" in sys.argv
     cases = collect_cases()
     if not cases:
         print("no cases found", file=sys.stderr)
         sys.exit(1)
+
+    if check_mode:
+        rc = check(cases)
+        if rc != 0:
+            print("docs out of date", file=sys.stderr)
+        sys.exit(rc)
+
     written = generate(cases)
     for name in sorted(written):
         print(f"  {DOCS_DIR / name}")
