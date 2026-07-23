@@ -1,0 +1,16 @@
+server: 0.0.0.0
+port: 18960
+cycle: 500
+namespace_index: 2
+nodes:
+  - name: smoke_static_
+    type: Double
+    count: 1
+    change: false
+    writable: true
+    default: 12.5
+  - name: smoke_change_
+    type: Int32
+    count: 1
+    change: true
+    writable: false

@@ -1,0 +1,177 @@
+# OPC UA Mock Server 组态示例
+# 每种类型各 4 个节点：2 个 change=true writable=false，2 个 change=false writable=true
+
+server: "0.0.0.0"
+port: 18950
+cycle: 1000
+namespace_index: 1
+
+nodes:
+  # Boolean: 2 个自变化只读 + 2 个固定可写
+  - name: "bool_ch_"
+    type: Boolean
+    count: 2
+    change: true
+    writable: false
+  - name: "bool_wr_"
+    type: Boolean
+    count: 2
+    default: false
+    change: false
+    writable: true
+
+  # SByte
+  - name: "sbyte_ch_"
+    type: SByte
+    count: 2
+    change: true
+    writable: false
+  - name: "sbyte_wr_"
+    type: SByte
+    count: 2
+    default: 0
+    change: false
+    writable: true
+
+  # Byte
+  - name: "byte_ch_"
+    type: Byte
+    count: 2
+    change: true
+    writable: false
+  - name: "byte_wr_"
+    type: Byte
+    count: 2
+    default: 0
+    change: false
+    writable: true
+
+  # Int16
+  - name: "int16_ch_"
+    type: Int16
+    count: 2
+    change: true
+    writable: false
+  - name: "int16_wr_"
+    type: Int16
+    count: 2
+    default: 0
+    change: false
+    writable: true
+
+  # UInt16
+  - name: "uint16_ch_"
+    type: UInt16
+    count: 2
+    change: true
+    writable: false
+  - name: "uint16_wr_"
+    type: UInt16
+    count: 2
+    default: 0
+    change: false
+    writable: true
+
+  # Int32
+  - name: "int32_ch_"
+    type: Int32
+    count: 2
+    change: true
+    writable: false
+  - name: "int32_wr_"
+    type: Int32
+    count: 2
+    default: 0
+    change: false
+    writable: true
+
+  # UInt32
+  - name: "uint32_ch_"
+    type: UInt32
+    count: 2
+    change: true
+    writable: false
+  - name: "uint32_wr_"
+    type: UInt32
+    count: 2
+    default: 0
+    change: false
+    writable: true
+
+  # Int64
+  - name: "int64_ch_"
+    type: Int64
+    count: 2
+    change: true
+    writable: false
+  - name: "int64_wr_"
+    type: Int64
+    count: 2
+    default: 0
+    change: false
+    writable: true
+
+  # UInt64
+  - name: "uint64_ch_"
+    type: UInt64
+    count: 2
+    change: true
+    writable: false
+  - name: "uint64_wr_"
+    type: UInt64
+    count: 2
+    default: 0
+    change: false
+    writable: true
+
+  # Float
+  - name: "float_ch_"
+    type: Float
+    count: 2
+    change: true
+    writable: false
+  - name: "float_wr_"
+    type: Float
+    count: 2
+    default: 0.0
+    change: false
+    writable: true
+
+  # Double
+  - name: "double_ch_"
+    type: Double
+    count: 1002
+    change: true
+    writable: false
+  - name: "double_wr_"
+    type: Double
+    count: 2
+    default: 0.0
+    change: false
+    writable: true
+
+  # String
+  - name: "string_ch_"
+    type: String
+    count: 2
+    change: true
+    writable: false
+  - name: "string_wr_"
+    type: String
+    count: 2
+    default: ""
+    change: false
+    writable: true
+
+  # DateTime（change 为 true 时按周期递增秒数；可写节点用默认时间）
+  - name: "datetime_ch_"
+    type: DateTime
+    count: 2
+    change: true
+    writable: false
+  - name: "datetime_wr_"
+    type: DateTime
+    count: 2
+    default: "2025-01-01T00:00:00Z"
+    change: false
+    writable: true

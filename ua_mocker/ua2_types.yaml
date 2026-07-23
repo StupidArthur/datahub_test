@@ -1,0 +1,148 @@
+server: 0.0.0.0
+port: 18965
+cycle: 500
+namespace_index: 2
+nodes:
+  - name: ua2_boolean_r_
+    type: Boolean
+    count: 1
+    change: true
+    writable: false
+  - name: ua2_boolean_w_
+    type: Boolean
+    count: 1
+    change: false
+    writable: true
+    default: false
+  - name: ua2_sbyte_r_
+    type: SByte
+    count: 1
+    change: true
+    writable: false
+  - name: ua2_sbyte_w_
+    type: SByte
+    count: 1
+    change: false
+    writable: true
+    default: 0
+  - name: ua2_byte_r_
+    type: Byte
+    count: 1
+    change: true
+    writable: false
+  - name: ua2_byte_w_
+    type: Byte
+    count: 1
+    change: false
+    writable: true
+    default: 0
+  - name: ua2_int16_r_
+    type: Int16
+    count: 1
+    change: true
+    writable: false
+  - name: ua2_int16_w_
+    type: Int16
+    count: 1
+    change: false
+    writable: true
+    default: 0
+  - name: ua2_uint16_r_
+    type: UInt16
+    count: 1
+    change: true
+    writable: false
+  - name: ua2_uint16_w_
+    type: UInt16
+    count: 1
+    change: false
+    writable: true
+    default: 0
+  - name: ua2_int32_r_
+    type: Int32
+    count: 1
+    change: true
+    writable: false
+  - name: ua2_int32_w_
+    type: Int32
+    count: 1
+    change: false
+    writable: true
+    default: 0
+  - name: ua2_uint32_r_
+    type: UInt32
+    count: 1
+    change: true
+    writable: false
+  - name: ua2_uint32_w_
+    type: UInt32
+    count: 1
+    change: false
+    writable: true
+    default: 0
+  - name: ua2_int64_r_
+    type: Int64
+    count: 1
+    change: true
+    writable: false
+  - name: ua2_int64_w_
+    type: Int64
+    count: 1
+    change: false
+    writable: true
+    default: 0
+  - name: ua2_uint64_r_
+    type: UInt64
+    count: 1
+    change: true
+    writable: false
+  - name: ua2_uint64_w_
+    type: UInt64
+    count: 1
+    change: false
+    writable: true
+    default: 0
+  - name: ua2_float_r_
+    type: Float
+    count: 1
+    change: true
+    writable: false
+  - name: ua2_float_w_
+    type: Float
+    count: 1
+    change: false
+    writable: true
+    default: 0.0
+  - name: ua2_double_r_
+    type: Double
+    count: 1
+    change: true
+    writable: false
+  - name: ua2_double_w_
+    type: Double
+    count: 1
+    change: false
+    writable: true
+    default: 0.0
+  - name: ua2_string_r_
+    type: String
+    count: 1
+    change: true
+    writable: false
+  - name: ua2_string_w_
+    type: String
+    count: 1
+    change: false
+    writable: true
+    default: ua2
+  - name: ua2_datetime_r_
+    type: DateTime
+    count: 1
+    change: true
+    writable: false
+  - name: ua2_datetime_w_
+    type: DateTime
+    count: 1
+    change: false
+    writable: true
+    default: '2025-01-01T00:00:00+00:00'

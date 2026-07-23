@@ -1,0 +1,12 @@
+# Empty UA-2 datasource mock for "no tags" query scenarios.
+# Bound to its own endpoint so it never collides with ua2_types (18965).
+server: 0.0.0.0
+port: 18967
+cycle: 500
+namespace_index: 2
+nodes:
+  - name: ua2_int32_r_
+    type: Int32
+    count: 1
+    change: true
+    writable: false

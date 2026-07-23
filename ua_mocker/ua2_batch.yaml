@@ -1,0 +1,10 @@
+server: 0.0.0.0
+port: 18966
+cycle: 500
+namespace_index: 2
+nodes:
+  - name: ua2_batch_int32_r_
+    type: Int32
+    count: 20
+    change: true
+    writable: false

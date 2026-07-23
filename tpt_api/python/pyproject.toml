@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tpt_api"
+version = "0.1.0"
+description = "Supcon SaaS / TPT 后台域 Python HTTP 客户端（用户管理 + 算法管理 + data-hub）"
+readme = "../README.md"
+requires-python = ">=3.10"
+license = { text = "Proprietary" }
+authors = [{ name = "yzc" }]
+dependencies = [
+    "httpx>=0.27",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=7.0",
+    "pytest-httpx>=0.27",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["tpt_api*"]

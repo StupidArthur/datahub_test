@@ -1,0 +1,4 @@
+build/bin
+node_modules
+frontend/dist
+_user_msgs.txt

@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+venv/
+
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Node / Frontend
+node_modules/
+frontend/dist/
+
+# PyInstaller
+build/
+dist/
+
+# Logs
+*.log
+
+# Archives
+*.zip
+
+# Wails
+build/bin
+
+# Test / temp configs
+_test_*.yaml
+_user_msgs.txt
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

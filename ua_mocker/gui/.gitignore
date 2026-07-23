@@ -1,0 +1,9 @@
+# 构建产物
+build/bin/
+dist_server/
+.pyi_work/
+.pyi_spec/
+
+# 服务运行产物（GUI 目录内偶发）
+ua_mocker_*.log
+ua_types_gui.yaml
