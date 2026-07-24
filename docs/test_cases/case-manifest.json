@@ -292,7 +292,7 @@
       ],
       "expected": [
         "alive=false",
-        "RT quality 降级为 0"
+        "RT 查询抛 TptAPIError(tag 不存在)"
       ],
       "markers": [
         "destructive",
@@ -312,8 +312,8 @@
         "getRTValue 读原位号"
       ],
       "expected": [
-        "RT 仍有返回",
-        "quality=0"
+        "RT 查询抛 TptAPIError",
+        "错误信息指示 tag 不存在"
       ],
       "markers": [
         "destructive",
@@ -399,8 +399,8 @@
       ],
       "expected": [
         "每次状态正确切换",
-        "禁用时 quality=0",
-        "启用时 quality 恢复",
+        "禁用时 RT 查询抛 TptAPIError",
+        "启用时 quality 恢复非0",
         "最终 alive=true"
       ],
       "markers": [

@@ -8,7 +8,6 @@ from tpt_api.datahub import (
     add_ds_info,
     add_tag,
     change_ds_state,
-    get_rt_value,
     list_ds_info,
 )
 from tpt_api.errors import TptAPIError
@@ -18,6 +17,7 @@ from tests.support.cleanup import delete_datasource_if_exists, delete_tag_if_exi
 from tests.support.endpoints import parse_mocker_endpoint
 from tests.support.naming import unique_name
 from tests.support.polling import wait_until
+from tests.support.rt_helpers import get_rt_point
 
 
 def _is_alive(api, ds_id: int) -> bool:
@@ -26,13 +26,6 @@ def _is_alive(api, ds_id: int) -> bool:
         if int(row.get("id", -1)) == ds_id:
             return bool(row.get("alive"))
     return False
-
-
-def _get_rt_point(api, tag_name: str) -> dict:
-    points = get_rt_value(api, tag_names=[tag_name])
-    if isinstance(points, list) and points:
-        return points[0]
-    return {}
 
 
 @pytest.mark.case(
@@ -91,12 +84,12 @@ def test_normal_connection_no_path(api, settings, mocker_endpoint):
         assert tag_id, f"create tag returned no id: {tag_data}"
 
         def _has_rt():
-            pt = _get_rt_point(api, tag_name)
+            pt = get_rt_point(api, tag_name)
             return pt.get("tagValue") is not None and pt.get("quality", 0) != 0
 
         wait_until(f"rt_visible:{tag_name}", _has_rt, timeout=60.0)
 
-        pt = _get_rt_point(api, tag_name)
+        pt = get_rt_point(api, tag_name)
         assert pt.get("tagValue") is not None, "RT tagValue is None"
         assert pt.get("quality", 0) != 0, f"RT quality is 0: {pt}"
     finally:
@@ -253,11 +246,11 @@ def test_normal_connection_with_path(api, settings, mocker_endpoint):
         assert tag_id
 
         def _has_rt():
-            pt = _get_rt_point(api, tag_name)
+            pt = get_rt_point(api, tag_name)
             return pt.get("tagValue") is not None and pt.get("quality", 0) != 0
 
         wait_until(f"rt_visible:{tag_name}", _has_rt, timeout=60.0)
-        pt = _get_rt_point(api, tag_name)
+        pt = get_rt_point(api, tag_name)
         assert pt.get("tagValue") is not None
     finally:
         if tag_id:
@@ -332,8 +325,8 @@ def test_two_url_formats(api, settings, mocker_endpoint):
         tag_id_b = int(tag_data_b.get("id") or tag_data_b.get("tagId"))
 
         def _both_have_rt():
-            pa = _get_rt_point(api, tag_name_a)
-            pb = _get_rt_point(api, tag_name_b)
+            pa = get_rt_point(api, tag_name_a)
+            pb = get_rt_point(api, tag_name_b)
             return (pa.get("tagValue") is not None and pb.get("tagValue") is not None)
 
         wait_until("both_rt", _both_have_rt, timeout=60.0)
@@ -411,7 +404,7 @@ def test_offline_to_online(api, settings, tmp_path_factory):
         tag_id = int(tag_data.get("id") or tag_data.get("tagId"))
 
         def _has_rt():
-            pt = _get_rt_point(api, tag_name)
+            pt = get_rt_point(api, tag_name)
             return pt.get("tagValue") is not None
 
         wait_until(f"rt:{tag_name}", _has_rt, timeout=60.0)
@@ -532,11 +525,11 @@ def test_auth_correct_creds(api, settings, tmp_path_factory):
         tag_id = int(tag_data.get("id") or tag_data.get("tagId"))
 
         def _has_rt():
-            pt = _get_rt_point(api, tag_name)
+            pt = get_rt_point(api, tag_name)
             return pt.get("tagValue") is not None
 
         wait_until(f"rt:{tag_name}", _has_rt, timeout=60.0)
-        pt = _get_rt_point(api, tag_name)
+        pt = get_rt_point(api, tag_name)
         assert pt.get("tagValue") is not None
     finally:
         if tag_id:
@@ -591,7 +584,7 @@ def test_no_auth_extra_creds(api, settings, mocker_endpoint):
         tag_id = int(tag_data.get("id") or tag_data.get("tagId"))
 
         def _has_rt():
-            pt = _get_rt_point(api, tag_name)
+            pt = get_rt_point(api, tag_name)
             return pt.get("tagValue") is not None
 
         wait_until(f"rt:{tag_name}", _has_rt, timeout=60.0)
@@ -646,11 +639,11 @@ def test_quality_default(api, settings, mocker_endpoint):
         tag_id = int(tag_data.get("id") or tag_data.get("tagId"))
 
         def _has_rt():
-            pt = _get_rt_point(api, tag_name)
+            pt = get_rt_point(api, tag_name)
             return pt.get("tagValue") is not None and pt.get("quality", 0) != 0
 
         wait_until(f"rt:{tag_name}", _has_rt, timeout=60.0)
-        pt = _get_rt_point(api, tag_name)
+        pt = get_rt_point(api, tag_name)
         assert pt.get("quality") == 192, f"default quality should be 192, got {pt.get('quality')}"
     finally:
         if tag_id:
@@ -704,11 +697,11 @@ def test_quality_192(api, settings, mocker_endpoint):
         tag_id = int(tag_data.get("id") or tag_data.get("tagId"))
 
         def _has_rt():
-            pt = _get_rt_point(api, tag_name)
+            pt = get_rt_point(api, tag_name)
             return pt.get("tagValue") is not None and pt.get("quality", 0) != 0
 
         wait_until(f"rt:{tag_name}", _has_rt, timeout=60.0)
-        pt = _get_rt_point(api, tag_name)
+        pt = get_rt_point(api, tag_name)
         assert pt.get("quality") == 192, f"quality should be 192, got {pt.get('quality')}"
     finally:
         if tag_id:
@@ -762,11 +755,11 @@ def test_quality_zero(api, settings, mocker_endpoint):
         tag_id = int(tag_data.get("id") or tag_data.get("tagId"))
 
         def _has_rt():
-            pt = _get_rt_point(api, tag_name)
+            pt = get_rt_point(api, tag_name)
             return pt.get("tagValue") is not None
 
         wait_until(f"rt:{tag_name}", _has_rt, timeout=60.0)
-        pt = _get_rt_point(api, tag_name)
+        pt = get_rt_point(api, tag_name)
         assert pt.get("tagValue") is not None, "RT should have value even with goodQuality=0"
     finally:
         if tag_id:

@@ -9,14 +9,15 @@ from tpt_api.datahub import (
     add_ds_info,
     add_tag,
     change_ds_state,
-    get_rt_value,
     list_ds_info,
 )
+from tpt_api.errors import TptAPIError
 from tpt_api.types import DataTypes, DsSubTypes, DsTypes, TagTypes
 
 from tests.support.cleanup import delete_datasource_if_exists, delete_tag_if_exists
 from tests.support.naming import unique_name
 from tests.support.polling import wait_until
+from tests.support.rt_helpers import assert_rt_unavailable, get_rt_point
 
 
 def _is_alive(api, ds_id: int) -> bool:
@@ -25,19 +26,6 @@ def _is_alive(api, ds_id: int) -> bool:
         if int(row.get("id", -1)) == ds_id:
             return bool(row.get("alive"))
     return False
-
-
-def _get_rt_point(api, tag_name: str) -> dict:
-    from tpt_api.errors import TptAPIError
-    try:
-        points = get_rt_value(api, tag_names=[tag_name])
-    except TptAPIError as exc:
-        if "Tag Dose Not Exist" in exc.msg or "Tag Does Not Exist" in exc.msg:
-            return {"tagName": tag_name, "tagValue": None, "quality": 0}
-        raise
-    if isinstance(points, list) and points:
-        return points[0]
-    return {}
 
 
 @dataclass
@@ -81,7 +69,7 @@ def connected_changing_tag(api, settings, tmp_path_factory):
     tag_id = int(tag_data.get("id") or tag_data.get("tagId"))
 
     def _has_rt():
-        pt = _get_rt_point(api, tag_name)
+        pt = get_rt_point(api, tag_name)
         return pt.get("tagValue") is not None and pt.get("quality", 0) != 0
 
     wait_until(f"rt:{tag_name}", _has_rt, timeout=60.0)
@@ -99,7 +87,7 @@ def _ensure_alive(api, ctx: ConnectedChangingTag) -> None:
         change_ds_state(api, ctx.ds_id, True)
         wait_until(f"ds_alive:{ctx.ds_id}", lambda: _is_alive(api, ctx.ds_id), timeout=60.0)
         def _q():
-            return _get_rt_point(api, ctx.tag_name).get("quality", 0) != 0
+            return get_rt_point(api, ctx.tag_name).get("quality", 0) != 0
         wait_until(f"rt_q:{ctx.tag_name}", _q, timeout=30.0)
 
 
@@ -118,7 +106,7 @@ def _ensure_alive(api, ctx: ConnectedChangingTag) -> None:
     ],
     expected=[
         "alive=false",
-        "RT quality 降级为 0",
+        "RT 查询抛 TptAPIError(tag 不存在)",
     ],
 )
 @pytest.mark.integration
@@ -127,17 +115,15 @@ def test_disable_running_datasource(api, connected_changing_tag):
     ctx = connected_changing_tag
     _ensure_alive(api, ctx)
 
-    pt1 = _get_rt_point(api, ctx.tag_name)
+    pt1 = get_rt_point(api, ctx.tag_name)
     time.sleep(2)
-    pt2 = _get_rt_point(api, ctx.tag_name)
+    pt2 = get_rt_point(api, ctx.tag_name)
     assert pt1.get("tagValue") != pt2.get("tagValue"), "values should change before disable"
 
     change_ds_state(api, ctx.ds_id, False)
     wait_until(f"ds_offline:{ctx.ds_id}", lambda: not _is_alive(api, ctx.ds_id), timeout=30.0)
 
-    time.sleep(3)
-    pt3 = _get_rt_point(api, ctx.tag_name)
-    assert pt3.get("quality", -1) == 0, f"quality should be 0 after disable, got {pt3.get('quality')}"
+    assert_rt_unavailable(api, ctx.tag_name, timeout=10.0)
 
 
 @pytest.mark.case(
@@ -152,8 +138,8 @@ def test_disable_running_datasource(api, connected_changing_tag):
         "getRTValue 读原位号",
     ],
     expected=[
-        "RT 仍有返回",
-        "quality=0",
+        "RT 查询抛 TptAPIError",
+        "错误信息指示 tag 不存在",
     ],
 )
 @pytest.mark.integration
@@ -164,10 +150,7 @@ def test_rt_state_after_disable(api, connected_changing_tag):
     change_ds_state(api, ctx.ds_id, False)
     wait_until(f"ds_offline:{ctx.ds_id}", lambda: not _is_alive(api, ctx.ds_id), timeout=30.0)
 
-    time.sleep(2)
-    pt = _get_rt_point(api, ctx.tag_name)
-    assert pt, "RT should still return data after disable"
-    assert pt.get("quality", -1) == 0, f"quality should be 0, got {pt.get('quality')}"
+    assert_rt_unavailable(api, ctx.tag_name, timeout=10.0)
 
 
 @pytest.mark.case(
@@ -201,13 +184,13 @@ def test_reenable_disabled_datasource(api, connected_changing_tag):
     wait_until(f"ds_alive:{ctx.ds_id}", lambda: _is_alive(api, ctx.ds_id), timeout=60.0)
 
     def _quality_ok():
-        return _get_rt_point(api, ctx.tag_name).get("quality", 0) != 0
+        return get_rt_point(api, ctx.tag_name).get("quality", 0) != 0
 
     wait_until(f"rt_quality:{ctx.tag_name}", _quality_ok, timeout=30.0)
 
-    pt1 = _get_rt_point(api, ctx.tag_name)
+    pt1 = get_rt_point(api, ctx.tag_name)
     time.sleep(2)
-    pt2 = _get_rt_point(api, ctx.tag_name)
+    pt2 = get_rt_point(api, ctx.tag_name)
     assert pt1.get("tagValue") != pt2.get("tagValue"), "values should change after re-enable"
 
 
@@ -278,8 +261,8 @@ def test_repeat_disable(api, connected_changing_tag):
     ],
     expected=[
         "每次状态正确切换",
-        "禁用时 quality=0",
-        "启用时 quality 恢复",
+        "禁用时 RT 查询抛 TptAPIError",
+        "启用时 quality 恢复非0",
         "最终 alive=true",
     ],
 )
@@ -292,15 +275,13 @@ def test_multiple_start_stop_cycles(api, connected_changing_tag):
     for cycle in range(2):
         change_ds_state(api, ctx.ds_id, False)
         wait_until(f"off_{cycle}", lambda: not _is_alive(api, ctx.ds_id), timeout=30.0)
-        time.sleep(2)
-        pt = _get_rt_point(api, ctx.tag_name)
-        assert pt.get("quality", -1) == 0, f"cycle {cycle}: quality should be 0 when disabled"
+        assert_rt_unavailable(api, ctx.tag_name, timeout=10.0)
 
         change_ds_state(api, ctx.ds_id, True)
         wait_until(f"on_{cycle}", lambda: _is_alive(api, ctx.ds_id), timeout=60.0)
 
         def _q():
-            return _get_rt_point(api, ctx.tag_name).get("quality", 0) != 0
+            return get_rt_point(api, ctx.tag_name).get("quality", 0) != 0
 
         wait_until(f"q_{cycle}", _q, timeout=30.0)
 
