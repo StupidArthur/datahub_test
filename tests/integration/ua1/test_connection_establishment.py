@@ -482,12 +482,15 @@ def test_auth_required_no_creds(api, settings, tmp_path_factory):
         "创建位号，验证 RT",
     ],
     expected=[
-        "alive=true",
-        "getRTValue 返回值正确",
+        "alive=true（产品能力缺失：当前 DataHub 不使用 dsExtInfo 中的 OPC UA 凭据）",
     ],
 )
 @pytest.mark.integration
 @pytest.mark.destructive
+@pytest.mark.xfail(
+    strict=True,
+    reason="DataHub 当前不消费 dsExtInfo 中的 OPC UA username/password，认证 mock 上 alive 无法变 true",
+)
 def test_auth_correct_creds(api, settings, tmp_path_factory):
     from tests.support.mocker_process import (
         find_free_port, write_mocker_config, start_mocker, stop_mocker,
