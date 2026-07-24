@@ -6,7 +6,9 @@ package app
 
 import (
 	"log/slog"
+	"path/filepath"
 
+	"ua_test_gui/internal/adapters/nativepytest"
 	"ua_test_gui/internal/adapters/opcua"
 	"ua_test_gui/internal/adapters/pytestrunner"
 	"ua_test_gui/internal/adapters/pyworker"
@@ -15,6 +17,7 @@ import (
 	"ua_test_gui/internal/bindings"
 	"ua_test_gui/internal/env"
 	"ua_test_gui/internal/mock"
+	"ua_test_gui/internal/platform"
 	"ua_test_gui/internal/provision"
 	"ua_test_gui/internal/subject"
 	"ua_test_gui/internal/verify"
@@ -33,7 +36,9 @@ type Container struct {
 	store        *sqlite.Store
 	mockMgr      *pyworker.MockManager
 	runnerMgr    *pytestrunner.Manager
+	nativeMgr    *nativepytest.Manager
 	automation   *automation.Service
+	nativeSvc    *automation.NativeService
 }
 
 // NewContainer 装配所有依赖。
@@ -56,6 +61,7 @@ func NewContainer() *Container {
 
 	mockMgr := pyworker.NewMockManager(cfg.MockWorkDir, nil) // notifier 由 Startup 注入
 	runnerMgr := pytestrunner.NewManager()
+	nativeMgr := nativepytest.NewManager()
 
 	subjSvc := subject.NewService()
 	envSvc := env.NewService(subjSvc)
@@ -68,6 +74,24 @@ func NewContainer() *Container {
 	catalog := automation.Catalog{Version: 1}
 	autoSvc := automation.NewService(autoStore, runnerMgr, paths, catalog, cfg.PythonExe, cfg.WorkDir, nil)
 
+	// 原生 pytest 后端: 读取 docs/test_cases/case-manifest.json。
+	// 工作目录配置为仓库根目录(让 pytest 收集器找到 tests/)。
+	// 若 manifest 不存在, NativeService 留 nil;Wails bindings 仅返回空列表,
+	// 不影响 legacy 默认执行路径。
+	var nativeSvc *automation.NativeService
+	manifestPath := defaultManifestPath(cfg)
+	if platform.FileExists(manifestPath) {
+		adapter := automation.NewPytestRunnerAdapter(nativeMgr, cfg.PythonExe, cfg.WorkDir)
+		ns, nsErr := automation.NewNativeService(manifestPath, adapter)
+		if nsErr != nil {
+			slog.Warn("native pytest manifest load failed", "path", manifestPath, "err", nsErr)
+		} else {
+			nativeSvc = ns
+		}
+	} else {
+		slog.Info("native pytest manifest not found; legacy mode only", "path", manifestPath)
+	}
+
 	return &Container{
 		Subject:    bindings.NewSubjectBinding(subjSvc),
 		Env:        bindings.NewEnvBinding(envSvc, mockSvc),
@@ -75,10 +99,29 @@ func NewContainer() *Container {
 		Provision:  bindings.NewProvisionBinding(provSvc),
 		Verify:     bindings.NewVerifyBinding(verSvc),
 		History:    bindings.NewHistoryBinding(verSvc),
-		Automation: bindings.NewAutomationBinding(autoSvc),
+		Automation: bindings.NewAutomationBindingWithNative(autoSvc, nativeSvc),
 		store:      store,
 		mockMgr:    mockMgr,
 		runnerMgr:  runnerMgr,
+		nativeMgr:  nativeMgr,
 		automation: autoSvc,
+		nativeSvc:  nativeSvc,
 	}
+}
+
+// defaultManifestPath 推导 case-manifest.json 路径。
+//
+// 优先从当前进程工作目录的 docs/test_cases/case-manifest.json 加载;
+// 找不到则返回 <WorkDir>/docs/test_cases/case-manifest.json 作为兜底,
+// 由调用方再次 stat 决定是否使用。
+func defaultManifestPath(cfg Config) string {
+	// 工作目录在 Config.WorkDir 设置时通常是仓库根目录
+	if cfg.WorkDir != "" {
+		return filepath.Join(cfg.WorkDir, "docs", "test_cases", "case-manifest.json")
+	}
+	// 否则用当前进程工作目录
+	if cwd, err := filepath.Abs("."); err == nil {
+		return filepath.Join(cwd, "docs", "test_cases", "case-manifest.json")
+	}
+	return ""
 }
