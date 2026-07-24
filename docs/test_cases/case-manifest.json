@@ -321,6 +321,32 @@
       ]
     },
     {
+      "id": "UA-1-2-03",
+      "chapter": "UA-1-2",
+      "title": "禁用后历史不再增长",
+      "nodeid": "tests/integration/ua1/test_history_lifecycle.py::test_history_stops_after_disable",
+      "preconditions": [
+        "mock 配置 change=true；数据源 alive=true；采集稳定一段时间"
+      ],
+      "steps": [
+        "等待若干采集周期，确认历史基线 > 0",
+        "记录禁用动作时间 t_disable",
+        "change_ds_state(enabled=false)",
+        "等待 alive=false + DataHub 异步落库宽限期",
+        "记录稳定时间点 t_stable",
+        "在 [t_stable, t_stable + N] 窗口反复查询历史",
+        "期望：窗口内历史条数为 0 或不增长"
+      ],
+      "expected": [
+        "禁用之后历史窗口内不再有新采集点",
+        "已有历史保留"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
       "id": "UA-1-2-04",
       "chapter": "UA-1-2",
       "title": "重新启用已禁用数据源",
@@ -338,6 +364,30 @@
         "alive=true",
         "RT quality 恢复非0",
         "采集值恢复变化"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-1-2-05",
+      "chapter": "UA-1-2",
+      "title": "启用后历史恢复增长",
+      "nodeid": "tests/integration/ua1/test_history_lifecycle.py::test_history_resumes_after_enable",
+      "preconditions": [
+        "mock 配置 change=true；数据源已禁用；mock 仍在运行"
+      ],
+      "steps": [
+        "禁用数据源，等待离线稳定",
+        "记录重新启用动作时间 t_re_enable",
+        "change_ds_state(enabled=true)",
+        "等待 alive=true + RT quality 恢复",
+        "在 [t_re_enable, now] 窗口轮询历史",
+        "期望：新点开始出现"
+      ],
+      "expected": [
+        "启用之后历史窗口起点之后有新采集点"
       ],
       "markers": [
         "destructive",
