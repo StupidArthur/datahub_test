@@ -14,10 +14,10 @@ Real-environment observations (4th-phase validation):
   tests use ``is_source=True`` so silent-failure mode does not mask
   underlying issues.
 
-Each test sets up its own datasource, tag, and (for the local
-config) uses the existing default mocker at
-``opc.tcp://10.30.70.77:18960/ua_mocker/``. Each test sets up its own
-datasource and tag to avoid ordering dependencies.
+Each test sets up its own datasource, tag, and dynamic mocker; the
+endpoint host is taken from ``UA_MOCKER_ENDPOINT`` so DataHub can
+reach it. Each test sets up its own datasource and tag to avoid
+ordering dependencies.
 """
 from __future__ import annotations
 
@@ -60,8 +60,8 @@ def _setup_history_fixture(api, settings, tmp_path_factory, case_id: str) -> dic
     """Create a connected changing-tag datasource for history tests.
 
     Uses a free port and starts a private mocker per test so the case is
-    self-contained. Endpoint uses the host from
-    ``UA_MOCKER_ENDPOINT`` (default 10.30.70.77) so DataHub can reach it.
+    self-contained. Endpoint host is taken from ``UA_MOCKER_ENDPOINT``
+    so DataHub can reach the dev machine.
     """
     local_ip = (
         settings.mocker_endpoint.split("//")[1].split(":")[0]
