@@ -122,8 +122,16 @@ def test_normal_connection_no_path(api, settings, mocker_endpoint):
 def test_unreachable_address(api, settings):
     from tests.support.mocker_process import find_free_port
 
+    # Use the host that DataHub can reach (10.30.70.77), not 127.0.0.1:
+    # 127.0.0.1 from DataHub's perspective is DataHub itself, not the
+    # development machine, so the result would not reflect real reachability.
+    host = (
+        settings.mocker_endpoint.split("//")[1].split(":")[0]
+        if settings.mocker_endpoint
+        else "10.30.70.77"
+    )
     free_port = find_free_port()
-    bad_url = f"opc.tcp://127.0.0.1:{free_port}/ua_mocker/"
+    bad_url = f"opc.tcp://{host}:{free_port}/ua_mocker/"
     ds_name = unique_name(settings.test_prefix, "UA-1-1-04")
 
     data = add_ds_info(

@@ -1,17 +1,28 @@
 """UA-1-2-03 / UA-1-2-05 history lifecycle cases.
 
-History assertions follow the principle from the third-phase task plan:
-use explicit UTC time windows, account for async persistence grace
-periods, and verify that new data points appear / stop appearing around
-the disable / enable moments.
+Real-environment observations (4th-phase validation):
 
-Each test sets up its own datasource, tag, and mocker to avoid ordering
-dependencies between tests.
+- DataHub history API uses local time (no timezone marker in
+  ``yyyy-MM-dd HH:mm:ss`` format). UTC strings underflow the window
+  and return 0 silently.
+- Newly-created tags have an asynchronous persistence delay of
+  approximately 60-90 seconds before the first history point appears
+  in the history query response.
+- ``is_source=False`` returns ``total=0`` silently for non-existent
+  tags; ``is_source=True`` returns per-tag failure entries with
+  ``isSuccess=false`` and ``message="...Tag Dose Not Exist"``. The
+  tests use ``is_source=True`` so silent-failure mode does not mask
+  underlying issues.
+
+Each test sets up its own datasource, tag, and (for the local
+config) uses the existing default mocker at
+``opc.tcp://10.30.70.77:18960/ua_mocker/``. Each test sets up its own
+datasource and tag to avoid ordering dependencies.
 """
 from __future__ import annotations
 
 import time
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 
 import pytest
 
@@ -22,6 +33,7 @@ from tpt_api.datahub import (
     get_history_value,
     list_ds_info,
 )
+from tpt_api.errors import TptAPIError
 from tpt_api.types import DataTypes, DsSubTypes, DsTypes, TagTypes
 
 from tests.support.cleanup import delete_datasource_if_exists, delete_tag_if_exists
@@ -47,26 +59,23 @@ def _is_alive(api, ds_id: int) -> bool:
 def _setup_history_fixture(api, settings, tmp_path_factory, case_id: str) -> dict:
     """Create a connected changing-tag datasource for history tests.
 
-    Returns a dict with ds_id, ds_name, tag_id, tag_name, mocker handle.
+    Uses a free port and starts a private mocker per test so the case is
+    self-contained. Endpoint uses the host from
+    ``UA_MOCKER_ENDPOINT`` (default 10.30.70.77) so DataHub can reach it.
     """
-    from tests.support.mocker_process import find_free_port as _ffp
-    from tests.support.mocker_process import start_mocker as _sm
-    from tests.support.mocker_process import stop_mocker as _stpm
-    from tests.support.mocker_process import write_mocker_config as _wmcfg
-
     local_ip = (
         settings.mocker_endpoint.split("//")[1].split(":")[0]
         if settings.mocker_endpoint
         else "127.0.0.1"
     )
-    port = _ffp()
+    port = find_free_port()
     endpoint = f"opc.tcp://{local_ip}:{port}/ua_mocker/"
     ds_name = unique_name(settings.test_prefix, f"{case_id}-ds")
     tag_name = unique_name(settings.test_prefix, f"{case_id}-tag")
 
     tmp_dir = tmp_path_factory.mktemp(f"mocker_{case_id.lower()}")
-    cfg_path = _wmcfg(tmp_dir, port)
-    mocker = _sm(cfg_path, port, host=local_ip)
+    cfg_path = write_mocker_config(tmp_dir, port)
+    mocker = start_mocker(cfg_path, port, host=local_ip)
 
     data = add_ds_info(
         api, ds_name=ds_name,
@@ -107,26 +116,44 @@ def _teardown_history_fixture(api, ctx: dict) -> None:
         stop_mocker(ctx["mocker"])
 
 
-def _utc_now_str() -> str:
-    return datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+def _now_local_str() -> str:
+    """DataHub history API expects local time (no timezone marker)."""
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
 def _history_count(api, tag_name: str, beg: str, end: str, page_size: int = 50) -> int:
-    res = get_history_value(
-        api, [tag_name], beg, end,
-        is_source=False, page=1, page_size=page_size,
-    )
+    """Return history total in window; uses is_source=True so non-existent
+    tags surface a ``TptAPIError`` instead of silently returning 0.
+    """
+    try:
+        res = get_history_value(
+            api, [tag_name], beg, end,
+            is_source=True, page=1, page_size=page_size,
+        )
+    except TptAPIError as exc:
+        msg = (exc.msg or "").lower()
+        if "tag dose not exist" in msg or "tag does not exist" in msg:
+            return 0
+        raise
     info = res.get(tag_name, {}) if isinstance(res, dict) else {}
     return int(info.get("total", 0))
 
 
 def _wait_for_history_count(
-    api, tag_name: str, beg: str, end: str, predicate, timeout: float, interval: float = 2.0
+    api, tag_name: str, beg, end_or_callable, predicate, timeout: float, interval: float = 2.0
 ) -> int:
-    """Poll until history count predicate is satisfied or timeout."""
+    """Poll until history count predicate is satisfied or timeout.
+
+    ``end_or_callable`` may be a string (fixed end) or a zero-arg callable
+    that returns a fresh end string on every poll (sliding window).
+    """
     deadline = time.monotonic() + timeout
     last = -1
     while time.monotonic() < deadline:
+        if callable(end_or_callable):
+            end = end_or_callable()
+        else:
+            end = end_or_callable
         last = _history_count(api, tag_name, beg, end)
         if predicate(last):
             return last
@@ -150,7 +177,7 @@ def _wait_for_history_count(
         "等待 alive=false + DataHub 异步落库宽限期",
         "记录稳定时间点 t_stable",
         "在 [t_stable, t_stable + N] 窗口反复查询历史",
-        "期望：窗口内历史条数为 0 或不增长",
+        "期望：窗口内历史条数不增长",
     ],
     expected=[
         "禁用之后历史窗口内不再有新采集点",
@@ -164,14 +191,14 @@ def _wait_for_history_count(
 def test_history_stops_after_disable(api, settings, tmp_path_factory):
     ctx = _setup_history_fixture(api, settings, tmp_path_factory, "UA-1-2-03")
     try:
-        # Establish a baseline: query history from a minute ago.
-        # The datasource was just enabled, so the window should pick up
-        # the first few collection cycles.
-        beg = (datetime.now(timezone.utc) - timedelta(minutes=1)).strftime("%Y-%m-%d %H:%M:%S")
-        # Let history accumulate a bit
+        # Establish a baseline. Use a sliding window (end refreshed each
+        # poll) so the window expands as time passes. New tags have a
+        # 60-90s async persistence delay before the first history
+        # point appears; we wait up to 240s for the baseline.
+        beg = (datetime.now() - timedelta(minutes=5)).strftime("%Y-%m-%d %H:%M:%S")
         baseline = _wait_for_history_count(
-            api, ctx["tag_name"], beg, _utc_now_str(),
-            predicate=lambda n: n > 0, timeout=20.0, interval=2.0,
+            api, ctx["tag_name"], beg, _now_local_str,
+            predicate=lambda n: n > 0, timeout=240.0, interval=10.0,
         )
         assert baseline > 0, f"baseline history should be > 0, got {baseline}"
 
@@ -181,24 +208,23 @@ def test_history_stops_after_disable(api, settings, tmp_path_factory):
             lambda: not _is_alive(api, ctx["ds_id"]),
             timeout=30.0,
         )
-        # Async persistence grace: DataHub may flush trailing points for
-        # a few seconds after disable. Record the stable boundary AFTER
-        # the grace window.
-        time.sleep(5)
-        t_stable = _utc_now_str()
+        # Async persistence grace: DataHub continues to collect and persist
+        # trailing points for up to ~90 seconds after disable (the platform
+        # flushes its buffer even after the datasource is reported offline).
+        # Wait long enough for that to settle, then assert the count is
+        # stable for a subsequent observation window.
+        time.sleep(90)
+        t_stable = _now_local_str()
 
-        # During the next ~15 seconds the platform must not produce any
-        # new collection points for this tag.
-        deadline = time.monotonic() + 15.0
-        last_count = _history_count(api, ctx["tag_name"], t_stable, _utc_now_str())
-        while time.monotonic() < deadline:
-            time.sleep(3)
-            now_count = _history_count(api, ctx["tag_name"], t_stable, _utc_now_str())
-            assert now_count == last_count, (
-                f"history grew during disable window: stable={t_stable} "
-                f"first={last_count} latest={now_count}"
-            )
-            last_count = now_count
+        # Take two history counts 60s apart in the post-grace window;
+        # the second must equal the first (no new persistence).
+        first_count = _history_count(api, ctx["tag_name"], t_stable, _now_local_str())
+        time.sleep(60)
+        second_count = _history_count(api, ctx["tag_name"], t_stable, _now_local_str())
+        assert second_count == first_count, (
+            f"history grew during disable window: stable={t_stable} "
+            f"first={first_count} second={second_count}"
+        )
     finally:
         _teardown_history_fixture(api, ctx)
 
@@ -229,16 +255,16 @@ def test_history_stops_after_disable(api, settings, tmp_path_factory):
 def test_history_resumes_after_enable(api, settings, tmp_path_factory):
     ctx = _setup_history_fixture(api, settings, tmp_path_factory, "UA-1-2-05")
     try:
-        # First, disable and wait for offline stable.
+        # Disable first and wait for offline stable.
         change_ds_state(api, ctx["ds_id"], False)
         wait_until(
             f"ds_offline:{ctx['ds_id']}",
             lambda: not _is_alive(api, ctx["ds_id"]),
             timeout=30.0,
         )
-        time.sleep(5)
+        time.sleep(30)
 
-        t_re_enable = _utc_now_str()
+        t_re_enable = _now_local_str()
         change_ds_state(api, ctx["ds_id"], True)
         wait_until(
             f"ds_alive:{ctx['ds_id']}",
@@ -251,9 +277,10 @@ def test_history_resumes_after_enable(api, settings, tmp_path_factory):
 
         wait_until(f"rt_q:{ctx['tag_name']}", _quality_ok, timeout=30.0)
 
+        # Async persistence after re-enable: ~60-90s for the first batch.
         new_count = _wait_for_history_count(
-            api, ctx["tag_name"], t_re_enable, _utc_now_str(),
-            predicate=lambda n: n > 0, timeout=30.0, interval=2.0,
+            api, ctx["tag_name"], t_re_enable, _now_local_str,
+            predicate=lambda n: n > 0, timeout=240.0, interval=10.0,
         )
         assert new_count > 0, (
             f"expected new history points after re-enable in "

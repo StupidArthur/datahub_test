@@ -29,6 +29,7 @@ from tpt_api.datahub import (
     change_ds_state,
     list_ds_info,
 )
+from tpt_api.errors import TptAPIError
 from tpt_api.types import DataTypes, DsSubTypes, DsTypes, TagTypes
 
 from tests.support.cleanup import delete_datasource_if_exists, delete_tag_if_exists
@@ -111,8 +112,13 @@ def _teardown(api, ctx: dict) -> None:
 
 
 def _restart_mocker(ctx: dict, tmp_path_factory) -> None:
-    """Restart the mocker on the same port; keep ds/tag intact."""
-    stop_mocker(ctx["mocker"])
+    """Restart the mocker on the same port; keep ds/tag intact.
+
+    If ``ctx["mocker"]`` is a live handle, stop it first. If it has
+    already been stopped and set to ``None``, skip the stop call.
+    """
+    if ctx.get("mocker") is not None:
+        stop_mocker(ctx["mocker"])
     ctx["mocker"] = None
     tmp_dir = tmp_path_factory.mktemp(f"restart_{ctx['case_id'].lower()}")
     cfg_path = write_mocker_config(tmp_dir, ctx["port"])
@@ -155,13 +161,21 @@ def _wait_for_rt_unavailable(api, tag_name: str, timeout: float = 30.0) -> float
 
 
 def _wait_for_rt_ok(api, tag_name: str, timeout: float = 30.0) -> float:
-    """Poll RT read until good quality; return elapsed seconds."""
+    """Poll RT read until good quality; return elapsed seconds.
+
+    Tolerates transient TptAPIError (e.g. ``Tag Dose Not Exist``) right
+    after an OPC UA server restart: the tag can briefly disappear from
+    DataHub's index as the datasource re-subscribes.
+    """
     deadline = time.monotonic() + timeout
     start = time.monotonic()
     while time.monotonic() < deadline:
-        pt = get_rt_point(api, tag_name)
-        if pt.get("tagValue") is not None and pt.get("quality", 0) != 0:
-            return time.monotonic() - start
+        try:
+            pt = get_rt_point(api, tag_name)
+            if pt.get("tagValue") is not None and pt.get("quality", 0) != 0:
+                return time.monotonic() - start
+        except TptAPIError:
+            pass
         time.sleep(0.5)
     raise AssertionError(
         f"RT for {tag_name} did not return good value within {timeout}s"
@@ -287,9 +301,36 @@ def test_short_disconnect_recovery(api, settings, tmp_path_factory):
         _wait_for_alive_true(api, ctx["ds_id"], timeout=60.0)
         _wait_for_rt_ok(api, ctx["tag_name"], timeout=60.0)
 
-        pt1 = get_rt_point(api, ctx["tag_name"])
+        # After the OPC UA server restart there can be a brief window
+        # where the tag momentarily disappears from DataHub's index as
+        # the datasource re-subscribes. Read in a tight retry loop and
+        # verify the value changes between two good reads.
+        deadline = time.monotonic() + 30.0
+        pt1 = None
+        while time.monotonic() < deadline:
+            try:
+                pt1 = get_rt_point(api, ctx["tag_name"])
+                if pt1.get("tagValue") is not None:
+                    break
+            except TptAPIError:
+                pass
+            time.sleep(0.5)
+        assert pt1 is not None and pt1.get("tagValue") is not None, (
+            f"RT for {ctx['tag_name']} never recovered within 30s"
+        )
         time.sleep(2)
-        pt2 = get_rt_point(api, ctx["tag_name"])
+        pt2 = None
+        while time.monotonic() < deadline:
+            try:
+                pt2 = get_rt_point(api, ctx["tag_name"])
+                if pt2.get("tagValue") is not None:
+                    break
+            except TptAPIError:
+                pass
+            time.sleep(0.5)
+        assert pt2 is not None and pt2.get("tagValue") is not None, (
+            f"RT second read for {ctx['tag_name']} failed"
+        )
         assert pt1.get("tagValue") != pt2.get("tagValue"), "values should change after short recovery"
     finally:
         _teardown(api, ctx)
@@ -335,9 +376,33 @@ def test_long_disconnect_recovery(api, settings, tmp_path_factory):
         _wait_for_alive_true(api, ctx["ds_id"], timeout=120.0)
         _wait_for_rt_ok(api, ctx["tag_name"], timeout=120.0)
 
-        pt1 = get_rt_point(api, ctx["tag_name"])
+        # See test_short_disconnect_recovery for the retry rationale.
+        deadline = time.monotonic() + 30.0
+        pt1 = None
+        while time.monotonic() < deadline:
+            try:
+                pt1 = get_rt_point(api, ctx["tag_name"])
+                if pt1.get("tagValue") is not None:
+                    break
+            except TptAPIError:
+                pass
+            time.sleep(0.5)
+        assert pt1 is not None and pt1.get("tagValue") is not None, (
+            f"RT for {ctx['tag_name']} never recovered within 30s"
+        )
         time.sleep(2)
-        pt2 = get_rt_point(api, ctx["tag_name"])
+        pt2 = None
+        while time.monotonic() < deadline:
+            try:
+                pt2 = get_rt_point(api, ctx["tag_name"])
+                if pt2.get("tagValue") is not None:
+                    break
+            except TptAPIError:
+                pass
+            time.sleep(0.5)
+        assert pt2 is not None and pt2.get("tagValue") is not None, (
+            f"RT second read for {ctx['tag_name']} failed"
+        )
         assert pt1.get("tagValue") != pt2.get("tagValue"), "values should change after long recovery"
     finally:
         _teardown(api, ctx)
