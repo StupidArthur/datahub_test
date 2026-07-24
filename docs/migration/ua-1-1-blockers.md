@@ -28,6 +28,7 @@
   2. 创建 datasource 时传 `ds_ext_info={"username":"u1","password":"p1"}`
   3. DataHub 成功存储 dsExtInfo 但连接未成功
 - **代码状态**: 测试以 `pytest.mark.xfail(strict=True, ...)` 标记；strict 确保 DataHub 一旦支持就立即转为失败以便审查
+- **4th phase 真实环境验证 (2026-07-24)**: 在真实 DataHub 上运行确认 XFAIL 状态；DataHub 接受 `ds_ext_info` 但 60s 内未变 alive；标记与观察一致
 - **后续建议**:
   - 等待 DataHub 平台支持 OPC UA datasource 认证
   - 一旦支持，按真实字段名调整 `tpt_api.add_ds_info` 的 `ds_ext_info` schema，并增加 MockTransport 单元测试覆盖凭据 payload

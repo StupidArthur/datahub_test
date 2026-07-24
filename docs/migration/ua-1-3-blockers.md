@@ -1,6 +1,6 @@
 # UA-1-3 Migration Blockers
 
-## Migrated cases (4/8)
+## Migrated cases (4/8) — all PASS in real-environment validation (4th phase)
 
 The following cases have a working pytest implementation in
 `tests/integration/ua1/test_recovery_and_reconnect.py`:

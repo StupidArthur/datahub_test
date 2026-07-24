@@ -6,10 +6,11 @@ to understand the precise assertion changes during migration and the
 real product behavior observed.
 
 Status legend:
-- PASS: case ran successfully against the real DataHub in past sessions
+- PASS: case ran successfully against the real DataHub
 - OBSERVED: case ran but assertion was weak / not verified
 - BLOCKED: case cannot be migrated due to product capability gap
-- PENDING: case not yet run against real DataHub
+- XFAIL: case marked `pytest.mark.xfail(strict=True)` per phase-3 review
+- PENDING: case not yet run against real DataHub (4th phase complete: 0 PENDING)
 
 Cleanup: every Case in this document includes a cleanup row. All
 cleanup paths in pytest-native form trace to
@@ -34,7 +35,7 @@ else.
   - DS + tag + tag-id cleanup with `delete_datasource_if_exists` /
     `delete_tag_if_exists`
 - Old result: PASS (only alive verified)
-- New result: PENDING (offline-clean / ready for real env)
+- New result: PASS (real env, 4th phase; see `real-environment-validation.md`)
 - Cleanup result: helper updated to ignore only "not exist"; other errors propagate
 - Differences: old handler stopped at alive=true; new handler verifies the full
   chain (alive, RT value, RT quality) and physical cleanup
@@ -47,7 +48,7 @@ else.
 - Old assertion: alive=true
 - New assertion: alive=true + RT value not None + cleanup
 - Old result: PASS (only alive)
-- New result: PENDING
+- New result: PASS (real env, 4th phase)
 - Cleanup result: ok
 - Differences: path format is now derived via `parse_mocker_endpoint`
   so the URL `opc.tcp://host:port/ua_mocker/` is built from the
@@ -63,7 +64,7 @@ else.
 - New assertion: both ds alive=true + each tag has RT value (independent
   collection)
 - Old result: PASS
-- New result: PENDING
+- New result: PASS (real env, 4th phase)
 - Cleanup result: both ds + both tags cleaned
 - Differences: stronger independence check via per-ds tag RT
 
@@ -76,7 +77,7 @@ else.
 - New assertion: free-port dynamic probe; ds stays offline for 30s
   window; no `try/except AssertionError`
 - Old result: PASS (with hard-coded port 1)
-- New result: PENDING (port dynamically chosen; theoretically safer but
+- New result: PASS (real env, 4th phase) (port dynamically chosen; theoretically safer but
   not 100% guaranteed free)
 - Cleanup result: ok
 - Differences: dynamic port + longer observation window; hard-coded
@@ -96,7 +97,7 @@ else.
   - alive becomes true
   - tag RT appears
 - Old result: OBSERVED (case does not actually test recovery)
-- New result: PENDING
+- New result: PASS (real env, 4th phase)
 - Cleanup result: ok
 - Differences: faithful to spec; mocker start is explicit at test function level
 
@@ -110,7 +111,7 @@ else.
 - New assertion: enable with auth mocker + no creds → ds stays offline
   for 10s
 - Old result: PASS (mock had no auth)
-- New result: PENDING (mock has real UserNameIdentityToken auth now)
+- New result: PASS (real env, 4th phase) (mock has real UserNameIdentityToken auth now)
 - Cleanup result: ok
 - Differences: real auth backend; must observe whether DataHub's OPC UA
   client honors the server's auth challenge
@@ -136,7 +137,7 @@ else.
 - New assertion: extra creds on unauthenticated endpoint → ds alive=true
   + RT works
 - Old result: PASS
-- New result: PENDING
+- New result: PASS (real env, 4th phase)
 - Cleanup result: ok
 - Differences: real unauth mocker; verifies creds don't break anonymous
   connection
@@ -148,7 +149,7 @@ else.
 - New nodeid: `tests/integration/ua1/test_connection_establishment.py::test_quality_default`
 - New assertion: RT quality == 192 (observed product default)
 - Old result: OBSERVED
-- New result: PENDING
+- New result: PASS (real env, 4th phase)
 - Cleanup result: ok
 - Differences: explicit quality assertion; risk: `goodQualityCode` field
   name also exists in legacy code (see UA-1-1-10)
@@ -162,7 +163,7 @@ else.
 - New assertion: payload includes `dsExtInfo.goodQuality="192"`; RT
   quality == 192
 - Old result: OBSERVED
-- New result: PENDING
+- New result: PASS (real env, 4th phase)
 - Cleanup result: ok
 - Differences: explicit payload + RT quality check; note both
   `goodQuality` and `goodQualityCode` field names (see blockers)
@@ -175,7 +176,7 @@ else.
 - New assertion: payload includes `dsExtInfo.goodQuality="0"`; RT has a
   value (quality interpretation left to DataHub)
 - Old result: OBSERVED
-- New result: PENDING
+- New result: PASS (real env, 4th phase)
 - Cleanup result: ok
 - Differences: explicit "value present" assertion; avoids Python
   truthiness treating 0 as unset
@@ -188,7 +189,7 @@ else.
 - New assertion: `pytest.raises(TptAPIError)` + `code == "A0001"` +
   msg contains "duplicate"
 - Old result: PASS
-- New result: PENDING
+- New result: PASS (real env, 4th phase)
 - Cleanup result: helper-driven
 - Differences: structured error code assertion instead of
   `try/except Exception`
@@ -208,7 +209,7 @@ else.
   - alive becomes false
   - RT read raises `TptAPIError` (no fake data) — `assert_rt_unavailable`
 - Old result: N/A
-- New result: PENDING
+- New result: PASS (real env, 4th phase)
 - Cleanup result: module-scoped `connected_changing_tag` fixture cleans
   tag, ds, mocker
 - Differences: spec said "RT quality 降级为 0"; real behavior is
@@ -223,7 +224,7 @@ else.
 - New assertion: `assert_rt_unavailable(api, ctx.tag_name)` (must throw
   TptAPIError)
 - Old result: N/A
-- New result: PENDING
+- New result: PASS (real env, 4th phase)
 - Cleanup result: ok
 - Differences: previous helper swallowed the error and returned a fake
   object. That was fixed in `tests/support/rt_helpers.py` to expose
@@ -240,7 +241,7 @@ else.
   - disable, wait alive=false + 5s grace
   - in [t_stable, t_stable+15s] window, history count does not grow
 - Old result: N/A
-- New result: PENDING
+- New result: PASS (real env, 4th phase)
 - Cleanup result: helper-driven
 - Differences: poll-based comparison instead of single `query_history`
   total read
@@ -253,7 +254,7 @@ else.
 - New assertion: alive=true after re-enable + RT quality != 0 + values
   change across 2 reads
 - Old result: N/A
-- New result: PENDING
+- New result: PASS (real env, 4th phase)
 - Cleanup result: module-scoped fixture cleanup
 
 ### UA-1-2-05 启用后历史恢复增长
@@ -267,7 +268,7 @@ else.
   - enable, wait alive=true + RT quality restored
   - in [t_re_enable, now] window, history count > 0
 - Old result: N/A
-- New result: PENDING
+- New result: PASS (real env, 4th phase)
 - Cleanup result: helper-driven
 
 ### UA-1-2-06 重复启用
