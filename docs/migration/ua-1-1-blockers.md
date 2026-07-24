@@ -28,6 +28,7 @@
   2. 创建 datasource 时传 `ds_ext_info={"username":"u1","password":"p1"}`
   3. DataHub 成功存储 dsExtInfo 但连接未成功
 - **代码状态**: 测试以 `pytest.mark.xfail(strict=True, ...)` 标记；strict 确保 DataHub 一旦支持就立即转为失败以便审查
+  - xfail **不会** 跳过 Python 的 `finally` 块；当 `wait_until` 在 `try` 中抛 `WaitTimeout` 触发 XFAIL 后，测试仍会进入 `finally` 路径（disable datasource、delete datasource、delete tag、stop mocker）。定向回归（5th phase）已确认 0 残留
 - **4th phase 真实环境验证 (2026-07-24)**: 在真实 DataHub 上运行确认 XFAIL 状态；DataHub 接受 `ds_ext_info` 但 60s 内未变 alive；标记与观察一致
 - **后续建议**:
   - 等待 DataHub 平台支持 OPC UA datasource 认证

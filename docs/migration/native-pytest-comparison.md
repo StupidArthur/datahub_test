@@ -126,7 +126,9 @@ else.
   `@pytest.mark.xfail(strict=True, ...)`
 - Old result: OBSERVED
 - New result: BLOCKED (xfail strict)
-- Cleanup result: helper-driven; the case fails before reaching cleanup
+- Cleanup result: finally 已执行；datasource、tag 和动态 mocker 无残留
+  (xfail 不会跳过 Python `finally` 块；wait_until 抛 `WaitTimeout`
+  触发 XFAIL 后，测试继续进入 `try/finally` 清理路径)
 - Differences: see `docs/migration/ua-1-1-blockers.md`
 
 ### UA-1-1-08 数据源无鉴权，配了凭据

@@ -37,20 +37,20 @@ class ConnectedChangingTag:
 
 
 @pytest.fixture(scope="module")
-def connected_changing_tag(api, settings, tmp_path_factory):
+def connected_changing_tag(api, mocker_endpoint, settings, tmp_path_factory):
     from tests.support.mocker_process import (
         find_free_port, write_mocker_config, start_mocker, stop_mocker,
     )
 
-    local_ip = settings.mocker_endpoint.split("//")[1].split(":")[0] if settings.mocker_endpoint else "127.0.0.1"
+    parsed = parse_mocker_endpoint(mocker_endpoint)
     port = find_free_port()
-    endpoint = f"opc.tcp://{local_ip}:{port}/ua_mocker/"
+    endpoint = f"opc.tcp://{parsed.host}:{port}/ua_mocker/"
     ds_name = unique_name(settings.test_prefix, "UA-1-2")
     tag_name = unique_name(settings.test_prefix, "UA-1-2-tag")
 
     tmp_dir = tmp_path_factory.mktemp("mocker_ua12")
     cfg_path = write_mocker_config(tmp_dir, port)
-    mocker = start_mocker(cfg_path, port, host=local_ip)
+    mocker = start_mocker(cfg_path, port, host=parsed.host)
 
     data = add_ds_info(
         api, ds_name=ds_name,

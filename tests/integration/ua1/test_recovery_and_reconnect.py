@@ -33,6 +33,7 @@ from tpt_api.errors import TptAPIError
 from tpt_api.types import DataTypes, DsSubTypes, DsTypes, TagTypes
 
 from tests.support.cleanup import delete_datasource_if_exists, delete_tag_if_exists
+from tests.support.endpoints import parse_mocker_endpoint
 from tests.support.mocker_process import (
     find_free_port,
     start_mocker,
@@ -52,21 +53,17 @@ def _is_alive(api, ds_id: int) -> bool:
     return False
 
 
-def _setup_recovery(api, settings, tmp_path_factory, case_id: str) -> dict:
+def _setup_recovery(api, mocker_endpoint, settings, tmp_path_factory, case_id: str) -> dict:
     """Create datasource + tag + mocker on a free port; return context."""
-    local_ip = (
-        settings.mocker_endpoint.split("//")[1].split(":")[0]
-        if settings.mocker_endpoint
-        else "127.0.0.1"
-    )
+    parsed = parse_mocker_endpoint(mocker_endpoint)
     port = find_free_port()
-    endpoint = f"opc.tcp://{local_ip}:{port}/ua_mocker/"
+    endpoint = f"opc.tcp://{parsed.host}:{port}/ua_mocker/"
     ds_name = unique_name(settings.test_prefix, f"{case_id}-ds")
     tag_name = unique_name(settings.test_prefix, f"{case_id}-tag")
 
     tmp_dir = tmp_path_factory.mktemp(f"mocker_{case_id.lower()}")
     cfg_path = write_mocker_config(tmp_dir, port)
-    mocker = start_mocker(cfg_path, port, host=local_ip)
+    mocker = start_mocker(cfg_path, port, host=parsed.host)
 
     data = add_ds_info(
         api, ds_name=ds_name,
@@ -93,7 +90,7 @@ def _setup_recovery(api, settings, tmp_path_factory, case_id: str) -> dict:
     return {
         "ds_id": ds_id, "ds_name": ds_name,
         "tag_id": tag_id, "tag_name": tag_name,
-        "mocker": mocker, "port": port, "local_ip": local_ip,
+        "mocker": mocker, "port": port, "host": parsed.host,
         "endpoint": endpoint, "case_id": case_id,
     }
 
@@ -122,7 +119,7 @@ def _restart_mocker(ctx: dict, tmp_path_factory) -> None:
     ctx["mocker"] = None
     tmp_dir = tmp_path_factory.mktemp(f"restart_{ctx['case_id'].lower()}")
     cfg_path = write_mocker_config(tmp_dir, ctx["port"])
-    ctx["mocker"] = start_mocker(cfg_path, ctx["port"], host=ctx["local_ip"])
+    ctx["mocker"] = start_mocker(cfg_path, ctx["port"], host=ctx["host"])
 
 
 def _wait_for_alive_false(api, ds_id: int, timeout: float, interval: float = 1.0) -> float:
@@ -204,8 +201,8 @@ def _wait_for_rt_ok(api, tag_name: str, timeout: float = 30.0) -> float:
 @pytest.mark.integration
 @pytest.mark.destructive
 @pytest.mark.slow
-def test_disconnect_detection_latency(api, settings, tmp_path_factory):
-    ctx = _setup_recovery(api, settings, tmp_path_factory, "UA-1-3-01")
+def test_disconnect_detection_latency(api, settings, tmp_path_factory, mocker_endpoint):
+    ctx = _setup_recovery(api, mocker_endpoint, settings, tmp_path_factory, "UA-1-3-01")
     try:
         pt1 = get_rt_point(api, ctx["tag_name"])
         time.sleep(2)
@@ -246,8 +243,8 @@ def test_disconnect_detection_latency(api, settings, tmp_path_factory):
 @pytest.mark.integration
 @pytest.mark.destructive
 @pytest.mark.slow
-def test_reconnect_recovery_latency(api, settings, tmp_path_factory):
-    ctx = _setup_recovery(api, settings, tmp_path_factory, "UA-1-3-02")
+def test_reconnect_recovery_latency(api, settings, tmp_path_factory, mocker_endpoint):
+    ctx = _setup_recovery(api, mocker_endpoint, settings, tmp_path_factory, "UA-1-3-02")
     try:
         # Disconnect first
         stop_mocker(ctx["mocker"])
@@ -293,8 +290,8 @@ def test_reconnect_recovery_latency(api, settings, tmp_path_factory):
 )
 @pytest.mark.integration
 @pytest.mark.destructive
-def test_short_disconnect_recovery(api, settings, tmp_path_factory):
-    ctx = _setup_recovery(api, settings, tmp_path_factory, "UA-1-3-06")
+def test_short_disconnect_recovery(api, settings, tmp_path_factory, mocker_endpoint):
+    ctx = _setup_recovery(api, mocker_endpoint, settings, tmp_path_factory, "UA-1-3-06")
     try:
         _restart_mocker(ctx, tmp_path_factory)
 
@@ -358,8 +355,8 @@ def test_short_disconnect_recovery(api, settings, tmp_path_factory):
 @pytest.mark.integration
 @pytest.mark.destructive
 @pytest.mark.slow
-def test_long_disconnect_recovery(api, settings, tmp_path_factory):
-    ctx = _setup_recovery(api, settings, tmp_path_factory, "UA-1-3-07")
+def test_long_disconnect_recovery(api, settings, tmp_path_factory, mocker_endpoint):
+    ctx = _setup_recovery(api, mocker_endpoint, settings, tmp_path_factory, "UA-1-3-07")
     try:
         stop_mocker(ctx["mocker"])
         ctx["mocker"] = None

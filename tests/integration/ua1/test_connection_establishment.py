@@ -119,22 +119,12 @@ def test_normal_connection_no_path(api, settings, mocker_endpoint):
 )
 @pytest.mark.integration
 @pytest.mark.destructive
-def test_unreachable_address(api, settings):
+def test_unreachable_address(api, settings, mocker_endpoint):
     from tests.support.mocker_process import find_free_port
 
-    # Use the host that DataHub can reach, not 127.0.0.1:
-    # 127.0.0.1 from DataHub's perspective is DataHub itself, not the
-    # development machine, so the result would not reflect real reachability.
-    # The actual reachable host is read from UA_MOCKER_ENDPOINT; the
-    # fallback here is the development-machine IP and is only used when
-    # that env var is unset.
-    host = (
-        settings.mocker_endpoint.split("//")[1].split(":")[0]
-        if settings.mocker_endpoint
-        else "10.30.70.77"
-    )
+    parsed = parse_mocker_endpoint(mocker_endpoint)
     free_port = find_free_port()
-    bad_url = f"opc.tcp://{host}:{free_port}/ua_mocker/"
+    bad_url = f"opc.tcp://{parsed.host}:{free_port}/ua_mocker/"
     ds_name = unique_name(settings.test_prefix, "UA-1-1-04")
 
     data = add_ds_info(
@@ -375,14 +365,14 @@ def test_two_url_formats(api, settings, mocker_endpoint):
 )
 @pytest.mark.integration
 @pytest.mark.destructive
-def test_offline_to_online(api, settings, tmp_path_factory):
+def test_offline_to_online(api, settings, tmp_path_factory, mocker_endpoint):
     from tests.support.mocker_process import (
         find_free_port, write_mocker_config, start_mocker, stop_mocker,
     )
 
-    local_ip = settings.mocker_endpoint.split("//")[1].split(":")[0] if settings.mocker_endpoint else "127.0.0.1"
+    parsed = parse_mocker_endpoint(mocker_endpoint)
     port = find_free_port()
-    endpoint = f"opc.tcp://{local_ip}:{port}/ua_mocker/"
+    endpoint = f"opc.tcp://{parsed.host}:{port}/ua_mocker/"
     ds_name = unique_name(settings.test_prefix, "UA-1-1-05")
     tag_name = unique_name(settings.test_prefix, "UA-1-1-05-tag")
 
@@ -403,7 +393,7 @@ def test_offline_to_online(api, settings, tmp_path_factory):
 
         tmp_dir = tmp_path_factory.mktemp("mocker_ua1105")
         cfg_path = write_mocker_config(tmp_dir, port)
-        mocker = start_mocker(cfg_path, port, host=local_ip)
+        mocker = start_mocker(cfg_path, port, host=parsed.host)
 
         wait_until(f"ds_alive:{ds_id}", lambda: _is_alive(api, ds_id), timeout=90.0)
 
@@ -447,19 +437,19 @@ def test_offline_to_online(api, settings, tmp_path_factory):
 )
 @pytest.mark.integration
 @pytest.mark.destructive
-def test_auth_required_no_creds(api, settings, tmp_path_factory):
+def test_auth_required_no_creds(api, settings, tmp_path_factory, mocker_endpoint):
     from tests.support.mocker_process import (
         find_free_port, write_mocker_config, start_mocker, stop_mocker,
     )
 
-    local_ip = settings.mocker_endpoint.split("//")[1].split(":")[0] if settings.mocker_endpoint else "127.0.0.1"
+    parsed = parse_mocker_endpoint(mocker_endpoint)
     port = find_free_port()
-    endpoint = f"opc.tcp://{local_ip}:{port}/ua_mocker/"
+    endpoint = f"opc.tcp://{parsed.host}:{port}/ua_mocker/"
     ds_name = unique_name(settings.test_prefix, "UA-1-1-06")
 
     tmp_dir = tmp_path_factory.mktemp("mocker_ua1106")
     cfg_path = write_mocker_config(tmp_dir, port, auth={"enabled": True, "username": "u1", "password": "p1"})
-    mocker = start_mocker(cfg_path, port, host=local_ip)
+    mocker = start_mocker(cfg_path, port, host=parsed.host)
 
     data = add_ds_info(
         api, ds_name=ds_name,
@@ -502,20 +492,20 @@ def test_auth_required_no_creds(api, settings, tmp_path_factory):
     strict=True,
     reason="DataHub 当前不消费 dsExtInfo 中的 OPC UA username/password，认证 mock 上 alive 无法变 true",
 )
-def test_auth_correct_creds(api, settings, tmp_path_factory):
+def test_auth_correct_creds(api, settings, tmp_path_factory, mocker_endpoint):
     from tests.support.mocker_process import (
         find_free_port, write_mocker_config, start_mocker, stop_mocker,
     )
 
-    local_ip = settings.mocker_endpoint.split("//")[1].split(":")[0] if settings.mocker_endpoint else "127.0.0.1"
+    parsed = parse_mocker_endpoint(mocker_endpoint)
     port = find_free_port()
-    endpoint = f"opc.tcp://{local_ip}:{port}/ua_mocker/"
+    endpoint = f"opc.tcp://{parsed.host}:{port}/ua_mocker/"
     ds_name = unique_name(settings.test_prefix, "UA-1-1-07")
     tag_name = unique_name(settings.test_prefix, "UA-1-1-07-tag")
 
     tmp_dir = tmp_path_factory.mktemp("mocker_ua1107")
     cfg_path = write_mocker_config(tmp_dir, port, auth={"enabled": True, "username": "u1", "password": "p1"})
-    mocker = start_mocker(cfg_path, port, host=local_ip)
+    mocker = start_mocker(cfg_path, port, host=parsed.host)
 
     data = add_ds_info(
         api, ds_name=ds_name,

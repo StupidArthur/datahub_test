@@ -51,7 +51,13 @@ def write_mocker_config(
     return config_path
 
 
-def start_mocker(config_path: Path, port: int, host: str = "127.0.0.1") -> MockerHandle:
+def start_mocker(config_path: Path, port: int, host: str | None = None) -> MockerHandle:
+    if not host:
+        raise ValueError(
+            "start_mocker requires an explicit host: cross-machine access uses "
+            "the dev-machine IP; 127.0.0.1 would map to the local loopback and "
+            "is not a valid DataHub datasource endpoint."
+        )
     proc = subprocess.Popen(
         [sys.executable, "main.py", str(config_path)],
         cwd=str(_MOCKER_DIR),
@@ -61,6 +67,9 @@ def start_mocker(config_path: Path, port: int, host: str = "127.0.0.1") -> Mocke
     )
     endpoint = f"opc.tcp://{host}:{port}/ua_mocker/"
     try:
+        # Local port ready check uses loopback; the YAML's `server: 0.0.0.0`
+        # binds the OPC UA server to all interfaces, so the same port is
+        # also reachable on `host` for DataHub.
         wait_port_ready(port, timeout=30.0)
     except Exception:
         stdout = proc.stdout.read().decode(errors="replace") if proc.stdout else ""

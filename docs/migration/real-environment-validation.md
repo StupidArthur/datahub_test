@@ -41,7 +41,7 @@ UA-1-1-07 标记为 `pytest.mark.xfail(strict=True, ...)`，原因详见
 | UA-1-1-04 | tests/integration/ua1/test_connection_establishment.py::test_unreachable_address | PASS | ~30s | 不可达地址 30s 内持续 false（已修正 host 改为 10.30.70.77） | ok |
 | UA-1-1-05 | tests/integration/ua1/test_connection_establishment.py::test_offline_to_online | PASS | ~95s | 动态端口停→起后 ds 恢复 alive、RT 出现 | ok |
 | UA-1-1-06 | tests/integration/ua1/test_connection_establishment.py::test_auth_required_no_creds | PASS | ~10s | 真实 UserNameIdentityToken 拒绝匿名 | ok |
-| UA-1-1-07 | tests/integration/ua1/test_connection_establishment.py::test_auth_correct_creds | XFAIL | 60s | DataHub 平台能力缺失 | (xfail 不进入清理) |
+| UA-1-1-07 | tests/integration/ua1/test_connection_establishment.py::test_auth_correct_creds | XFAIL | 60s | DataHub 平台能力缺失 | finally 已执行；datasource、tag 和动态 mocker 无残留 |
 | UA-1-1-08 | tests/integration/ua1/test_connection_establishment.py::test_no_auth_extra_creds | PASS | ~3s | 多余凭据不影响匿名连接 | ok |
 | UA-1-1-09 | tests/integration/ua1/test_connection_establishment.py::test_quality_default | PASS | ~3s | RT quality=192 默认 | ok |
 | UA-1-1-10 | tests/integration/ua1/test_connection_establishment.py::test_quality_192 | PASS | ~3s | 配置 goodQuality=192 后 RT quality=192 | ok |

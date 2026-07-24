@@ -37,6 +37,7 @@ from tpt_api.errors import TptAPIError
 from tpt_api.types import DataTypes, DsSubTypes, DsTypes, TagTypes
 
 from tests.support.cleanup import delete_datasource_if_exists, delete_tag_if_exists
+from tests.support.endpoints import parse_mocker_endpoint
 from tests.support.mocker_process import (
     find_free_port,
     start_mocker,
@@ -56,26 +57,22 @@ def _is_alive(api, ds_id: int) -> bool:
     return False
 
 
-def _setup_history_fixture(api, settings, tmp_path_factory, case_id: str) -> dict:
+def _setup_history_fixture(api, mocker_endpoint, settings, tmp_path_factory, case_id: str) -> dict:
     """Create a connected changing-tag datasource for history tests.
 
     Uses a free port and starts a private mocker per test so the case is
-    self-contained. Endpoint host is taken from ``UA_MOCKER_ENDPOINT``
-    so DataHub can reach the dev machine.
+    self-contained. Endpoint host is parsed from ``mocker_endpoint`` via
+    ``parse_mocker_endpoint`` so DataHub can reach the dev machine.
     """
-    local_ip = (
-        settings.mocker_endpoint.split("//")[1].split(":")[0]
-        if settings.mocker_endpoint
-        else "127.0.0.1"
-    )
+    parsed = parse_mocker_endpoint(mocker_endpoint)
     port = find_free_port()
-    endpoint = f"opc.tcp://{local_ip}:{port}/ua_mocker/"
+    endpoint = f"opc.tcp://{parsed.host}:{port}/ua_mocker/"
     ds_name = unique_name(settings.test_prefix, f"{case_id}-ds")
     tag_name = unique_name(settings.test_prefix, f"{case_id}-tag")
 
     tmp_dir = tmp_path_factory.mktemp(f"mocker_{case_id.lower()}")
     cfg_path = write_mocker_config(tmp_dir, port)
-    mocker = start_mocker(cfg_path, port, host=local_ip)
+    mocker = start_mocker(cfg_path, port, host=parsed.host)
 
     data = add_ds_info(
         api, ds_name=ds_name,
@@ -188,8 +185,8 @@ def _wait_for_history_count(
 @pytest.mark.destructive
 @pytest.mark.history
 @pytest.mark.slow
-def test_history_stops_after_disable(api, settings, tmp_path_factory):
-    ctx = _setup_history_fixture(api, settings, tmp_path_factory, "UA-1-2-03")
+def test_history_stops_after_disable(api, settings, tmp_path_factory, mocker_endpoint):
+    ctx = _setup_history_fixture(api, mocker_endpoint, settings, tmp_path_factory, "UA-1-2-03")
     try:
         # Establish a baseline. Use a sliding window (end refreshed each
         # poll) so the window expands as time passes. New tags have a
@@ -252,8 +249,8 @@ def test_history_stops_after_disable(api, settings, tmp_path_factory):
 @pytest.mark.destructive
 @pytest.mark.history
 @pytest.mark.slow
-def test_history_resumes_after_enable(api, settings, tmp_path_factory):
-    ctx = _setup_history_fixture(api, settings, tmp_path_factory, "UA-1-2-05")
+def test_history_resumes_after_enable(api, settings, tmp_path_factory, mocker_endpoint):
+    ctx = _setup_history_fixture(api, mocker_endpoint, settings, tmp_path_factory, "UA-1-2-05")
     try:
         # Disable first and wait for offline stable.
         change_ds_state(api, ctx["ds_id"], False)
