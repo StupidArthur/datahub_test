@@ -8,6 +8,7 @@ mocker, and reuses the port across restart cycles.
 """
 from __future__ import annotations
 
+import json
 import statistics
 import time
 from datetime import datetime, timedelta
@@ -527,7 +528,7 @@ def _collect_reconnect_metrics(api, ctx: dict, tmp_path_factory, tag_name: str, 
 @pytest.mark.integration
 @pytest.mark.destructive
 @pytest.mark.slow
-def test_five_round_reliability(api, settings, tmp_path_factory, mocker_endpoint):
+def test_five_round_reliability(api, settings, tmp_path_factory, mocker_endpoint, record_property):
     ctx = _setup_recovery(api, mocker_endpoint, settings, tmp_path_factory, "UA-1-3-03")
     rounds_data = []
     try:
@@ -578,7 +579,10 @@ def test_five_round_reliability(api, settings, tmp_path_factory, mocker_endpoint
                 "values": [round(x, 2) for x in vals],
             }
 
-        ctx["_rounds_summary"] = summary
+        record_property(
+            "ua_1_3_03_rounds_summary",
+            json.dumps(summary, ensure_ascii=False, sort_keys=True),
+        )
     finally:
         _teardown(api, ctx)
 
@@ -591,7 +595,7 @@ def test_five_round_reliability(api, settings, tmp_path_factory, mocker_endpoint
         "mock 已停止；数据源 alive=false",
     ],
     steps=[
-        "waitTagValues 写入值",
+        "writeTagValues 写入值",
         "query_history(is_source=true)",
         "记录返回值及历史变化",
     ],
@@ -637,12 +641,15 @@ def test_offline_write_history(api, settings, tmp_path_factory, mocker_endpoint)
     chapter="UA-1-3",
     title="断连期间写入值重连后同步源端",
     preconditions=[
-        "UA-1-3-04 已在断连期间 writeTagValues",
+        "mock 正常运行；测试独立创建数据源和位号",
     ],
     steps=[
-        "重启 mock",
+        "停止 mock",
+        "确认 datasource offline",
+        "离线 writeTagValues",
+        "同端口重启 mock",
         "等待重连",
-        "getRTValue 确认值",
+        "读取重连后的值和 quality",
     ],
     expected=[
         "(spec pending) 观察断连写入值是否同步到源端",

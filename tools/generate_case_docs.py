@@ -39,7 +39,7 @@ def collect_cases() -> list[dict]:
                 kw["nodeid"] = item.nodeid
                 kw["markers"] = [
                     m.name for m in item.iter_markers()
-                    if m.name in ("integration", "destructive")
+                    if m.name in ("integration", "destructive", "spec_pending")
                 ]
                 self.cases.append(kw)
 
