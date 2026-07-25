@@ -18,10 +18,10 @@
 
 ## 3. 当前 pytest 覆盖
 
-- pytest 收集到的 `@pytest.mark.case(id=...)` 标记数：35
-- 已迁移：35
-- 缺失：384
-- pytest 侧真重复（同一 Case ID 对应多个不同 nodeid）：35
+- pytest 收集到的 `@pytest.mark.case(id=...)` 标记数：53
+- 已迁移：53
+- 缺失：366
+- pytest 侧真重复（同一 Case ID 对应多个不同 nodeid）：53
 
 ### 真重复（pytest 内同 Case ID 对应多个不同 nodeid）
 
@@ -53,6 +53,14 @@
 - UA-1-3-04: integration/ua1/test_recovery_and_reconnect::test_offline_write_history, tests/integration/ua1/test_recovery_and_reconnect::test_offline_write_history
 - UA-1-3-05: integration/ua1/test_recovery_and_reconnect::test_offline_write_back, tests/integration/ua1/test_recovery_and_reconnect::test_offline_write_back
 - UA-1-3-08: integration/ua1/test_recovery_and_reconnect::test_offline_tag_survives_restart, tests/integration/ua1/test_recovery_and_reconnect::test_offline_tag_survives_restart
+- UA-2-1-008: integration/ua2/test_tag_creation_base_mapping::test_base_name_standard_format, tests/integration/ua2/test_tag_creation_base_mapping::test_base_name_standard_format
+- UA-2-1-009: integration/ua2/test_tag_creation_base_mapping::test_base_name_nonexistent_node, tests/integration/ua2/test_tag_creation_base_mapping::test_base_name_nonexistent_node
+- UA-2-1-010: integration/ua2/test_tag_creation_base_mapping::test_base_name_cross_ds_same_node, tests/integration/ua2/test_tag_creation_base_mapping::test_base_name_cross_ds_same_node
+- UA-2-1-011: integration/ua2/test_tag_creation_base_mapping::test_base_name_duplicate_mapping, tests/integration/ua2/test_tag_creation_base_mapping::test_base_name_duplicate_mapping
+- UA-2-1-012: integration/ua2/test_tag_creation_base_mapping::test_base_name_invalid_format, tests/integration/ua2/test_tag_creation_base_mapping::test_base_name_invalid_format
+- UA-2-1-013: integration/ua2/test_tag_creation_base_mapping::test_base_name_nonexistent_namespace, tests/integration/ua2/test_tag_creation_base_mapping::test_base_name_nonexistent_namespace
+- UA-2-1-014: integration/ua2/test_tag_creation_base_mapping::test_base_name_empty, tests/integration/ua2/test_tag_creation_base_mapping::test_base_name_empty
+- UA-2-1-015: integration/ua2/test_tag_creation_base_mapping::test_base_name_data_type_mismatch, tests/integration/ua2/test_tag_creation_base_mapping::test_base_name_data_type_mismatch
 - UA-2-1-001: integration/ua2/test_tag_creation_datasource_state::test_tag_type_read_only, tests/integration/ua2/test_tag_creation_datasource_state::test_tag_type_read_only
 - UA-2-1-002: integration/ua2/test_tag_creation_datasource_state::test_ds_running, tests/integration/ua2/test_tag_creation_datasource_state::test_ds_running
 - UA-2-1-003: integration/ua2/test_tag_creation_datasource_state::test_nonexistent_ds, tests/integration/ua2/test_tag_creation_datasource_state::test_nonexistent_ds
@@ -60,15 +68,25 @@
 - UA-2-1-005: integration/ua2/test_tag_creation_datasource_state::test_ds_offline_then_start_mocker, tests/integration/ua2/test_tag_creation_datasource_state::test_ds_offline_then_start_mocker
 - UA-2-1-006: integration/ua2/test_tag_creation_datasource_state::test_ds_disabled, tests/integration/ua2/test_tag_creation_datasource_state::test_ds_disabled
 - UA-2-1-007: integration/ua2/test_tag_creation_datasource_state::test_ds_disabled_then_enable, tests/integration/ua2/test_tag_creation_datasource_state::test_ds_disabled_then_enable
+- UA-2-1-016: integration/ua2/test_tag_creation_system_name::test_system_name_independent_from_base, tests/integration/ua2/test_tag_creation_system_name::test_system_name_independent_from_base
+- UA-2-1-017: integration/ua2/test_tag_creation_system_name::test_system_name_duplicate_same_ds, tests/integration/ua2/test_tag_creation_system_name::test_system_name_duplicate_same_ds
+- UA-2-1-018: integration/ua2/test_tag_creation_system_name::test_system_name_duplicate_cross_ds, tests/integration/ua2/test_tag_creation_system_name::test_system_name_duplicate_cross_ds
+- UA-2-1-019: integration/ua2/test_tag_creation_system_name::test_system_name_empty, tests/integration/ua2/test_tag_creation_system_name::test_system_name_empty
+- UA-2-1-020: integration/ua2/test_tag_creation_system_name::test_system_name_whitespace, tests/integration/ua2/test_tag_creation_system_name::test_system_name_whitespace
+- UA-2-1-021: integration/ua2/test_tag_creation_system_name::test_system_name_length_127, tests/integration/ua2/test_tag_creation_system_name::test_system_name_length_127
+- UA-2-1-022: integration/ua2/test_tag_creation_system_name::test_system_name_length_128, tests/integration/ua2/test_tag_creation_system_name::test_system_name_length_128
+- UA-2-1-023: integration/ua2/test_tag_creation_system_name::test_system_name_length_129, tests/integration/ua2/test_tag_creation_system_name::test_system_name_length_129
+- UA-2-1-024: integration/ua2/test_tag_creation_system_name::test_system_name_special_chars, tests/integration/ua2/test_tag_creation_system_name::test_system_name_special_chars
+- UA-2-1-025: integration/ua2/test_tag_creation_system_name::test_system_name_unicode_and_case, tests/integration/ua2/test_tag_creation_system_name::test_system_name_unicode_and_case
 
 ## 4. 按章节迁移差距
 
 | chapter | source | pytest | migrated | missing |
 |---|---|---|---|---|
 | UA-1 | 56 | 28 | 28 | 28 |
-| UA-2 | 265 | 7 | 7 | 258 |
+| UA-2 | 265 | 25 | 25 | 240 |
 | UA-3 | 98 | 0 | 0 | 98 |
-| **合计** | **419** | **35** | **35** | **384** |
+| **合计** | **419** | **53** | **53** | **366** |
 
 ## 5. 缺失清单（按章节）
 
@@ -103,26 +121,8 @@
 - UA-1-6-12
 - UA-1-6-13
 
-### UA-2（缺失 258）
+### UA-2（缺失 240）
 
-- UA-2-1-008
-- UA-2-1-009
-- UA-2-1-010
-- UA-2-1-011
-- UA-2-1-012
-- UA-2-1-013
-- UA-2-1-014
-- UA-2-1-015
-- UA-2-1-016
-- UA-2-1-017
-- UA-2-1-018
-- UA-2-1-019
-- UA-2-1-020
-- UA-2-1-021
-- UA-2-1-022
-- UA-2-1-023
-- UA-2-1-024
-- UA-2-1-025
 - UA-2-1-026
 - UA-2-1-027
 - UA-2-1-028
@@ -497,6 +497,14 @@
 - integration/ua1/test_recovery_and_reconnect::test_offline_write_history
 - integration/ua1/test_recovery_and_reconnect::test_reconnect_recovery_latency
 - integration/ua1/test_recovery_and_reconnect::test_short_disconnect_recovery
+- integration/ua2/test_tag_creation_base_mapping::test_base_name_cross_ds_same_node
+- integration/ua2/test_tag_creation_base_mapping::test_base_name_data_type_mismatch
+- integration/ua2/test_tag_creation_base_mapping::test_base_name_duplicate_mapping
+- integration/ua2/test_tag_creation_base_mapping::test_base_name_empty
+- integration/ua2/test_tag_creation_base_mapping::test_base_name_invalid_format
+- integration/ua2/test_tag_creation_base_mapping::test_base_name_nonexistent_namespace
+- integration/ua2/test_tag_creation_base_mapping::test_base_name_nonexistent_node
+- integration/ua2/test_tag_creation_base_mapping::test_base_name_standard_format
 - integration/ua2/test_tag_creation_datasource_state::test_ds_disabled
 - integration/ua2/test_tag_creation_datasource_state::test_ds_disabled_then_enable
 - integration/ua2/test_tag_creation_datasource_state::test_ds_enabled_mocker_stopped
@@ -504,6 +512,16 @@
 - integration/ua2/test_tag_creation_datasource_state::test_ds_running
 - integration/ua2/test_tag_creation_datasource_state::test_nonexistent_ds
 - integration/ua2/test_tag_creation_datasource_state::test_tag_type_read_only
+- integration/ua2/test_tag_creation_system_name::test_system_name_duplicate_cross_ds
+- integration/ua2/test_tag_creation_system_name::test_system_name_duplicate_same_ds
+- integration/ua2/test_tag_creation_system_name::test_system_name_empty
+- integration/ua2/test_tag_creation_system_name::test_system_name_independent_from_base
+- integration/ua2/test_tag_creation_system_name::test_system_name_length_127
+- integration/ua2/test_tag_creation_system_name::test_system_name_length_128
+- integration/ua2/test_tag_creation_system_name::test_system_name_length_129
+- integration/ua2/test_tag_creation_system_name::test_system_name_special_chars
+- integration/ua2/test_tag_creation_system_name::test_system_name_unicode_and_case
+- integration/ua2/test_tag_creation_system_name::test_system_name_whitespace
 - tests/integration/ua1/test_connection_establishment::test_auth_correct_creds
 - tests/integration/ua1/test_connection_establishment::test_auth_required_no_creds
 - tests/integration/ua1/test_connection_establishment::test_duplicate_url_rejected
@@ -532,6 +550,14 @@
 - tests/integration/ua1/test_recovery_and_reconnect::test_offline_write_history
 - tests/integration/ua1/test_recovery_and_reconnect::test_reconnect_recovery_latency
 - tests/integration/ua1/test_recovery_and_reconnect::test_short_disconnect_recovery
+- tests/integration/ua2/test_tag_creation_base_mapping::test_base_name_cross_ds_same_node
+- tests/integration/ua2/test_tag_creation_base_mapping::test_base_name_data_type_mismatch
+- tests/integration/ua2/test_tag_creation_base_mapping::test_base_name_duplicate_mapping
+- tests/integration/ua2/test_tag_creation_base_mapping::test_base_name_empty
+- tests/integration/ua2/test_tag_creation_base_mapping::test_base_name_invalid_format
+- tests/integration/ua2/test_tag_creation_base_mapping::test_base_name_nonexistent_namespace
+- tests/integration/ua2/test_tag_creation_base_mapping::test_base_name_nonexistent_node
+- tests/integration/ua2/test_tag_creation_base_mapping::test_base_name_standard_format
 - tests/integration/ua2/test_tag_creation_datasource_state::test_ds_disabled
 - tests/integration/ua2/test_tag_creation_datasource_state::test_ds_disabled_then_enable
 - tests/integration/ua2/test_tag_creation_datasource_state::test_ds_enabled_mocker_stopped
@@ -539,10 +565,20 @@
 - tests/integration/ua2/test_tag_creation_datasource_state::test_ds_running
 - tests/integration/ua2/test_tag_creation_datasource_state::test_nonexistent_ds
 - tests/integration/ua2/test_tag_creation_datasource_state::test_tag_type_read_only
+- tests/integration/ua2/test_tag_creation_system_name::test_system_name_duplicate_cross_ds
+- tests/integration/ua2/test_tag_creation_system_name::test_system_name_duplicate_same_ds
+- tests/integration/ua2/test_tag_creation_system_name::test_system_name_empty
+- tests/integration/ua2/test_tag_creation_system_name::test_system_name_independent_from_base
+- tests/integration/ua2/test_tag_creation_system_name::test_system_name_length_127
+- tests/integration/ua2/test_tag_creation_system_name::test_system_name_length_128
+- tests/integration/ua2/test_tag_creation_system_name::test_system_name_length_129
+- tests/integration/ua2/test_tag_creation_system_name::test_system_name_special_chars
+- tests/integration/ua2/test_tag_creation_system_name::test_system_name_unicode_and_case
+- tests/integration/ua2/test_tag_creation_system_name::test_system_name_whitespace
 
 ## 7. 命名空间与重复
 
 - 来源侧跨文件 Case ID 重复：0
-- pytest 侧真重复：35
+- pytest 侧真重复：53
 - 来源侧章节分布合计与 419 一致。
 
