@@ -111,11 +111,10 @@ func (m *Manager) Start(pythonExe string, runID string, args []string, workDir s
 			}
 		}
 		close(entry.done)
-		m.mu.Lock()
-		if cur, ok := m.active[runID]; ok && cur == entry {
-			delete(m.active, runID)
-		}
-		m.mu.Unlock()
+		// entry is kept in m.active so that a subsequent Wait call can
+		// still retrieve the exit code. The entry is removed by Wait
+		// itself after it reads the result. Stop is the only other path
+		// that may race with Wait; it does not touch m.active.
 	}()
 
 	return nil
@@ -134,6 +133,11 @@ func (m *Manager) Stop(runID string) error {
 }
 
 // Wait 阻塞直到 run 结束,返回 exit code。
+//
+// 生命周期: 进程结束后后台 goroutine 仅 close(entry.done), 保留 entry
+// 在 m.active 中。Wait 等待 entry.done 后读取结果, 再从 m.active 移除
+// entry. 这保证调用方在进程结束后任意时刻调用 Wait 都能拿到结果, 而
+// 重复 Wait 会得到 "unknown run id" 错误。
 func (m *Manager) Wait(runID string) (int, error) {
 	m.mu.Lock()
 	entry, ok := m.active[runID]
@@ -141,8 +145,19 @@ func (m *Manager) Wait(runID string) (int, error) {
 	if !ok {
 		return -1, fmt.Errorf("unknown run id %q", runID)
 	}
+
 	<-entry.done
-	return entry.exitCode, entry.runErr
+
+	exitCode := entry.exitCode
+	runErr := entry.runErr
+
+	m.mu.Lock()
+	if cur, ok := m.active[runID]; ok && cur == entry {
+		delete(m.active, runID)
+	}
+	m.mu.Unlock()
+
+	return exitCode, runErr
 }
 
 // SnapshotStdout 返回子进程启动后到目前为止的 stdout 缓冲。

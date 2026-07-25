@@ -222,3 +222,58 @@ def test_snap(i):
 	}
 	t.Fatalf("stdout should contain PROGRESS_*; got: %s", out)
 }
+
+// TestManager_WaitAfterProcessAlreadyFinished deterministically exercises
+// the lifecycle path where the subprocess finishes before the caller
+// invokes Wait. The previous implementation deleted m.active[runID]
+// from the background goroutine right after close(entry.done), which
+// caused a subsequent Wait to return "unknown run id" with no way
+// for the caller to retrieve the exit code.
+//
+// The new contract is: the background goroutine keeps the entry until
+// Wait removes it; Wait is the sole consumer that frees the slot.
+func TestManager_WaitAfterProcessAlreadyFinished(t *testing.T) {
+	dir := t.TempDir()
+	m := NewManager()
+
+	if err := m.Start(
+		"python",
+		"finished-before-wait",
+		[]string{"-c", "pass"},
+		dir,
+		nil,
+		nil,
+	); err != nil {
+		t.Fatal(err)
+	}
+
+	m.mu.Lock()
+	entry := m.active["finished-before-wait"]
+	m.mu.Unlock()
+	if entry == nil {
+		t.Fatal("entry missing immediately after Start")
+	}
+
+	// 进程已结束: 不使用 sleep, 直接等待后台 goroutine 关闭 done。
+	<-entry.done
+
+	exitCode, err := m.Wait("finished-before-wait")
+	if err != nil {
+		t.Fatalf("Wait after process completion failed: %v", err)
+	}
+	if exitCode != 0 {
+		t.Fatalf("exitCode=%d, want 0", exitCode)
+	}
+
+	// Wait 之后 entry 应当被移除, 第二次 Wait 必须报 "unknown run id"。
+	m.mu.Lock()
+	_, exists := m.active["finished-before-wait"]
+	m.mu.Unlock()
+	if exists {
+		t.Fatal("entry should be removed after Wait")
+	}
+
+	if _, err := m.Wait("finished-before-wait"); err == nil {
+		t.Fatal("second Wait should report consumed run id")
+	}
+}
