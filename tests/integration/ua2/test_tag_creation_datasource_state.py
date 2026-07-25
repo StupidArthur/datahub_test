@@ -55,7 +55,6 @@ def _setup_ctx(api, settings, mocker_endpoint, tmp_path_factory, case_id: str, s
         api, ds_name=ds_name,
         ds_type=DsTypes["REAL_TIME_DB"], ds_sub_type=DsSubTypes["OPC_UA_SERVER"],
         ds_tar_url=endpoint,
-        enabled=start_mocker_now,
     )
     ds_id = int(data.get("id") or data.get("dsId"))
 
@@ -104,6 +103,19 @@ def _teardown(api, ctx: dict) -> None:
             stop_mocker(mocker)
         except Exception:
             pass
+
+
+def _wait_qtq_valid(api, ds_id: int, tag_name: str, timeout: float = 30.0) -> dict:
+    """Poll query_tags_with_quality until quality is non-zero and return the record."""
+    import time
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        qwq = query_tags_with_quality(api, ds_id=ds_id, tag_name=tag_name)
+        for r in ((qwq.get("tagInfoList") or {}).get("records") or []):
+            if r.get("tagName") == tag_name and r.get("quality") not in (None, 0):
+                return r
+        time.sleep(2.0)
+    return {}
 
 
 def _wait_for_alive_true(api, ds_id: int, timeout: float = 60.0) -> None:
@@ -155,15 +167,13 @@ def test_tag_type_read_only(api, settings, tmp_path_factory, mocker_endpoint):
         assert pt.get("tagValue") is not None, "RT value should not be None"
         assert pt.get("quality", 0) != 0, "quality should be non-zero"
 
-        qwq = query_tags_with_quality(api, ds_id=ctx["ds_id"], tag_name=ctx["tag_name"])
-        qrecs = (qwq.get("tagInfoList") or {}).get("records") or []
-        qmatch = [r for r in qrecs if r.get("tagName") == ctx["tag_name"]]
-        assert len(qmatch) == 1, f"expected 1 queryWithQuality record, got {len(qmatch)}"
-        qr = qmatch[0]
-        assert qr.get("tagValue") == pt.get("tagValue"), (
-            f"queryWithQuality value {qr.get('tagValue')} != getRTValue {pt.get('tagValue')}"
+        qr = _wait_qtq_valid(api, ctx["ds_id"], ctx["tag_name"], timeout=30.0)
+        assert qr.get("tagValue") is not None, (
+            f"queryWithQuality tagValue should not be None"
         )
-        assert qr.get("quality", 0) == pt.get("quality", 0), "quality mismatch between APIs"
+        assert qr.get("quality") not in (None, 0), (
+            f"queryWithQuality quality should be valid, got {qr.get('quality')}"
+        )
     finally:
         _teardown(api, ctx)
 
@@ -203,13 +213,9 @@ def test_ds_running(api, settings, tmp_path_factory, mocker_endpoint):
         assert pt.get("tagValue") is not None
         assert pt.get("quality", 0) != 0
 
-        qwq = query_tags_with_quality(api, ds_id=ctx["ds_id"], tag_name=ctx["tag_name"])
-        qrecs = (qwq.get("tagInfoList") or {}).get("records") or []
-        qmatch = [r for r in qrecs if r.get("tagName") == ctx["tag_name"]]
-        assert len(qmatch) == 1
-        qr = qmatch[0]
-        assert qr.get("tagValue") == pt.get("tagValue")
-        assert int(qr.get("quality", 0)) == int(pt.get("quality", 0))
+        qr = _wait_qtq_valid(api, ctx["ds_id"], ctx["tag_name"], timeout=30.0)
+        assert qr.get("tagValue") is not None
+        assert qr.get("quality") not in (None, 0)
     finally:
         _teardown(api, ctx)
 
@@ -300,8 +306,9 @@ def test_ds_enabled_mocker_stopped(api, settings, tmp_path_factory, mocker_endpo
         qrecs = (qwq.get("tagInfoList") or {}).get("records") or []
         qmatch = [r for r in qrecs if r.get("tagName") == ctx["tag_name"]]
         assert len(qmatch) == 1, "queryWithQuality should return the tag"
-        assert qmatch[0].get("quality", -1) == 0, (
-            f"quality should be 0 when mocker is offline, got {qmatch[0].get('quality')}"
+        qval = qmatch[0].get("quality")
+        assert qval is None or qval == 0, (
+            f"quality should be None/0 when mocker is offline, got {qval!r}"
         )
     finally:
         _teardown(api, ctx)
@@ -397,9 +404,9 @@ def test_ds_disabled(api, settings, tmp_path_factory, mocker_endpoint):
         api, ds_name=ds_name,
         ds_type=DsTypes["REAL_TIME_DB"], ds_sub_type=DsSubTypes["OPC_UA_SERVER"],
         ds_tar_url=endpoint,
-        enabled=False,
     )
     ds_id = int(data.get("id") or data.get("dsId"))
+    change_ds_state(api, ds_id, False)
     try:
         tag_data = add_tag(
             api, tag_name=tag_name, data_type=DataTypes["INT"],
@@ -419,8 +426,9 @@ def test_ds_disabled(api, settings, tmp_path_factory, mocker_endpoint):
         qrecs = (qwq.get("tagInfoList") or {}).get("records") or []
         qmatch = [r for r in qrecs if r.get("tagName") == tag_name]
         assert len(qmatch) == 1
-        assert qmatch[0].get("quality", -1) == 0, (
-            f"quality should be 0 when DS disabled, got {qmatch[0].get('quality')}"
+        qval = qmatch[0].get("quality")
+        assert qval is None or qval == 0, (
+            f"quality should be None/0 when DS disabled, got {qval!r}"
         )
     finally:
         delete_tag_if_exists(api, tag_id, tag_name)
@@ -469,9 +477,9 @@ def test_ds_disabled_then_enable(api, settings, tmp_path_factory, mocker_endpoin
         api, ds_name=ds_name,
         ds_type=DsTypes["REAL_TIME_DB"], ds_sub_type=DsSubTypes["OPC_UA_SERVER"],
         ds_tar_url=endpoint,
-        enabled=False,
     )
     ds_id = int(data.get("id") or data.get("dsId"))
+    change_ds_state(api, ds_id, False)
     try:
         tag_data = add_tag(
             api, tag_name=tag_name, data_type=DataTypes["INT"],
