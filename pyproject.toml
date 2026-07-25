@@ -1,0 +1,9 @@
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "case: human-readable test case metadata",
+    "integration: requires a real DataHub environment",
+    "destructive: creates, modifies, or deletes DataHub resources",
+    "history: validates historical value semantics (slow)",
+    "slow: takes more than ~30 seconds to complete in a real environment",
+]

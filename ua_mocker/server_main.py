@@ -47,6 +47,27 @@ def _initial_value(node_cfg: dict, variant_type: ua.VariantType, default_py: Any
     return coerce_to_type(raw, variant_type)
 
 
+def _setup_auth(server: Server, auth_cfg: dict) -> None:
+    from asyncua.server.user_managers import UserManager
+    from asyncua.crypto.permission_rules import User, UserRole
+
+    username = auth_cfg.get("username", "")
+    password = auth_cfg.get("password", "")
+    if not username:
+        raise ValueError("auth.enabled=true 时必须配置 auth.username")
+
+    server.set_identity_tokens([ua.UserNameIdentityToken])
+
+    class _AuthManager(UserManager):
+        def get_user(self, iserver, username=None, password=None, certificate=None):
+            if username == auth_cfg["username"] and password == auth_cfg["password"]:
+                return User(role=UserRole.User)
+            return None
+
+    server.iserver.set_user_manager(_AuthManager())
+    logger.info("认证已启用: username=%s", username)
+
+
 async def run_server(config_path: str) -> None:
     """
     加载组态并启动 OPC UA 服务器，阻塞直到被中断。
@@ -65,6 +86,10 @@ async def run_server(config_path: str) -> None:
     endpoint = f"opc.tcp://{host}:{port}/ua_mocker/"
     server.set_endpoint(endpoint)
     logger.info("OPC UA 端点: %s", endpoint)
+
+    auth_cfg = cfg.get("auth")
+    if auth_cfg and auth_cfg.get("enabled"):
+        _setup_auth(server, auth_cfg)
 
     # 使用组态中的 namespace_index 创建节点，使客户端看到的 ns 与配置文件一致
     ns_idx = namespace_index

@@ -24,6 +24,13 @@ dist/
 # Logs
 *.log
 
+# Real-environment test outputs (JUnit, logs, run-config, mocker
+# stdout/stderr). All material under output/ is local-only and must
+# not be committed. JUnit XML is excluded explicitly so XML reports
+# from elsewhere (e.g. third-party tools) also stay local.
+output/
+*.xml
+
 # Archives
 *.zip
 
@@ -38,6 +45,11 @@ _user_msgs.txt
 .vscode/
 *.swp
 *.swo
+
+# Environment
+.env
+.env.*
+!.env.example
 
 # OS
 .DS_Store
