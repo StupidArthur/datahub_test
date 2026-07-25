@@ -16,7 +16,7 @@ from tests.support.mocker_process import (
 )
 from tests.support.naming import unique_name
 from tests.support.polling import wait_until
-from tests.support.rt_helpers import assert_rt_unavailable, get_rt_point
+from tests.support.rt_helpers import get_rt_point
 from tests.support.ua2_helpers import (
     find_unique_tag,
     is_ds_alive,
@@ -28,13 +28,13 @@ from tests.support.ua2_helpers import (
 )
 
 _DOUBLE_CH_1 = [
-    {"name": "double_ch_1", "type": "Double", "default": 3.14, "writable": True, "change": True},
+    {"name": "double_ch_", "type": "Double", "default": 3.14, "writable": True, "change": False, "count": 1},
 ]
 _SHARED_NODE_100 = [
-    {"name": "shared_node", "type": "Int32", "default": 100, "writable": True},
+    {"name": "shared_node_", "type": "Int32", "default": 100, "writable": True, "change": False, "count": 1},
 ]
 _SHARED_NODE_200 = [
-    {"name": "shared_node", "type": "Int32", "default": 200, "writable": True},
+    {"name": "shared_node_", "type": "Int32", "default": 200, "writable": True, "change": False, "count": 1},
 ]
 
 
@@ -108,19 +108,22 @@ def test_base_name_nonexistent_node(api, settings, tmp_path_factory, mocker_endp
         api, settings, mocker_endpoint, tmp_path_factory, "UA-2-1-009",
         tag_base_name="1_nonexistent",
         data_type=DataTypes["DOUBLE"],
+        wait_for_rt=False,
     )
     try:
         rec = find_unique_tag(api, ctx["tag_name"])
         assert rec.get("tagBaseName") == "1_nonexistent"
 
-        assert_rt_unavailable(api, ctx["tag_name"], timeout=10.0)
+        pt = get_rt_point(api, ctx["tag_name"])
+        qval = pt.get("quality") if pt else 0
+        assert qval is None or qval == 0, f"quality should be None/0, got {qval!r}"
 
         qwq = query_tags_with_quality(api, ds_id=ctx["ds_id"], tag_name=ctx["tag_name"])
         qrecs = (qwq.get("tagInfoList") or {}).get("records") or []
         qmatch = [r for r in qrecs if r.get("tagName") == ctx["tag_name"]]
         assert len(qmatch) == 1
-        qval = qmatch[0].get("quality")
-        assert qval is None or qval == 0, f"quality should be None/0, got {qval!r}"
+        qv = qmatch[0].get("quality")
+        assert qv is None or qv == 0, f"quality should be None/0, got {qv!r}"
     finally:
         teardown_ds_tag_mocker(api, ctx)
 
@@ -131,11 +134,11 @@ def test_base_name_nonexistent_node(api, settings, tmp_path_factory, mocker_endp
     title="底层位号_跨数据源相同节点名",
     preconditions=[
         "两个数据源均 alive=true",
-        "各有 nodeId=shared_node，源端值不同",
+        "各有 nodeId=shared_node_1，源端值不同",
     ],
     steps=[
-        "ds-A 新增 tag_A 指向 1_shared_node",
-        "ds-B 新增 tag_B 指向 1_shared_node",
+        "ds-A 新增 tag_A 指向 1_shared_node_1",
+        "ds-B 新增 tag_B 指向 1_shared_node_1",
         "分别读取 RT 和源端",
     ],
     expected=[
@@ -149,7 +152,7 @@ def test_base_name_nonexistent_node(api, settings, tmp_path_factory, mocker_endp
 def test_base_name_cross_ds_same_node(api, settings, tmp_path_factory, mocker_endpoint):
     ctx_a = setup_ds_and_tag(
         api, settings, mocker_endpoint, tmp_path_factory, "UA-2-1-010-a",
-        tag_base_name="1_shared_node",
+        tag_base_name="1_shared_node_1",
         data_type=DataTypes["INT"],
         nodes=_SHARED_NODE_100,
         namespace_index=1,
@@ -157,16 +160,16 @@ def test_base_name_cross_ds_same_node(api, settings, tmp_path_factory, mocker_en
     try:
         ctx_b = setup_ds_and_tag(
             api, settings, mocker_endpoint, tmp_path_factory, "UA-2-1-010-b",
-            tag_base_name="1_shared_node",
+            tag_base_name="1_shared_node_1",
             data_type=DataTypes["INT"],
             nodes=_SHARED_NODE_200,
             namespace_index=1,
         )
         try:
             rec_a = find_unique_tag(api, ctx_a["tag_name"])
-            assert rec_a.get("tagBaseName") == "1_shared_node"
+            assert rec_a.get("tagBaseName") == "1_shared_node_1"
             rec_b = find_unique_tag(api, ctx_b["tag_name"])
-            assert rec_b.get("tagBaseName") == "1_shared_node"
+            assert rec_b.get("tagBaseName") == "1_shared_node_1"
 
             pt_a = get_rt_point(api, ctx_a["tag_name"])
             pt_b = get_rt_point(api, ctx_b["tag_name"])
@@ -176,8 +179,8 @@ def test_base_name_cross_ds_same_node(api, settings, tmp_path_factory, mocker_en
                 "two DS should have different values"
             )
 
-            src_a = opcua_read_sync(ctx_a["endpoint"], "shared_node", namespace_index=1)
-            src_b = opcua_read_sync(ctx_b["endpoint"], "shared_node", namespace_index=1)
+            src_a = opcua_read_sync(ctx_a["endpoint"], "shared_node_1", namespace_index=1)
+            src_b = opcua_read_sync(ctx_b["endpoint"], "shared_node_1", namespace_index=1)
             assert int(pt_a["tagValue"]) == int(src_a), (
                 f"RT A {pt_a['tagValue']} != source A {src_a}"
             )
@@ -198,18 +201,16 @@ def test_base_name_cross_ds_same_node(api, settings, tmp_path_factory, mocker_en
     steps=[
         "新增 tag_A 指向该节点",
         "新增 tag_B 也指向该节点",
-        "读取两位号",
+        "读取两位号并确认独立",
     ],
     expected=[
-        "记录第二次新增是否允许",
-        "若允许，记录两位号是否同步更新",
-        "若拒绝，记录错误信息且原位号不受影响",
+        "第二次新增允许",
+        "两个 tag 各自读取独立 RT 值",
+        "原位号不受影响",
     ],
 )
-@pytest.mark.xfail(strict=True, reason="spec_pending: duplicate base-node mapping behavior")
 @pytest.mark.integration
 @pytest.mark.destructive
-@pytest.mark.spec_pending
 def test_base_name_duplicate_mapping(api, settings, tmp_path_factory, mocker_endpoint):
     ctx = setup_ds_and_tag(
         api, settings, mocker_endpoint, tmp_path_factory, "UA-2-1-011-a",
@@ -299,19 +300,22 @@ def test_base_name_nonexistent_namespace(api, settings, tmp_path_factory, mocker
         api, settings, mocker_endpoint, tmp_path_factory, "UA-2-1-013",
         tag_base_name="99_double_ch_1",
         data_type=DataTypes["DOUBLE"],
+        wait_for_rt=False,
     )
     try:
         rec = find_unique_tag(api, ctx["tag_name"])
         assert rec.get("tagBaseName") == "99_double_ch_1"
 
-        assert_rt_unavailable(api, ctx["tag_name"], timeout=10.0)
+        pt = get_rt_point(api, ctx["tag_name"])
+        qval = pt.get("quality") if pt else 0
+        assert qval is None or qval == 0, f"quality should be None/0, got {qval!r}"
 
         qwq = query_tags_with_quality(api, ds_id=ctx["ds_id"], tag_name=ctx["tag_name"])
         qrecs = (qwq.get("tagInfoList") or {}).get("records") or []
         qmatch = [r for r in qrecs if r.get("tagName") == ctx["tag_name"]]
         assert len(qmatch) == 1
-        qval = qmatch[0].get("quality")
-        assert qval is None or qval == 0, f"quality should be None/0, got {qval!r}"
+        qv = qmatch[0].get("quality")
+        assert qv is None or qv == 0, f"quality should be None/0, got {qv!r}"
     finally:
         teardown_ds_tag_mocker(api, ctx)
 

@@ -863,11 +863,11 @@
       "nodeid": "tests/integration/ua2/test_tag_creation_base_mapping.py::test_base_name_cross_ds_same_node",
       "preconditions": [
         "两个数据源均 alive=true",
-        "各有 nodeId=shared_node，源端值不同"
+        "各有 nodeId=shared_node_1，源端值不同"
       ],
       "steps": [
-        "ds-A 新增 tag_A 指向 1_shared_node",
-        "ds-B 新增 tag_B 指向 1_shared_node",
+        "ds-A 新增 tag_A 指向 1_shared_node_1",
+        "ds-B 新增 tag_B 指向 1_shared_node_1",
         "分别读取 RT 和源端"
       ],
       "expected": [
@@ -891,15 +891,14 @@
       "steps": [
         "新增 tag_A 指向该节点",
         "新增 tag_B 也指向该节点",
-        "读取两位号"
+        "读取两位号并确认独立"
       ],
       "expected": [
-        "记录第二次新增是否允许",
-        "若允许，记录两位号是否同步更新",
-        "若拒绝，记录错误信息且原位号不受影响"
+        "第二次新增允许",
+        "两个 tag 各自读取独立 RT 值",
+        "原位号不受影响"
       ],
       "markers": [
-        "spec_pending",
         "destructive",
         "integration"
       ]

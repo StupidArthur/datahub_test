@@ -53,7 +53,8 @@ def setup_ds_and_tag(
     only_read: bool = True,
     nodes: list | None = None,
     namespace_index: int = 2,
-    start_mocker: bool = True,
+    launch_mocker: bool = True,
+    wait_for_rt: bool = True,
 ) -> dict:
     """Create mocker + datasource + tag, return context dict."""
     parsed = parse_mocker_endpoint(mocker_endpoint)
@@ -65,7 +66,7 @@ def setup_ds_and_tag(
     tmp_dir = tmp_path_factory.mktemp(f"m_{case_id.lower()}")
     cfg_path = write_mocker_config(tmp_dir, port, nodes=nodes, namespace_index=namespace_index)
     mocker = None
-    if start_mocker:
+    if launch_mocker:
         mocker = start_mocker(cfg_path, port, host=parsed.host)
 
     data = add_ds_info(
@@ -75,7 +76,7 @@ def setup_ds_and_tag(
     )
     ds_id = int(data.get("id") or data.get("dsId"))
 
-    if start_mocker:
+    if launch_mocker:
         wait_ds_alive(api, ds_id, timeout=60.0)
 
     tag_data = add_tag(
@@ -85,7 +86,7 @@ def setup_ds_and_tag(
     )
     tag_id = int(tag_data.get("id") or tag_data.get("tagId"))
 
-    if start_mocker:
+    if launch_mocker and wait_for_rt:
         def _has_rt():
             pt = get_rt_point(api, tag_name)
             return pt.get("tagValue") is not None and pt.get("quality", 0) != 0
