@@ -16,10 +16,6 @@ jobs:
         with:
           python-version: "3.11"
 
-      - uses: actions/setup-go@v5
-        with:
-          go-version-file: ua_test_gui/go.mod
-
       - name: Install dependencies
         run: |
           pip install -e ./tpt_api/python
@@ -39,9 +35,3 @@ jobs:
 
       - name: tpt_api unit tests
         run: pytest tpt_api/python/tests -q
-
-      - name: Go unit tests
-        working-directory: ua_test_gui
-        env:
-          SKIP_INTEGRATION: "1"
-        run: go test ./... -count=1

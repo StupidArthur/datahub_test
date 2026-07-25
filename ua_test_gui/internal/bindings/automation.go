@@ -10,24 +10,13 @@ import (
 )
 
 // AutomationBinding 暴露给前端的 binding。
-//
-// Legacy bindings (ListTestCases / StartTestRun / ...) 走旧 Harness;
-// New bindings (ListNativeTestCases / RunNativeTestCases /
-// CancelNativeTestRun) 走原生 pytest 模式, 由 NativeService 提供。
-// 两种 binding 并存, 调用方决定使用哪一种。
 type AutomationBinding struct {
-	svc     *automation.Service
-	native  *automation.NativeService
+	svc *automation.Service
 }
 
 // NewAutomationBinding 构造。
 func NewAutomationBinding(svc *automation.Service) *AutomationBinding {
 	return &AutomationBinding{svc: svc}
-}
-
-// NewAutomationBindingWithNative 构造, 同时注入原生 pytest Service。
-func NewAutomationBindingWithNative(svc *automation.Service, native *automation.NativeService) *AutomationBinding {
-	return &AutomationBinding{svc: svc, native: native}
 }
 
 // ListTestCases 返回 catalog。
@@ -124,40 +113,6 @@ func (a *AutomationBinding) OpenRunDirectory(runID int64) (string, error) {
 		return "", err
 	}
 	return r.Run.RunDir, nil
-}
-
-// ListNativeTestCases 返回原生 pytest manifest 中的 case 列表。
-//
-// 仅在 native service 已注入时可用; 否则返回空列表。
-func (a *AutomationBinding) ListNativeTestCases() []automation.ManifestCase {
-	if a.native == nil {
-		return []automation.ManifestCase{}
-	}
-	return a.native.ListCases()
-}
-
-// RunNativeTestCases 启动一次原生 pytest run。
-func (a *AutomationBinding) RunNativeTestCases(req automation.NativeRunRequest) (automation.NativeRun, error) {
-	if a.native == nil {
-		return automation.NativeRun{}, errors.New("native pytest service not initialized")
-	}
-	return a.native.RunNative(req)
-}
-
-// CancelNativeTestRun 取消当前 native run。
-func (a *AutomationBinding) CancelNativeTestRun(runID string) error {
-	if a.native == nil {
-		return errors.New("native pytest service not initialized")
-	}
-	return a.native.Cancel(runID)
-}
-
-// CollectNativeTestRun 等待 run 完成并解析 JUnit。
-func (a *AutomationBinding) CollectNativeTestRun(runID string) (automation.NativeRun, error) {
-	if a.native == nil {
-		return automation.NativeRun{}, errors.New("native pytest service not initialized")
-	}
-	return a.native.Collect(runID)
 }
 
 // _ = context.Background 防止 linter 误删。
