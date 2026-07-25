@@ -6,4 +6,5 @@ markers = [
     "destructive: creates, modifies, or deletes DataHub resources",
     "history: validates historical value semantics (slow)",
     "slow: takes more than ~30 seconds to complete in a real environment",
+    "spec_pending: specification semantics are not yet defined",
 ]
