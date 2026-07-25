@@ -56,6 +56,7 @@ def setup_ds_and_tag(
     namespace_index: int = 2,
     launch_mocker: bool = True,
     wait_for_rt: bool = True,
+    cycle: int = 500,
 ) -> dict:
     """Create mocker + datasource + tag, return context dict."""
     parsed = parse_mocker_endpoint(mocker_endpoint)
@@ -65,7 +66,7 @@ def setup_ds_and_tag(
     tag_name = unique_name(settings.test_prefix, f"{case_id}-tag")
 
     tmp_dir = tmp_path_factory.mktemp(f"m_{case_id.lower()}")
-    cfg_path = write_mocker_config(tmp_dir, port, nodes=nodes, namespace_index=namespace_index)
+    cfg_path = write_mocker_config(tmp_dir, port, nodes=nodes, namespace_index=namespace_index, cycle=cycle)
     mocker = None
     if launch_mocker:
         mocker = start_mocker(cfg_path, port, host=parsed.host)
@@ -101,6 +102,7 @@ def setup_ds_and_tag(
         "endpoint": endpoint, "cfg_path": cfg_path,
         "tmp_dir": tmp_dir, "case_id": case_id,
         "namespace_index": namespace_index,
+        "cycle": cycle,
     }
 
 
@@ -161,6 +163,7 @@ def setup_ds_only(
     nodes: list | None = None,
     namespace_index: int = 2,
     launch_mocker: bool = True,
+    cycle: int = 500,
 ) -> dict:
     """Create mocker + datasource only (no tag)."""
     parsed = parse_mocker_endpoint(mocker_endpoint)
@@ -169,7 +172,7 @@ def setup_ds_only(
     ds_name = unique_name(settings.test_prefix, f"{case_id}-ds")
 
     tmp_dir = tmp_path_factory.mktemp(f"m_{case_id.lower()}")
-    cfg_path = write_mocker_config(tmp_dir, port, nodes=nodes, namespace_index=namespace_index)
+    cfg_path = write_mocker_config(tmp_dir, port, nodes=nodes, namespace_index=namespace_index, cycle=cycle)
     mocker = None
     if launch_mocker:
         mocker = start_mocker(cfg_path, port, host=parsed.host)
@@ -190,6 +193,7 @@ def setup_ds_only(
         "endpoint": endpoint, "cfg_path": cfg_path,
         "tmp_dir": tmp_dir, "case_id": case_id,
         "namespace_index": namespace_index,
+        "cycle": cycle,
     }
 
 

@@ -1218,6 +1218,292 @@
         "destructive",
         "integration"
       ]
+    },
+    {
+      "id": "UA-2-1-026",
+      "chapter": "UA-2-1",
+      "title": "默认读取类型_Boolean",
+      "nodeid": "tests/integration/ua2/test_tag_creation_default_reads.py::test_default_read_boolean",
+      "preconditions": [
+        "数据源 alive=true"
+      ],
+      "steps": [
+        "创建 Boolean 节点并新增位号",
+        "读取 RT 和源端"
+      ],
+      "expected": [
+        "数据类型正确",
+        "RT 值与源端一致",
+        "质量有效"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-027",
+      "chapter": "UA-2-1",
+      "title": "默认读取类型_SByte",
+      "nodeid": "tests/integration/ua2/test_tag_creation_default_reads.py::test_default_read_sbyte",
+      "preconditions": [
+        "数据源 alive=true"
+      ],
+      "steps": [
+        "创建 SByte 节点并新增位号",
+        "读取 RT 和源端"
+      ],
+      "expected": [
+        "数据类型正确",
+        "RT 值与源端一致",
+        "质量有效"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-028",
+      "chapter": "UA-2-1",
+      "title": "默认读取类型_Byte",
+      "nodeid": "tests/integration/ua2/test_tag_creation_default_reads.py::test_default_read_byte",
+      "preconditions": [
+        "数据源 alive=true"
+      ],
+      "steps": [
+        "创建 Byte 节点并新增位号",
+        "读取 RT 和源端"
+      ],
+      "expected": [
+        "数据类型正确",
+        "RT 值与源端一致",
+        "质量有效"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-029",
+      "chapter": "UA-2-1",
+      "title": "默认读取类型_Int16",
+      "nodeid": "tests/integration/ua2/test_tag_creation_default_reads.py::test_default_read_int16",
+      "preconditions": [
+        "数据源 alive=true"
+      ],
+      "steps": [
+        "创建 Int16 节点并新增位号",
+        "读取 RT 和源端"
+      ],
+      "expected": [
+        "数据类型正确",
+        "RT 值与源端一致",
+        "质量有效"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-030",
+      "chapter": "UA-2-1",
+      "title": "默认读取类型_UInt16",
+      "nodeid": "tests/integration/ua2/test_tag_creation_default_reads.py::test_default_read_uint16",
+      "preconditions": [
+        "数据源 alive=true"
+      ],
+      "steps": [
+        "创建 UInt16 节点并新增位号",
+        "读取 RT 和源端"
+      ],
+      "expected": [
+        "数据类型正确",
+        "RT 值与源端一致",
+        "质量有效"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-031",
+      "chapter": "UA-2-1",
+      "title": "默认读取类型_Int32",
+      "nodeid": "tests/integration/ua2/test_tag_creation_default_reads.py::test_default_read_int32",
+      "preconditions": [
+        "数据源 alive=true"
+      ],
+      "steps": [
+        "创建 Int32 节点并新增位号",
+        "读取 RT 和源端"
+      ],
+      "expected": [
+        "数据类型正确",
+        "RT 值与源端一致",
+        "质量有效"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-032",
+      "chapter": "UA-2-1",
+      "title": "默认读取类型_UInt32",
+      "nodeid": "tests/integration/ua2/test_tag_creation_default_reads.py::test_default_read_uint32",
+      "preconditions": [
+        "数据源 alive=true"
+      ],
+      "steps": [
+        "创建 UInt32 节点并新增位号",
+        "读取 RT 和源端"
+      ],
+      "expected": [
+        "数据类型正确",
+        "RT 值与源端一致",
+        "质量有效"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-033",
+      "chapter": "UA-2-1",
+      "title": "默认读取类型_Int64",
+      "nodeid": "tests/integration/ua2/test_tag_creation_default_reads.py::test_default_read_int64",
+      "preconditions": [
+        "数据源 alive=true"
+      ],
+      "steps": [
+        "创建 Int64 节点并新增位号",
+        "读取 RT 和源端"
+      ],
+      "expected": [
+        "数据类型正确",
+        "RT 值与源端一致",
+        "质量有效"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-034",
+      "chapter": "UA-2-1",
+      "title": "默认读取类型_UInt64",
+      "nodeid": "tests/integration/ua2/test_tag_creation_default_reads.py::test_default_read_uint64",
+      "preconditions": [
+        "数据源 alive=true"
+      ],
+      "steps": [
+        "创建 UInt64 节点并新增位号",
+        "读取 RT 和源端"
+      ],
+      "expected": [
+        "数据类型正确",
+        "RT 值与源端一致",
+        "质量有效"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-035",
+      "chapter": "UA-2-1",
+      "title": "默认读取类型_Float",
+      "nodeid": "tests/integration/ua2/test_tag_creation_default_reads.py::test_default_read_float",
+      "preconditions": [
+        "数据源 alive=true"
+      ],
+      "steps": [
+        "创建 Float 节点并新增位号",
+        "读取 RT 和源端"
+      ],
+      "expected": [
+        "数据类型正确",
+        "RT 值与源端一致",
+        "质量有效"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-036",
+      "chapter": "UA-2-1",
+      "title": "默认读取类型_Double",
+      "nodeid": "tests/integration/ua2/test_tag_creation_default_reads.py::test_default_read_double",
+      "preconditions": [
+        "数据源 alive=true"
+      ],
+      "steps": [
+        "创建 Double 节点并新增位号",
+        "读取 RT 和源端"
+      ],
+      "expected": [
+        "数据类型正确",
+        "RT 值与源端一致",
+        "质量有效"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-037",
+      "chapter": "UA-2-1",
+      "title": "默认读取类型_String",
+      "nodeid": "tests/integration/ua2/test_tag_creation_default_reads.py::test_default_read_string",
+      "preconditions": [
+        "数据源 alive=true"
+      ],
+      "steps": [
+        "创建 String 节点并新增位号",
+        "读取 RT 和源端"
+      ],
+      "expected": [
+        "数据类型正确",
+        "RT 值与源端一致",
+        "质量有效"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-038",
+      "chapter": "UA-2-1",
+      "title": "默认读取类型_DateTime",
+      "nodeid": "tests/integration/ua2/test_tag_creation_default_reads.py::test_default_read_datetime",
+      "preconditions": [
+        "数据源 alive=true"
+      ],
+      "steps": [
+        "创建 DateTime 节点并新增位号",
+        "读取 RT 和源端"
+      ],
+      "expected": [
+        "数据类型正确",
+        "RT 值与源端一致",
+        "质量有效"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
     }
   ]
 }

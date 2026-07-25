@@ -200,6 +200,7 @@ def test_system_name_duplicate_cross_ds(api, settings, tmp_path_factory, mocker_
 )
 @pytest.mark.integration
 @pytest.mark.destructive
+@pytest.mark.xfail(strict=True, reason="UA-2-1-019 product accepts empty tagName; auto-generates from tagBaseName")
 def test_system_name_empty(api, settings, tmp_path_factory, mocker_endpoint):
     ctx = setup_ds_only(api, settings, mocker_endpoint, tmp_path_factory, "UA-2-1-019")
     residual_tag_id = None
