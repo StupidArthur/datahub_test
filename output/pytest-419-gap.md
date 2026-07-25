@@ -1,0 +1,548 @@
+# pytest 419 Case 迁移基线差距报告
+
+## 1. 419 Case 的来源
+
+来源文件：`ua_test_harness/test_cases/UA-*.md`（legacy Harness 规格）。
+抽取规则：所有形如 `UA-X-Y-ZZ` 的标识符去重后形成集合。
+与 `ua_test_gui/doc/all-case-static-validation.md` 2026-07-12 静态验证一致：
+17 个章节、419 个 case、Case ID 唯一。
+
+## 2. 来源按章节分布
+
+| chapter | source |
+|---|---|
+| UA-1 | 56 |
+| UA-2 | 265 |
+| UA-3 | 98 |
+| **合计** | **419** |
+
+## 3. 当前 pytest 覆盖
+
+- pytest 收集到的 `@pytest.mark.case(id=...)` 标记数：35
+- 已迁移：35
+- 缺失：384
+- pytest 侧真重复（同一 Case ID 对应多个不同 nodeid）：35
+
+### 真重复（pytest 内同 Case ID 对应多个不同 nodeid）
+
+- UA-1-1-01: integration/ua1/test_connection_establishment::test_normal_connection_no_path, tests/integration/ua1/test_connection_establishment::test_normal_connection_no_path
+- UA-1-1-04: integration/ua1/test_connection_establishment::test_unreachable_address, tests/integration/ua1/test_connection_establishment::test_unreachable_address
+- UA-1-1-12: integration/ua1/test_connection_establishment::test_duplicate_url_rejected, tests/integration/ua1/test_connection_establishment::test_duplicate_url_rejected
+- UA-1-1-02: integration/ua1/test_connection_establishment::test_normal_connection_with_path, tests/integration/ua1/test_connection_establishment::test_normal_connection_with_path
+- UA-1-1-03: integration/ua1/test_connection_establishment::test_two_url_formats, tests/integration/ua1/test_connection_establishment::test_two_url_formats
+- UA-1-1-05: integration/ua1/test_connection_establishment::test_offline_to_online, tests/integration/ua1/test_connection_establishment::test_offline_to_online
+- UA-1-1-06: integration/ua1/test_connection_establishment::test_auth_required_no_creds, tests/integration/ua1/test_connection_establishment::test_auth_required_no_creds
+- UA-1-1-07: integration/ua1/test_connection_establishment::test_auth_correct_creds, tests/integration/ua1/test_connection_establishment::test_auth_correct_creds
+- UA-1-1-08: integration/ua1/test_connection_establishment::test_no_auth_extra_creds, tests/integration/ua1/test_connection_establishment::test_no_auth_extra_creds
+- UA-1-1-09: integration/ua1/test_connection_establishment::test_quality_default, tests/integration/ua1/test_connection_establishment::test_quality_default
+- UA-1-1-10: integration/ua1/test_connection_establishment::test_quality_192, tests/integration/ua1/test_connection_establishment::test_quality_192
+- UA-1-1-11: integration/ua1/test_connection_establishment::test_quality_zero, tests/integration/ua1/test_connection_establishment::test_quality_zero
+- UA-1-2-03: integration/ua1/test_history_lifecycle::test_history_stops_after_disable, tests/integration/ua1/test_history_lifecycle::test_history_stops_after_disable
+- UA-1-2-05: integration/ua1/test_history_lifecycle::test_history_resumes_after_enable, tests/integration/ua1/test_history_lifecycle::test_history_resumes_after_enable
+- UA-1-2-01: integration/ua1/test_lifecycle_control::test_disable_running_datasource, tests/integration/ua1/test_lifecycle_control::test_disable_running_datasource
+- UA-1-2-02: integration/ua1/test_lifecycle_control::test_rt_state_after_disable, tests/integration/ua1/test_lifecycle_control::test_rt_state_after_disable
+- UA-1-2-04: integration/ua1/test_lifecycle_control::test_reenable_disabled_datasource, tests/integration/ua1/test_lifecycle_control::test_reenable_disabled_datasource
+- UA-1-2-06: integration/ua1/test_lifecycle_control::test_repeat_enable, tests/integration/ua1/test_lifecycle_control::test_repeat_enable
+- UA-1-2-07: integration/ua1/test_lifecycle_control::test_repeat_disable, tests/integration/ua1/test_lifecycle_control::test_repeat_disable
+- UA-1-2-08: integration/ua1/test_lifecycle_control::test_multiple_start_stop_cycles, tests/integration/ua1/test_lifecycle_control::test_multiple_start_stop_cycles
+- UA-1-3-01: integration/ua1/test_recovery_and_reconnect::test_disconnect_detection_latency, tests/integration/ua1/test_recovery_and_reconnect::test_disconnect_detection_latency
+- UA-1-3-02: integration/ua1/test_recovery_and_reconnect::test_reconnect_recovery_latency, tests/integration/ua1/test_recovery_and_reconnect::test_reconnect_recovery_latency
+- UA-1-3-06: integration/ua1/test_recovery_and_reconnect::test_short_disconnect_recovery, tests/integration/ua1/test_recovery_and_reconnect::test_short_disconnect_recovery
+- UA-1-3-07: integration/ua1/test_recovery_and_reconnect::test_long_disconnect_recovery, tests/integration/ua1/test_recovery_and_reconnect::test_long_disconnect_recovery
+- UA-1-3-03: integration/ua1/test_recovery_and_reconnect::test_five_round_reliability, tests/integration/ua1/test_recovery_and_reconnect::test_five_round_reliability
+- UA-1-3-04: integration/ua1/test_recovery_and_reconnect::test_offline_write_history, tests/integration/ua1/test_recovery_and_reconnect::test_offline_write_history
+- UA-1-3-05: integration/ua1/test_recovery_and_reconnect::test_offline_write_back, tests/integration/ua1/test_recovery_and_reconnect::test_offline_write_back
+- UA-1-3-08: integration/ua1/test_recovery_and_reconnect::test_offline_tag_survives_restart, tests/integration/ua1/test_recovery_and_reconnect::test_offline_tag_survives_restart
+- UA-2-1-001: integration/ua2/test_tag_creation_datasource_state::test_tag_type_read_only, tests/integration/ua2/test_tag_creation_datasource_state::test_tag_type_read_only
+- UA-2-1-002: integration/ua2/test_tag_creation_datasource_state::test_ds_running, tests/integration/ua2/test_tag_creation_datasource_state::test_ds_running
+- UA-2-1-003: integration/ua2/test_tag_creation_datasource_state::test_nonexistent_ds, tests/integration/ua2/test_tag_creation_datasource_state::test_nonexistent_ds
+- UA-2-1-004: integration/ua2/test_tag_creation_datasource_state::test_ds_enabled_mocker_stopped, tests/integration/ua2/test_tag_creation_datasource_state::test_ds_enabled_mocker_stopped
+- UA-2-1-005: integration/ua2/test_tag_creation_datasource_state::test_ds_offline_then_start_mocker, tests/integration/ua2/test_tag_creation_datasource_state::test_ds_offline_then_start_mocker
+- UA-2-1-006: integration/ua2/test_tag_creation_datasource_state::test_ds_disabled, tests/integration/ua2/test_tag_creation_datasource_state::test_ds_disabled
+- UA-2-1-007: integration/ua2/test_tag_creation_datasource_state::test_ds_disabled_then_enable, tests/integration/ua2/test_tag_creation_datasource_state::test_ds_disabled_then_enable
+
+## 4. 按章节迁移差距
+
+| chapter | source | pytest | migrated | missing |
+|---|---|---|---|---|
+| UA-1 | 56 | 28 | 28 | 28 |
+| UA-2 | 265 | 7 | 7 | 258 |
+| UA-3 | 98 | 0 | 0 | 98 |
+| **合计** | **419** | **35** | **35** | **384** |
+
+## 5. 缺失清单（按章节）
+
+### UA-1（缺失 28）
+
+- UA-1-4-01
+- UA-1-4-02
+- UA-1-4-03
+- UA-1-4-04
+- UA-1-4-05
+- UA-1-4-06
+- UA-1-5-01
+- UA-1-5-02
+- UA-1-5-03
+- UA-1-5-04
+- UA-1-5-05
+- UA-1-5-06
+- UA-1-5-07
+- UA-1-5-08
+- UA-1-5-09
+- UA-1-6-01
+- UA-1-6-02
+- UA-1-6-03
+- UA-1-6-04
+- UA-1-6-05
+- UA-1-6-06
+- UA-1-6-07
+- UA-1-6-08
+- UA-1-6-09
+- UA-1-6-10
+- UA-1-6-11
+- UA-1-6-12
+- UA-1-6-13
+
+### UA-2（缺失 258）
+
+- UA-2-1-008
+- UA-2-1-009
+- UA-2-1-010
+- UA-2-1-011
+- UA-2-1-012
+- UA-2-1-013
+- UA-2-1-014
+- UA-2-1-015
+- UA-2-1-016
+- UA-2-1-017
+- UA-2-1-018
+- UA-2-1-019
+- UA-2-1-020
+- UA-2-1-021
+- UA-2-1-022
+- UA-2-1-023
+- UA-2-1-024
+- UA-2-1-025
+- UA-2-1-026
+- UA-2-1-027
+- UA-2-1-028
+- UA-2-1-029
+- UA-2-1-030
+- UA-2-1-031
+- UA-2-1-032
+- UA-2-1-033
+- UA-2-1-034
+- UA-2-1-035
+- UA-2-1-036
+- UA-2-1-037
+- UA-2-1-038
+- UA-2-1-039
+- UA-2-1-040
+- UA-2-1-041
+- UA-2-1-042
+- UA-2-1-043
+- UA-2-1-044
+- UA-2-1-045
+- UA-2-1-046
+- UA-2-1-047
+- UA-2-1-048
+- UA-2-1-049
+- UA-2-1-050
+- UA-2-1-051
+- UA-2-1-052
+- UA-2-1-053
+- UA-2-1-054
+- UA-2-1-055
+- UA-2-1-056
+- UA-2-1-057
+- UA-2-1-058
+- UA-2-1-059
+- UA-2-1-060
+- UA-2-1-061
+- UA-2-1-062
+- UA-2-1-063
+- UA-2-1-064
+- UA-2-1-065
+- UA-2-1-066
+- UA-2-1-067
+- UA-2-1-068
+- UA-2-1-069
+- UA-2-1-070
+- UA-2-1-071
+- UA-2-1-072
+- UA-2-1-073
+- UA-2-1-074
+- UA-2-1-075
+- UA-2-1-076
+- UA-2-1-077
+- UA-2-1-078
+- UA-2-1-079
+- UA-2-1-080
+- UA-2-1-081
+- UA-2-1-082
+- UA-2-1-083
+- UA-2-1-084
+- UA-2-1-085
+- UA-2-1-086
+- UA-2-1-087
+- UA-2-1-088
+- UA-2-1-089
+- UA-2-1-090
+- UA-2-1-091
+- UA-2-1-092
+- UA-2-1-093
+- UA-2-1-094
+- UA-2-1-095
+- UA-2-1-096
+- UA-2-1-097
+- UA-2-1-098
+- UA-2-1-099
+- UA-2-1-100
+- UA-2-1-101
+- UA-2-1-102
+- UA-2-1-103
+- UA-2-1-104
+- UA-2-1-105
+- UA-2-1-106
+- UA-2-1-107
+- UA-2-1-108
+- UA-2-1-109
+- UA-2-1-110
+- UA-2-1-111
+- UA-2-1-112
+- UA-2-2-001
+- UA-2-2-002
+- UA-2-2-003
+- UA-2-2-004
+- UA-2-2-005
+- UA-2-2-006
+- UA-2-2-007
+- UA-2-2-008
+- UA-2-2-009
+- UA-2-2-010
+- UA-2-2-011
+- UA-2-2-012
+- UA-2-2-013
+- UA-2-2-014
+- UA-2-2-015
+- UA-2-2-016
+- UA-2-2-017
+- UA-2-2-018
+- UA-2-2-019
+- UA-2-2-020
+- UA-2-2-021
+- UA-2-2-022
+- UA-2-2-023
+- UA-2-2-024
+- UA-2-2-025
+- UA-2-2-026
+- UA-2-2-027
+- UA-2-2-028
+- UA-2-2-029
+- UA-2-2-030
+- UA-2-2-031
+- UA-2-2-032
+- UA-2-2-033
+- UA-2-2-034
+- UA-2-2-035
+- UA-2-2-036
+- UA-2-2-037
+- UA-2-2-038
+- UA-2-2-039
+- UA-2-2-040
+- UA-2-2-041
+- UA-2-2-042
+- UA-2-2-043
+- UA-2-2-044
+- UA-2-2-045
+- UA-2-2-046
+- UA-2-2-047
+- UA-2-2-048
+- UA-2-2-049
+- UA-2-2-050
+- UA-2-2-051
+- UA-2-2-052
+- UA-2-2-053
+- UA-2-2-054
+- UA-2-2-055
+- UA-2-2-056
+- UA-2-2-057
+- UA-2-2-058
+- UA-2-2-059
+- UA-2-2-060
+- UA-2-2-061
+- UA-2-2-062
+- UA-2-2-063
+- UA-2-2-064
+- UA-2-2-065
+- UA-2-2-066
+- UA-2-2-067
+- UA-2-3-001
+- UA-2-3-002
+- UA-2-3-003
+- UA-2-3-004
+- UA-2-3-005
+- UA-2-3-006
+- UA-2-3-007
+- UA-2-3-008
+- UA-2-3-009
+- UA-2-3-010
+- UA-2-3-011
+- UA-2-3-012
+- UA-2-3-013
+- UA-2-3-014
+- UA-2-3-015
+- UA-2-3-016
+- UA-2-3-017
+- UA-2-3-018
+- UA-2-3-019
+- UA-2-3-020
+- UA-2-3-021
+- UA-2-3-022
+- UA-2-3-023
+- UA-2-3-024
+- UA-2-3-025
+- UA-2-3-026
+- UA-2-3-027
+- UA-2-3-028
+- UA-2-3-029
+- UA-2-3-030
+- UA-2-3-031
+- UA-2-3-032
+- UA-2-4-001
+- UA-2-4-002
+- UA-2-4-003
+- UA-2-4-004
+- UA-2-4-005
+- UA-2-4-006
+- UA-2-4-007
+- UA-2-4-008
+- UA-2-4-009
+- UA-2-4-010
+- UA-2-4-011
+- UA-2-4-012
+- UA-2-4-013
+- UA-2-4-014
+- UA-2-4-015
+- UA-2-4-016
+- UA-2-4-017
+- UA-2-4-018
+- UA-2-4-019
+- UA-2-4-020
+- UA-2-4-021
+- UA-2-4-022
+- UA-2-4-023
+- UA-2-4-024
+- UA-2-4-025
+- UA-2-4-026
+- UA-2-4-027
+- UA-2-5-001
+- UA-2-5-002
+- UA-2-5-003
+- UA-2-5-004
+- UA-2-5-005
+- UA-2-5-006
+- UA-2-5-007
+- UA-2-5-008
+- UA-2-5-009
+- UA-2-5-010
+- UA-2-5-011
+- UA-2-5-012
+- UA-2-5-013
+- UA-2-5-014
+- UA-2-5-015
+- UA-2-5-016
+- UA-2-5-017
+- UA-2-5-018
+- UA-2-5-019
+- UA-2-5-020
+- UA-2-5-021
+- UA-2-5-022
+- UA-2-5-023
+- UA-2-5-024
+- UA-2-5-025
+- UA-2-5-026
+- UA-2-5-027
+
+### UA-3（缺失 98）
+
+- UA-3-1-001
+- UA-3-1-002
+- UA-3-1-003
+- UA-3-1-004
+- UA-3-1-005
+- UA-3-1-006
+- UA-3-1-007
+- UA-3-1-008
+- UA-3-1-009
+- UA-3-1-010
+- UA-3-1-011
+- UA-3-1-012
+- UA-3-1-013
+- UA-3-1-014
+- UA-3-1-015
+- UA-3-1-016
+- UA-3-1-017
+- UA-3-1-018
+- UA-3-1-019
+- UA-3-1-020
+- UA-3-2-001
+- UA-3-2-002
+- UA-3-2-003
+- UA-3-2-004
+- UA-3-2-005
+- UA-3-2-006
+- UA-3-2-007
+- UA-3-2-008
+- UA-3-2-009
+- UA-3-2-010
+- UA-3-2-011
+- UA-3-2-012
+- UA-3-2-013
+- UA-3-2-014
+- UA-3-2-015
+- UA-3-2-016
+- UA-3-2-017
+- UA-3-2-018
+- UA-3-2-019
+- UA-3-2-020
+- UA-3-2-021
+- UA-3-3-001
+- UA-3-3-002
+- UA-3-3-003
+- UA-3-3-004
+- UA-3-3-005
+- UA-3-3-006
+- UA-3-3-007
+- UA-3-3-008
+- UA-3-3-009
+- UA-3-3-010
+- UA-3-3-011
+- UA-3-3-012
+- UA-3-3-013
+- UA-3-3-014
+- UA-3-3-015
+- UA-3-3-016
+- UA-3-3-017
+- UA-3-3-018
+- UA-3-3-019
+- UA-3-3-020
+- UA-3-3-021
+- UA-3-3-022
+- UA-3-4-001
+- UA-3-4-002
+- UA-3-4-003
+- UA-3-4-004
+- UA-3-4-005
+- UA-3-4-006
+- UA-3-4-007
+- UA-3-4-008
+- UA-3-5-001
+- UA-3-5-002
+- UA-3-5-003
+- UA-3-5-004
+- UA-3-5-005
+- UA-3-5-006
+- UA-3-5-007
+- UA-3-5-008
+- UA-3-5-009
+- UA-3-5-010
+- UA-3-5-011
+- UA-3-5-012
+- UA-3-6-001
+- UA-3-6-002
+- UA-3-6-003
+- UA-3-6-004
+- UA-3-6-005
+- UA-3-6-006
+- UA-3-6-007
+- UA-3-6-008
+- UA-3-6-009
+- UA-3-6-010
+- UA-3-6-011
+- UA-3-6-012
+- UA-3-6-013
+- UA-3-6-014
+- UA-3-6-015
+
+## 6. 节点 ID 完整性
+
+以下 nodeid 在 `@pytest.mark.case` 中声明，但 `pytest --collect-only` 未列出（节点 ID 缺失或不匹配）：
+
+- integration/ua1/test_connection_establishment::test_auth_correct_creds
+- integration/ua1/test_connection_establishment::test_auth_required_no_creds
+- integration/ua1/test_connection_establishment::test_duplicate_url_rejected
+- integration/ua1/test_connection_establishment::test_no_auth_extra_creds
+- integration/ua1/test_connection_establishment::test_normal_connection_no_path
+- integration/ua1/test_connection_establishment::test_normal_connection_with_path
+- integration/ua1/test_connection_establishment::test_offline_to_online
+- integration/ua1/test_connection_establishment::test_quality_192
+- integration/ua1/test_connection_establishment::test_quality_default
+- integration/ua1/test_connection_establishment::test_quality_zero
+- integration/ua1/test_connection_establishment::test_two_url_formats
+- integration/ua1/test_connection_establishment::test_unreachable_address
+- integration/ua1/test_history_lifecycle::test_history_resumes_after_enable
+- integration/ua1/test_history_lifecycle::test_history_stops_after_disable
+- integration/ua1/test_lifecycle_control::test_disable_running_datasource
+- integration/ua1/test_lifecycle_control::test_multiple_start_stop_cycles
+- integration/ua1/test_lifecycle_control::test_reenable_disabled_datasource
+- integration/ua1/test_lifecycle_control::test_repeat_disable
+- integration/ua1/test_lifecycle_control::test_repeat_enable
+- integration/ua1/test_lifecycle_control::test_rt_state_after_disable
+- integration/ua1/test_recovery_and_reconnect::test_disconnect_detection_latency
+- integration/ua1/test_recovery_and_reconnect::test_five_round_reliability
+- integration/ua1/test_recovery_and_reconnect::test_long_disconnect_recovery
+- integration/ua1/test_recovery_and_reconnect::test_offline_tag_survives_restart
+- integration/ua1/test_recovery_and_reconnect::test_offline_write_back
+- integration/ua1/test_recovery_and_reconnect::test_offline_write_history
+- integration/ua1/test_recovery_and_reconnect::test_reconnect_recovery_latency
+- integration/ua1/test_recovery_and_reconnect::test_short_disconnect_recovery
+- integration/ua2/test_tag_creation_datasource_state::test_ds_disabled
+- integration/ua2/test_tag_creation_datasource_state::test_ds_disabled_then_enable
+- integration/ua2/test_tag_creation_datasource_state::test_ds_enabled_mocker_stopped
+- integration/ua2/test_tag_creation_datasource_state::test_ds_offline_then_start_mocker
+- integration/ua2/test_tag_creation_datasource_state::test_ds_running
+- integration/ua2/test_tag_creation_datasource_state::test_nonexistent_ds
+- integration/ua2/test_tag_creation_datasource_state::test_tag_type_read_only
+- tests/integration/ua1/test_connection_establishment::test_auth_correct_creds
+- tests/integration/ua1/test_connection_establishment::test_auth_required_no_creds
+- tests/integration/ua1/test_connection_establishment::test_duplicate_url_rejected
+- tests/integration/ua1/test_connection_establishment::test_no_auth_extra_creds
+- tests/integration/ua1/test_connection_establishment::test_normal_connection_no_path
+- tests/integration/ua1/test_connection_establishment::test_normal_connection_with_path
+- tests/integration/ua1/test_connection_establishment::test_offline_to_online
+- tests/integration/ua1/test_connection_establishment::test_quality_192
+- tests/integration/ua1/test_connection_establishment::test_quality_default
+- tests/integration/ua1/test_connection_establishment::test_quality_zero
+- tests/integration/ua1/test_connection_establishment::test_two_url_formats
+- tests/integration/ua1/test_connection_establishment::test_unreachable_address
+- tests/integration/ua1/test_history_lifecycle::test_history_resumes_after_enable
+- tests/integration/ua1/test_history_lifecycle::test_history_stops_after_disable
+- tests/integration/ua1/test_lifecycle_control::test_disable_running_datasource
+- tests/integration/ua1/test_lifecycle_control::test_multiple_start_stop_cycles
+- tests/integration/ua1/test_lifecycle_control::test_reenable_disabled_datasource
+- tests/integration/ua1/test_lifecycle_control::test_repeat_disable
+- tests/integration/ua1/test_lifecycle_control::test_repeat_enable
+- tests/integration/ua1/test_lifecycle_control::test_rt_state_after_disable
+- tests/integration/ua1/test_recovery_and_reconnect::test_disconnect_detection_latency
+- tests/integration/ua1/test_recovery_and_reconnect::test_five_round_reliability
+- tests/integration/ua1/test_recovery_and_reconnect::test_long_disconnect_recovery
+- tests/integration/ua1/test_recovery_and_reconnect::test_offline_tag_survives_restart
+- tests/integration/ua1/test_recovery_and_reconnect::test_offline_write_back
+- tests/integration/ua1/test_recovery_and_reconnect::test_offline_write_history
+- tests/integration/ua1/test_recovery_and_reconnect::test_reconnect_recovery_latency
+- tests/integration/ua1/test_recovery_and_reconnect::test_short_disconnect_recovery
+- tests/integration/ua2/test_tag_creation_datasource_state::test_ds_disabled
+- tests/integration/ua2/test_tag_creation_datasource_state::test_ds_disabled_then_enable
+- tests/integration/ua2/test_tag_creation_datasource_state::test_ds_enabled_mocker_stopped
+- tests/integration/ua2/test_tag_creation_datasource_state::test_ds_offline_then_start_mocker
+- tests/integration/ua2/test_tag_creation_datasource_state::test_ds_running
+- tests/integration/ua2/test_tag_creation_datasource_state::test_nonexistent_ds
+- tests/integration/ua2/test_tag_creation_datasource_state::test_tag_type_read_only
+
+## 7. 命名空间与重复
+
+- 来源侧跨文件 Case ID 重复：0
+- pytest 侧真重复：35
+- 来源侧章节分布合计与 419 一致。
+
