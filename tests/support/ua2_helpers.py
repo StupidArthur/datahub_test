@@ -13,6 +13,7 @@ from tpt_api.datahub import (
     list_tags,
     query_tags_with_quality,
 )
+from tpt_api.errors import TptAPIError
 from tpt_api.types import DsSubTypes, DsTypes
 
 from tests.support.cleanup import delete_datasource_if_exists, delete_tag_if_exists
@@ -152,3 +153,74 @@ def opcua_read_sync(endpoint: str, node_name: str, namespace_index: int = 2):
             nid = f"ns={namespace_index};s={node_name}"
             return await client.get_node(nid).read_value()
     return asyncio.run(_read())
+
+
+def setup_ds_only(
+    api, settings, mocker_endpoint, tmp_path_factory, case_id: str,
+    *,
+    nodes: list | None = None,
+    namespace_index: int = 2,
+    launch_mocker: bool = True,
+) -> dict:
+    """Create mocker + datasource only (no tag)."""
+    parsed = parse_mocker_endpoint(mocker_endpoint)
+    port = find_free_port()
+    endpoint = f"opc.tcp://{parsed.host}:{port}/ua_mocker/"
+    ds_name = unique_name(settings.test_prefix, f"{case_id}-ds")
+
+    tmp_dir = tmp_path_factory.mktemp(f"m_{case_id.lower()}")
+    cfg_path = write_mocker_config(tmp_dir, port, nodes=nodes, namespace_index=namespace_index)
+    mocker = None
+    if launch_mocker:
+        mocker = start_mocker(cfg_path, port, host=parsed.host)
+
+    data = add_ds_info(
+        api, ds_name=ds_name,
+        ds_type=DsTypes["REAL_TIME_DB"], ds_sub_type=DsSubTypes["OPC_UA_SERVER"],
+        ds_tar_url=endpoint,
+    )
+    ds_id = int(data.get("id") or data.get("dsId"))
+
+    if launch_mocker:
+        wait_ds_alive(api, ds_id, timeout=60.0)
+
+    return {
+        "ds_id": ds_id, "ds_name": ds_name,
+        "mocker": mocker, "port": port, "host": parsed.host,
+        "endpoint": endpoint, "cfg_path": cfg_path,
+        "tmp_dir": tmp_dir, "case_id": case_id,
+        "namespace_index": namespace_index,
+    }
+
+
+def find_all_tags(api, tag_name: str) -> list[dict]:
+    """Return ALL tag records matching tag_name exactly."""
+    page = list_tags(api, page=1, page_size=200, data={"tagName": tag_name})
+    records = page.get("records") or []
+    return [r for r in records if r.get("tagName") == tag_name]
+
+
+def try_add_tag(api, **kwargs) -> dict:
+    """Call add_tag safely, return structured result.
+
+    Returns {"ok": True, "data": <tag_data>} on success,
+    or {"ok": False, "error": <TptAPIError>} on TptAPIError.
+    """
+    try:
+        data = add_tag(api, **kwargs)
+        return {"ok": True, "data": data}
+    except TptAPIError as exc:
+        return {"ok": False, "error": exc}
+
+
+def delete_tags_safe(api, tag_ids: list[int]) -> None:
+    """Hard-delete a list of tag IDs, ignoring already-deleted errors."""
+    if not tag_ids:
+        return
+    from tpt_api.datahub import delete_tags_physical
+    try:
+        delete_tags_physical(api, tag_ids)
+    except TptAPIError as exc:
+        if "not exist" in exc.msg.lower() or "不存在" in exc.msg:
+            return
+        raise
