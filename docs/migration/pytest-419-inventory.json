@@ -71,7 +71,7 @@
     }
   ],
   "duplicates_in_source": [],
-  "pytest_total": 129,
+  "pytest_total": 132,
   "migrated": [
     "UA-1-1-01",
     "UA-1-1-02",
@@ -201,7 +201,10 @@
     "UA-2-1-098",
     "UA-2-1-099",
     "UA-2-1-100",
-    "UA-2-1-101"
+    "UA-2-1-101",
+    "UA-2-1-102",
+    "UA-2-1-103",
+    "UA-2-1-104"
   ],
   "missing": [
     "UA-1-4-01",
@@ -232,9 +235,6 @@
     "UA-1-6-11",
     "UA-1-6-12",
     "UA-1-6-13",
-    "UA-2-1-102",
-    "UA-2-1-103",
-    "UA-2-1-104",
     "UA-2-1-105",
     "UA-2-1-106",
     "UA-2-1-107",
@@ -581,6 +581,15 @@
     "UA-1-3-08": [
       "tests/integration/ua1/test_recovery_and_reconnect.py::test_offline_tag_survives_restart"
     ],
+    "UA-2-1-102": [
+      "tests/integration/ua2/test_tag_creation_availability.py::test_availability_rt_read"
+    ],
+    "UA-2-1-103": [
+      "tests/integration/ua2/test_tag_creation_availability.py::test_availability_write_back"
+    ],
+    "UA-2-1-104": [
+      "tests/integration/ua2/test_tag_creation_availability.py::test_availability_history"
+    ],
     "UA-2-1-008": [
       "tests/integration/ua2/test_tag_creation_base_mapping.py::test_base_name_standard_format"
     ],
@@ -914,6 +923,9 @@
     "tests/integration/ua1/test_recovery_and_reconnect.py::test_offline_write_history": "UA-1-3-04",
     "tests/integration/ua1/test_recovery_and_reconnect.py::test_offline_write_back": "UA-1-3-05",
     "tests/integration/ua1/test_recovery_and_reconnect.py::test_offline_tag_survives_restart": "UA-1-3-08",
+    "tests/integration/ua2/test_tag_creation_availability.py::test_availability_rt_read": "UA-2-1-102",
+    "tests/integration/ua2/test_tag_creation_availability.py::test_availability_write_back": "UA-2-1-103",
+    "tests/integration/ua2/test_tag_creation_availability.py::test_availability_history": "UA-2-1-104",
     "tests/integration/ua2/test_tag_creation_base_mapping.py::test_base_name_standard_format": "UA-2-1-008",
     "tests/integration/ua2/test_tag_creation_base_mapping.py::test_base_name_nonexistent_node": "UA-2-1-009",
     "tests/integration/ua2/test_tag_creation_base_mapping.py::test_base_name_cross_ds_same_node": "UA-2-1-010",
@@ -1087,9 +1099,9 @@
     {
       "chapter": "UA-2",
       "source": 265,
-      "pytest": 101,
-      "migrated_count": 101,
-      "missing_count": 164,
+      "pytest": 104,
+      "migrated_count": 104,
+      "missing_count": 161,
       "migrated": [
         "UA-2-1-001",
         "UA-2-1-002",
@@ -1191,12 +1203,12 @@
         "UA-2-1-098",
         "UA-2-1-099",
         "UA-2-1-100",
-        "UA-2-1-101"
-      ],
-      "missing": [
+        "UA-2-1-101",
         "UA-2-1-102",
         "UA-2-1-103",
-        "UA-2-1-104",
+        "UA-2-1-104"
+      ],
+      "missing": [
         "UA-2-1-105",
         "UA-2-1-106",
         "UA-2-1-107",

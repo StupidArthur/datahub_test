@@ -3192,6 +3192,81 @@
         "destructive",
         "integration"
       ]
+    },
+    {
+      "id": "UA-2-1-102",
+      "chapter": "UA-2-1",
+      "title": "可用性_新增后实时读取",
+      "nodeid": "tests/integration/ua2/test_tag_creation_availability.py::test_availability_rt_read",
+      "preconditions": [
+        "新增读取位号成功",
+        "Mock 值持续变化"
+      ],
+      "steps": [
+        "等待两个周期",
+        "读取两次 RT",
+        "查询 queryWithQuality",
+        "asyncua 直读"
+      ],
+      "expected": [
+        "两次 RT 值变化",
+        "两个 TPT 查询入口值一致",
+        "最新 RT 与源端值一致",
+        "质量有效"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-103",
+      "chapter": "UA-2-1",
+      "title": "可用性_新增后写值回源",
+      "nodeid": "tests/integration/ua2/test_tag_creation_availability.py::test_availability_write_back",
+      "preconditions": [
+        "新增可写位号成功"
+      ],
+      "steps": [
+        "保存原值",
+        "写入测试值",
+        "查询源端、RT 和质量"
+      ],
+      "expected": [
+        "写接口成功",
+        "源端值等于写入值",
+        "RT 在超时内等于写入值",
+        "质量有效"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-104",
+      "chapter": "UA-2-1",
+      "title": "可用性_新增后历史落库",
+      "nodeid": "tests/integration/ua2/test_tag_creation_availability.py::test_availability_history",
+      "preconditions": [
+        "新增读取或可写位号成功"
+      ],
+      "steps": [
+        "记录开始时间",
+        "产生一个唯一测试值",
+        "等待历史超时",
+        "查询时间窗口"
+      ],
+      "expected": [
+        "历史中存在测试值",
+        "位号名正确",
+        "时间戳位于执行窗口内",
+        "值类型正确"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
     }
   ]
 }
