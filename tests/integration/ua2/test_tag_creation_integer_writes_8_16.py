@@ -27,6 +27,7 @@ from tests.support.ua2_write_assertions import (
     is_wrap_behaviour,
     observe_integer_write_outcome,
     strict_restore_and_teardown,
+    wait_accepted_integer_outcome,
     wait_three_way_sync,
 )
 from tests.support.ua2_value_normalization import normalize_int
@@ -108,6 +109,7 @@ def _run_boundary_case(
             ds_id=ctx["ds_id"], tag_name=tag_name,
             data_type=data_type, expected_value=default_val,
             expected_variant_type=variant_type,
+            mocker=ctx.get("mocker"),
         )
 
         for val in boundary_values:
@@ -119,6 +121,7 @@ def _run_boundary_case(
                 ds_id=ctx["ds_id"], tag_name=tag_name,
                 data_type=data_type, expected_value=val,
                 expected_variant_type=variant_type,
+                mocker=ctx.get("mocker"),
             )
 
             _verify_variant_type(endpoint, node_name, variant_type)
@@ -147,7 +150,7 @@ def _run_boundary_case(
             original_value=default_val, original_variant_type=variant_type,
             tag_id=ctx["tag_id"], tag_name=tag_name,
             ds_id=ctx["ds_id"], ds_name=ctx["ds_name"],
-            mocker=ctx.get("mocker"), port=ctx["port"],
+            mocker=ctx.get("mocker"), port=ctx["port"], host=ctx["host"],
         )
 
 
@@ -180,6 +183,7 @@ def _run_out_of_range_case(
             ds_id=ctx["ds_id"], tag_name=tag_name,
             data_type=data_type, expected_value=default_val,
             expected_variant_type=variant_type,
+            mocker=ctx.get("mocker"),
         )
 
         for val in out_of_range_values:
@@ -188,6 +192,7 @@ def _run_out_of_range_case(
                 ds_id=ctx["ds_id"], tag_name=tag_name,
                 data_type=data_type, expected_value=default_val,
                 expected_variant_type=variant_type,
+                mocker=ctx.get("mocker"),
             )
 
             obs: dict = {
@@ -239,32 +244,38 @@ def _run_out_of_range_case(
                 assert rt_final.get("quality") not in (None, 0), "RT quality invalid after rejection"
 
             else:
-                trio = wait_three_way_sync(
+                outcome = wait_accepted_integer_outcome(
                     api, endpoint=endpoint, node_name=node_name, namespace_index=1,
                     ds_id=ctx["ds_id"], tag_name=tag_name,
-                    data_type=data_type, expected_value=val,
-                    expected_variant_type=variant_type,
+                    data_type=data_type, expected_variant_type=variant_type,
+                    mocker=ctx.get("mocker"),
                 )
-                obs["trio"] = {
-                    "source": trio["source"],
-                    "variant_type": trio["variant_type"].name,
-                    "rt": trio["rt"],
-                    "qwq": trio["qwq"],
-                    "datasource_alive": trio["datasource_alive"],
-                }
+
+                final_value = outcome["source"]
+                vt_name = outcome["variant_type"].name
+                obs["source_final"] = final_value
+                obs["source_variant_type"] = vt_name
+                obs["rt_final"] = outcome["rt"].get("tagValue")
+                obs["rt_quality"] = outcome["rt"].get("quality")
+                obs["rt_tagTime"] = outcome["rt"].get("tagTime")
+                obs["qwq_final"] = outcome["qwq"].get("tagValue")
+                obs["qwq_quality"] = outcome["qwq"].get("quality")
+                obs["qwq_tagTime"] = outcome["qwq"].get("tagTime")
+                obs["datasource_alive"] = outcome["datasource_alive"]
+                obs["mocker_alive"] = outcome["mocker_alive"]
+
+                ooc = classify_outcome_value(data_type, final_value, default_val)
+                obs["outcome_classification"] = ooc
+                assert ooc != "out_of_range", \
+                    f"accepted write produced out-of-range final value: {final_value} (input={val})"
 
                 if is_wrap_behaviour(data_type, val):
-                    expected = expected_wrap_value(data_type, val)
-                    if trio["source"] == expected:
+                    wrap = expected_wrap_value(data_type, val)
+                    if final_value == wrap:
                         pytest.fail(
                             f"silent wrap detected: input={val}, "
-                            f"source={trio['source']}, dataType={data_type}"
+                            f"final={final_value}, dataType={data_type}"
                         )
-
-                ooc = classify_outcome_value(data_type, trio["source"], default_val)
-                obs["outcome_classification"] = ooc
-                obs["source_final"] = trio["source"]
-                obs["source_variant_type"] = trio["variant_type"].name
 
             observations.append(obs)
             record_property(
@@ -275,17 +286,13 @@ def _run_out_of_range_case(
             opcua_write_sync(endpoint, node_name, default_val, namespace_index=1, variant_type=variant_type)
 
     finally:
-        try:
-            opcua_write_sync(endpoint, node_name, default_val, namespace_index=1, variant_type=variant_type)
-        except Exception:
-            pass
         strict_restore_and_teardown(
             api,
             endpoint=endpoint, node_name=node_name, namespace_index=1,
             original_value=default_val, original_variant_type=variant_type,
             tag_id=ctx["tag_id"], tag_name=tag_name,
             ds_id=ctx["ds_id"], ds_name=ctx["ds_name"],
-            mocker=ctx.get("mocker"), port=ctx["port"],
+            mocker=ctx.get("mocker"), port=ctx["port"], host=ctx["host"],
         )
 
     return observations

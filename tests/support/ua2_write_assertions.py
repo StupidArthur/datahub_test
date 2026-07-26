@@ -92,6 +92,30 @@ def _sample_trio(
     return {"source": source, "variant_type": sf_vt, "rt": rt, "qwq": qwq, "datasource_alive": da}
 
 
+def _assert_mocker_alive(mocker, tag_name: str, context: str = "") -> None:
+    if mocker is not None and mocker.process.poll() is not None:
+        raise AssertionError(
+            f"mocker exited during {context} for {tag_name}: "
+            f"returncode={mocker.process.poll()}"
+        )
+
+
+def _assert_source_ok(src, vt, tag_name: str, expected_variant_type) -> int:
+    if isinstance(src, bool):
+        raise AssertionError(f"source is bool for {tag_name}: {src!r}")
+    if vt != expected_variant_type:
+        raise AssertionError(
+            f"VariantType mismatch for {tag_name}: "
+            f"{vt} != {expected_variant_type} (expected {expected_variant_type.name})"
+        )
+    try:
+        return normalize_int(src)
+    except (TypeError, ValueError) as exc:
+        raise AssertionError(
+            f"source value cannot be normalized for {tag_name}: {src!r} ({exc})"
+        )
+
+
 def wait_three_way_sync(
     api,
     *,
@@ -103,26 +127,20 @@ def wait_three_way_sync(
     data_type: int,
     expected_value: int,
     expected_variant_type,
+    mocker=None,
     timeout: float = 30.0,
     interval: float = 0.5,
 ) -> dict:
     deadline = time.monotonic() + timeout
     last_trio: dict = {}
     while time.monotonic() < deadline:
+        _assert_mocker_alive(mocker, tag_name, "wait_three_way_sync")
         trio = _sample_trio(api, endpoint, node_name, namespace_index, ds_id, tag_name)
         last_trio = trio
         src = trio["source"]
-        if isinstance(src, bool) or src is None:
-            time.sleep(interval)
-            continue
-        if trio["variant_type"] != expected_variant_type:
-            time.sleep(interval)
-            continue
-        try:
-            sv = normalize_int(src)
-        except (TypeError, ValueError):
-            time.sleep(interval)
-            continue
+        vt = trio["variant_type"]
+        _assert_source_ok(src, vt, tag_name, expected_variant_type)
+        sv = normalize_int(src)
         if sv != expected_value:
             time.sleep(interval)
             continue
@@ -163,6 +181,104 @@ def wait_three_way_sync(
     raise AssertionError(
         f"three-way sync timeout for {tag_name} (expected={expected_value})\n"
         f"last sample: {json.dumps(_serialize_trio(last_trio), ensure_ascii=False, default=str)}"
+    )
+
+
+def wait_accepted_integer_outcome(
+    api,
+    *,
+    endpoint: str,
+    node_name: str,
+    namespace_index: int,
+    ds_id: int,
+    tag_name: str,
+    data_type: int,
+    expected_variant_type,
+    mocker,
+    timeout: float = 30.0,
+    interval: float = 0.5,
+    stable_samples: int = 2,
+) -> dict:
+    name, lo, hi = INTEGER_RANGES[data_type]
+    deadline = time.monotonic() + timeout
+    all_samples: list[dict] = []
+
+    while time.monotonic() < deadline:
+        _assert_mocker_alive(mocker, tag_name, "wait_accepted_integer_outcome")
+
+        trio = _sample_trio(api, endpoint, node_name, namespace_index, ds_id, tag_name)
+        src = trio["source"]
+        vt = trio["variant_type"]
+        rt = trio["rt"]
+        qwq = trio["qwq"]
+
+        sv = _assert_source_ok(src, vt, tag_name, expected_variant_type)
+
+        if not (lo <= sv <= hi):
+            time.sleep(interval)
+            continue
+
+        if "tagValue" not in rt or rt["tagValue"] is None:
+            time.sleep(interval)
+            continue
+        if "tagValue" not in qwq or qwq["tagValue"] is None:
+            time.sleep(interval)
+            continue
+        if rt.get("quality") in (None, 0) or qwq.get("quality") in (None, 0):
+            time.sleep(interval)
+            continue
+        if not rt.get("tagTime") or not qwq.get("tagTime"):
+            time.sleep(interval)
+            continue
+        try:
+            parse_required_timestamp(rt["tagTime"])
+            parse_required_timestamp(qwq["tagTime"])
+        except AssertionError:
+            time.sleep(interval)
+            continue
+        try:
+            rv = normalize_int(rt["tagValue"])
+            qv = normalize_int(qwq["tagValue"])
+        except (TypeError, ValueError):
+            time.sleep(interval)
+            continue
+        if rv != sv or qv != sv:
+            time.sleep(interval)
+            continue
+        if not trio.get("datasource_alive"):
+            time.sleep(interval)
+            continue
+
+        sample = {
+            "source": sv,
+            "variant_type": vt,
+            "rt": rt,
+            "qwq": qwq,
+            "datasource_alive": True,
+            "mocker_alive": mocker is not None and mocker.process.poll() is None,
+        }
+        all_samples.append(sample)
+
+        if len(all_samples) >= stable_samples:
+            recent = all_samples[-stable_samples:]
+            if len(set(s["source"] for s in recent)) == 1:
+                return {
+                    "source": recent[-1]["source"],
+                    "variant_type": recent[-1]["variant_type"],
+                    "rt": recent[-1]["rt"],
+                    "qwq": recent[-1]["qwq"],
+                    "datasource_alive": recent[-1]["datasource_alive"],
+                    "mocker_alive": recent[-1]["mocker_alive"],
+                    "samples": all_samples,
+                }
+
+        time.sleep(interval)
+
+    last = all_samples[-1] if all_samples else {}
+    raise AssertionError(
+        f"wait_accepted_integer_outcome timeout for {tag_name} "
+        f"(data_type={data_type}, stable_samples={stable_samples})\n"
+        f"last sample: {json.dumps(_serialize_trio(last) if last else {}, ensure_ascii=False, default=str)}"
     )
 
 
@@ -338,6 +454,7 @@ def _check_stable(
             sv = None
         if sv is not None and sv != baseline_value:
             all_same_value = False
+            issues.append(f"sample[{i}] source value {sv} != baseline {baseline_value}")
 
     return {
         "stable": all_same_value and all_vt_same and all_ds_alive and all_mocker_alive and not issues,
@@ -366,6 +483,7 @@ def strict_restore_and_teardown(
     ds_name: str,
     mocker,
     port: int,
+    host: str,
 ) -> None:
     errors: list[str] = []
 
@@ -459,20 +577,19 @@ def strict_restore_and_teardown(
             errors.append(f"stop_mocker: {exc}")
 
     # 8. verify port closed
-    if port:
+    if port and host:
         try:
             deadline = time.monotonic() + 10.0
             while time.monotonic() < deadline:
                 try:
                     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                         s.settimeout(0.3)
-                        s.connect(("127.0.0.1", port))
+                        s.connect((host, port))
                         time.sleep(0.3)
                 except OSError:
-                    port_closed = True
                     break
             else:
-                errors.append(f"port {port} still open after stop_mocker")
+                errors.append(f"listener residual: {host}:{port}")
         except Exception as exc:
             errors.append(f"port_check: {exc}")
 
