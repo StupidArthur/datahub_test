@@ -276,3 +276,46 @@ def test_write_tag_values_body_and_resp(api) -> None:
     assert d["qualityCode"] == 192
     assert out["tagNames"] == ["t1", "t2"]
     assert out["failMsg"] == {}
+
+
+def test_write_tag_values_preserves_int64_decimal_string(api) -> None:
+    captured: dict = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        captured["body"] = json.loads(request.content)
+        return httpx.Response(200, json={
+            "code": "00000",
+            "content": {"tagNames": ["t1"], "failMsg": {}, "msg": "OK"},
+        }, request=request)
+
+    api.client = httpx.Client(base_url=api.base_url, transport=httpx.MockTransport(handler))
+    api.token = "abc"
+
+    value = "9223372036854775807"
+    out = dh_module.write_tag_values(api, {"tag_a": value})
+    assert out["tagNames"] == ["t1"]
+    d = captured["body"]["data"]
+    v = d["values"]["tag_a"]
+    assert isinstance(v, str), f"value should be str, got {type(v).__name__}: {v!r}"
+    assert v == "9223372036854775807"
+
+    # Int64 min
+    value = "-9223372036854775808"
+    dh_module.write_tag_values(api, {"tag_a": value})
+    v2 = captured["body"]["data"]["values"]["tag_a"]
+    assert isinstance(v2, str), f"value should be str, got {type(v2).__name__}: {v2!r}"
+    assert v2 == "-9223372036854775808"
+
+    # OOR positive
+    value = "9223372036854775808"
+    dh_module.write_tag_values(api, {"tag_a": value})
+    v3 = captured["body"]["data"]["values"]["tag_a"]
+    assert isinstance(v3, str), f"value should be str, got {type(v3).__name__}: {v3!r}"
+    assert v3 == "9223372036854775808"
+
+    # OOR negative
+    value = "-9223372036854775809"
+    dh_module.write_tag_values(api, {"tag_a": value})
+    v4 = captured["body"]["data"]["values"]["tag_a"]
+    assert isinstance(v4, str), f"value should be str, got {type(v4).__name__}: {v4!r}"
+    assert v4 == "-9223372036854775809"

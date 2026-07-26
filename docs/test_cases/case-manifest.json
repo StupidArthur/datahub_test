@@ -2061,6 +2061,83 @@
         "destructive",
         "integration"
       ]
+    },
+    {
+      "id": "UA-2-1-054",
+      "chapter": "UA-2-1",
+      "title": "Int64 JS 安全范围值",
+      "nodeid": "tests/integration/ua2/test_tag_creation_integer_writes_64.py::test_int64_js_safe_value",
+      "preconditions": [
+        "数据源 alive=true",
+        "Int64 可写节点初始为 123456"
+      ],
+      "steps": [
+        "写入 9999999999",
+        "验证三端一致"
+      ],
+      "expected": [
+        "写响应成功",
+        "源端精确为 9999999999",
+        "VariantType 保持 Int64",
+        "RT/QwQ 一致"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-055",
+      "chapter": "UA-2-1",
+      "title": "Int64 最小值与最大值",
+      "nodeid": "tests/integration/ua2/test_tag_creation_integer_writes_64.py::test_int64_min_max",
+      "preconditions": [
+        "数据源 alive=true",
+        "Int64 可写节点初始为 123456"
+      ],
+      "steps": [
+        "写入 -9223372036854775808",
+        "验证三端一致",
+        "写入 9223372036854775807",
+        "验证三端一致"
+      ],
+      "expected": [
+        "写响应成功",
+        "源端值正确",
+        "VariantType 不变",
+        "RT/QwQ 一致"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-056",
+      "chapter": "UA-2-1",
+      "title": "Int64 越界值",
+      "nodeid": "tests/integration/ua2/test_tag_creation_integer_writes_64.py::test_int64_out_of_range",
+      "preconditions": [
+        "数据源 alive=true",
+        "Int64 可写节点初始为 123456"
+      ],
+      "steps": [
+        "写入 -9223372036854775809",
+        "记录观察",
+        "写入 9223372036854775808",
+        "记录观察",
+        "动态 XFAIL"
+      ],
+      "expected": [
+        "记录拒绝或转换行为",
+        "被拒绝时源端保持 123456",
+        "VariantType 不变"
+      ],
+      "markers": [
+        "spec_pending",
+        "destructive",
+        "integration"
+      ]
     }
   ]
 }

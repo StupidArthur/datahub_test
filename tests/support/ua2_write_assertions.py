@@ -18,7 +18,7 @@ from tests.support.ua2_helpers import is_ds_alive
 from tpt_api.errors import TptAPIError
 from tests.support.ua2_helpers import opcua_read_sync, opcua_read_variant_type_sync
 from tests.support.ua2_rt_assertions import parse_required_timestamp
-from tests.support.ua2_value_normalization import normalize_int
+from tests.support.ua2_value_normalization import normalize_int, normalize_int64_as_str
 
 
 INTEGER_RANGES: dict[int, tuple] = {
@@ -28,6 +28,7 @@ INTEGER_RANGES: dict[int, tuple] = {
     5: ("UInt16", 0, 65535),
     6: ("Int32", -2147483648, 2147483647),
     7: ("UInt32", 0, 4294967295),
+    8: ("Int64", -9223372036854775808, 9223372036854775807),
 }
 
 WRAP_MAP: dict[tuple, int] = {
@@ -43,7 +44,21 @@ WRAP_MAP: dict[tuple, int] = {
     (6, 2147483648): -2147483648,
     (7, -1): 4294967295,
     (7, 4294967296): 0,
+    (8, -9223372036854775809): 9223372036854775807,
+    (8, 9223372036854775808): -9223372036854775808,
 }
+
+
+def normalize_integer_decimal(raw: object, data_type: int) -> str:
+    if isinstance(raw, bool):
+        raise TypeError(f"boolean {raw!r} must not be accepted as integer (dataType={data_type})")
+    if isinstance(raw, float):
+        raise TypeError(f"float must not be used for integer normalization (dataType={data_type})")
+    if data_type in (2, 3, 4, 5, 6, 7):
+        return str(normalize_int(raw))
+    if data_type == 8:
+        return normalize_int64_as_str(raw, unsigned=False)
+    raise ValueError(f"unsupported dataType {data_type} for normalize_integer_decimal")
 
 
 def is_wrap_behaviour(data_type: int, value: int) -> bool:
@@ -186,6 +201,79 @@ def wait_three_way_sync(
 
     raise AssertionError(
         f"three-way sync timeout for {tag_name} (expected={expected_value})\n"
+        f"last sample: {json.dumps(_serialize_trio(last_trio), ensure_ascii=False, default=str)}"
+    )
+
+
+def wait_three_way_integer_decimal_sync(
+    api,
+    *,
+    endpoint: str,
+    node_name: str,
+    namespace_index: int,
+    ds_id: int,
+    tag_name: str,
+    data_type: int,
+    expected_decimal: str,
+    expected_variant_type,
+    mocker=None,
+    timeout: float = 30.0,
+    interval: float = 0.5,
+) -> dict:
+    deadline = time.monotonic() + timeout
+    last_trio: dict = {}
+    while time.monotonic() < deadline:
+        _assert_mocker_alive(mocker, tag_name, "wait_three_way_integer_decimal_sync")
+        trio = _sample_trio(api, endpoint, node_name, namespace_index, ds_id, tag_name)
+        last_trio = trio
+        src = trio["source"]
+        vt = trio["variant_type"]
+        sv_str = normalize_integer_decimal(src, data_type)
+        if sv_str != expected_decimal:
+            time.sleep(interval)
+            continue
+        if vt != expected_variant_type:
+            raise AssertionError(
+                f"VariantType mismatch for {tag_name}: "
+                f"{vt} != {expected_variant_type} (expected {expected_variant_type.name})"
+            )
+        if isinstance(src, bool):
+            raise AssertionError(f"source is bool for {tag_name}: {src!r}")
+        if not isinstance(src, int):
+            raise AssertionError(f"source Python type is not int for {tag_name}: {type(src).__name__} {src!r}")
+        rt = trio["rt"]
+        qwq = trio["qwq"]
+        if "tagValue" not in rt or rt["tagValue"] is None:
+            time.sleep(interval)
+            continue
+        if "tagValue" not in qwq or qwq["tagValue"] is None:
+            time.sleep(interval)
+            continue
+        if rt.get("quality") in (None, 0) or qwq.get("quality") in (None, 0):
+            time.sleep(interval)
+            continue
+        if not rt.get("tagTime") or not qwq.get("tagTime"):
+            time.sleep(interval)
+            continue
+        try:
+            parse_required_timestamp(rt["tagTime"])
+            parse_required_timestamp(qwq["tagTime"])
+        except AssertionError:
+            time.sleep(interval)
+            continue
+        rv_str = normalize_integer_decimal(rt["tagValue"], data_type)
+        qv_str = normalize_integer_decimal(qwq["tagValue"], data_type)
+        if rv_str != expected_decimal or qv_str != expected_decimal:
+            time.sleep(interval)
+            continue
+        if not trio.get("datasource_alive"):
+            time.sleep(interval)
+            continue
+        return trio
+
+    raise AssertionError(
+        f"three-way integer decimal sync timeout for {tag_name} "
+        f"(data_type={data_type}, expected={expected_decimal})\n"
         f"last sample: {json.dumps(_serialize_trio(last_trio), ensure_ascii=False, default=str)}"
     )
 

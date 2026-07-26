@@ -71,7 +71,7 @@
     }
   ],
   "duplicates_in_source": [],
-  "pytest_total": 81,
+  "pytest_total": 84,
   "migrated": [
     "UA-1-1-01",
     "UA-1-1-02",
@@ -153,7 +153,10 @@
     "UA-2-1-050",
     "UA-2-1-051",
     "UA-2-1-052",
-    "UA-2-1-053"
+    "UA-2-1-053",
+    "UA-2-1-054",
+    "UA-2-1-055",
+    "UA-2-1-056"
   ],
   "missing": [
     "UA-1-4-01",
@@ -184,9 +187,6 @@
     "UA-1-6-11",
     "UA-1-6-12",
     "UA-1-6-13",
-    "UA-2-1-054",
-    "UA-2-1-055",
-    "UA-2-1-056",
     "UA-2-1-057",
     "UA-2-1-058",
     "UA-2-1-059",
@@ -686,6 +686,15 @@
     "UA-2-1-053": [
       "tests/integration/ua2/test_tag_creation_integer_writes_32.py::test_uint32_out_of_range"
     ],
+    "UA-2-1-054": [
+      "tests/integration/ua2/test_tag_creation_integer_writes_64.py::test_int64_js_safe_value"
+    ],
+    "UA-2-1-055": [
+      "tests/integration/ua2/test_tag_creation_integer_writes_64.py::test_int64_min_max"
+    ],
+    "UA-2-1-056": [
+      "tests/integration/ua2/test_tag_creation_integer_writes_64.py::test_int64_out_of_range"
+    ],
     "UA-2-1-042": [
       "tests/integration/ua2/test_tag_creation_integer_writes_8_16.py::test_sbyte_min_max"
     ],
@@ -805,6 +814,9 @@
     "tests/integration/ua2/test_tag_creation_integer_writes_32.py::test_int32_out_of_range": "UA-2-1-051",
     "tests/integration/ua2/test_tag_creation_integer_writes_32.py::test_uint32_min_max": "UA-2-1-052",
     "tests/integration/ua2/test_tag_creation_integer_writes_32.py::test_uint32_out_of_range": "UA-2-1-053",
+    "tests/integration/ua2/test_tag_creation_integer_writes_64.py::test_int64_js_safe_value": "UA-2-1-054",
+    "tests/integration/ua2/test_tag_creation_integer_writes_64.py::test_int64_min_max": "UA-2-1-055",
+    "tests/integration/ua2/test_tag_creation_integer_writes_64.py::test_int64_out_of_range": "UA-2-1-056",
     "tests/integration/ua2/test_tag_creation_integer_writes_8_16.py::test_sbyte_min_max": "UA-2-1-042",
     "tests/integration/ua2/test_tag_creation_integer_writes_8_16.py::test_sbyte_out_of_range": "UA-2-1-043",
     "tests/integration/ua2/test_tag_creation_integer_writes_8_16.py::test_byte_min_max": "UA-2-1-044",
@@ -895,9 +907,9 @@
     {
       "chapter": "UA-2",
       "source": 265,
-      "pytest": 53,
-      "migrated_count": 53,
-      "missing_count": 212,
+      "pytest": 56,
+      "migrated_count": 56,
+      "missing_count": 209,
       "migrated": [
         "UA-2-1-001",
         "UA-2-1-002",
@@ -951,12 +963,12 @@
         "UA-2-1-050",
         "UA-2-1-051",
         "UA-2-1-052",
-        "UA-2-1-053"
-      ],
-      "missing": [
+        "UA-2-1-053",
         "UA-2-1-054",
         "UA-2-1-055",
-        "UA-2-1-056",
+        "UA-2-1-056"
+      ],
+      "missing": [
         "UA-2-1-057",
         "UA-2-1-058",
         "UA-2-1-059",

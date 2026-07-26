@@ -12,7 +12,9 @@ from tests.support.ua2_write_assertions import (
     classify_write_result,
     expected_wrap_value,
     is_wrap_behaviour,
+    normalize_integer_decimal,
     wait_accepted_integer_outcome,
+    wait_three_way_integer_decimal_sync,
     _check_stable,
 )
 
@@ -557,3 +559,146 @@ class TestNormalizeInt:
         from tests.support.ua2_value_normalization import normalize_int
         with pytest.raises(TypeError, match="boolean"):
             normalize_int(True)
+
+
+class TestInt64Ranges:
+    def test_int64_range_exists(self):
+        name, lo, hi = INTEGER_RANGES[8]
+        assert name == "Int64"
+        assert lo == -9223372036854775808
+        assert hi == 9223372036854775807
+
+    def test_int64_range_type(self):
+        name, lo, hi = INTEGER_RANGES[8]
+        assert isinstance(lo, int)
+        assert isinstance(hi, int)
+        assert not isinstance(lo, bool)
+        assert not isinstance(hi, bool)
+
+    def test_int64_wrap_neg_boundary(self):
+        assert is_wrap_behaviour(8, -9223372036854775809) is True
+        assert expected_wrap_value(8, -9223372036854775809) == 9223372036854775807
+
+    def test_int64_wrap_pos_boundary(self):
+        assert is_wrap_behaviour(8, 9223372036854775808) is True
+        assert expected_wrap_value(8, 9223372036854775808) == -9223372036854775808
+
+    def test_int64_in_range_not_wrap(self):
+        assert is_wrap_behaviour(8, 0) is False
+        assert is_wrap_behaviour(8, -9223372036854775808) is False
+        assert is_wrap_behaviour(8, 9223372036854775807) is False
+        assert is_wrap_behaviour(8, 123456) is False
+
+    def test_int64_min_classified_as_clamped(self):
+        assert classify_outcome_value(8, -9223372036854775808, 123456) == "clamped"
+
+    def test_int64_max_classified_as_clamped(self):
+        assert classify_outcome_value(8, 9223372036854775807, 123456) == "clamped"
+
+    def test_int64_kept_original(self):
+        assert classify_outcome_value(8, 123456, 123456) == "kept_original"
+
+    def test_int64_converted(self):
+        assert classify_outcome_value(8, 9999999999, 123456) == "converted"
+
+    def test_int64_oor_neg(self):
+        assert classify_outcome_value(8, -9223372036854775809, 123456) == "out_of_range"
+
+    def test_int64_oor_pos(self):
+        assert classify_outcome_value(8, 9223372036854775808, 123456) == "out_of_range"
+
+    def test_int64_wrap_neg_is_clamped(self):
+        assert classify_outcome_value(8, 9223372036854775807, 123456) == "clamped"
+
+    def test_int64_wrap_pos_is_clamped(self):
+        assert classify_outcome_value(8, -9223372036854775808, 123456) == "clamped"
+
+
+class TestNormalizeIntegerDecimal:
+    def test_int_from_int(self):
+        assert normalize_integer_decimal(0, 8) == "0"
+        assert normalize_integer_decimal(123, 8) == "123"
+        assert normalize_integer_decimal(-123, 8) == "-123"
+
+    def test_int64_min_max_int(self):
+        assert normalize_integer_decimal(-9223372036854775808, 8) == "-9223372036854775808"
+        assert normalize_integer_decimal(9223372036854775807, 8) == "9223372036854775807"
+
+    def test_string_with_leading_zeros(self):
+        assert normalize_integer_decimal("000123", 8) == "123"
+        assert normalize_integer_decimal("-000123", 8) == "-123"
+
+    def test_string_with_plus_sign(self):
+        assert normalize_integer_decimal("+123", 8) == "123"
+
+    def test_zero_and_neg_zero(self):
+        assert normalize_integer_decimal(0, 8) == "0"
+        assert normalize_integer_decimal(-0, 8) == "0"
+
+    def test_large_decimal_string(self):
+        assert normalize_integer_decimal("9223372036854775807", 8) == "9223372036854775807"
+        assert normalize_integer_decimal("-9223372036854775808", 8) == "-9223372036854775808"
+
+    def test_oor_string(self):
+        assert normalize_integer_decimal("9223372036854775808", 8) == "9223372036854775808"
+        assert normalize_integer_decimal("-9223372036854775809", 8) == "-9223372036854775809"
+
+    def test_bool_rejected(self):
+        with pytest.raises(TypeError, match="boolean"):
+            normalize_integer_decimal(True, 8)
+
+    def test_float_rejected(self):
+        with pytest.raises(TypeError, match="float"):
+            normalize_integer_decimal(1.5, 8)
+        with pytest.raises(TypeError, match="float"):
+            normalize_integer_decimal(9223372036854775808.0, 8)
+
+    def test_data_type_2_uses_normalize_int(self):
+        assert normalize_integer_decimal(127, 2) == "127"
+        assert normalize_integer_decimal(-128, 2) == "-128"
+
+    def test_data_type_7_passthrough(self):
+        assert normalize_integer_decimal(4294967295, 7) == "4294967295"
+
+    def test_unsupported_data_type(self):
+        with pytest.raises(ValueError, match="unsupported"):
+            normalize_integer_decimal(0, 99)
+
+    def test_js_safe_value_from_int(self):
+        assert normalize_integer_decimal(9999999999, 8) == "9999999999"
+
+    def test_js_safe_value_from_string(self):
+        assert normalize_integer_decimal("9999999999", 8) == "9999999999"
+
+    def test_oor_oob_strings(self):
+        s = "9223372036854775808"
+        assert normalize_integer_decimal(s, 8) == s
+        s = "-9223372036854775809"
+        assert normalize_integer_decimal(s, 8) == s
+
+
+class TestNormalizeIntegerDecimalVariantTypes:
+    def test_sbyte_via_normalize_int(self):
+        from tests.support.ua2_value_normalization import normalize_int
+        assert normalize_int(-128) == -128
+        assert normalize_int(127) == 127
+
+    def test_byte_via_normalize_int(self):
+        from tests.support.ua2_value_normalization import normalize_int
+        assert normalize_int(0) == 0
+        assert normalize_int(255) == 255
+
+    def test_int16_via_normalize_int(self):
+        from tests.support.ua2_value_normalization import normalize_int
+        assert normalize_int(-32768) == -32768
+        assert normalize_int(32767) == 32767
+
+    def test_uint16_via_normalize_int(self):
+        from tests.support.ua2_value_normalization import normalize_int
+        assert normalize_int(0) == 0
+        assert normalize_int(65535) == 65535
+
+    def test_normalize_int_preserves_large_python_int(self):
+        from tests.support.ua2_value_normalization import normalize_int
+        assert normalize_int(9999999999) == 9999999999
+        assert normalize_int(-9999999999) == -9999999999
