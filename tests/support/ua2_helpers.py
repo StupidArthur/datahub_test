@@ -68,6 +68,7 @@ def setup_ds_and_tag(
     limit_down: float | None = None,
     limit_down_down: float | None = None,
     limit_down_down_down: float | None = None,
+    need_push: bool | None = None,
 ) -> dict:
     """Create mocker + datasource + tag, return context dict."""
     parsed = parse_mocker_endpoint(mocker_endpoint)
@@ -101,6 +102,7 @@ def setup_ds_and_tag(
         hi_eu=hi_eu, lo_eu=lo_eu,
         limit_up=limit_up, limit_up_up=limit_up_up, limit_up_up_up=limit_up_up_up,
         limit_down=limit_down, limit_down_down=limit_down_down, limit_down_down_down=limit_down_down_down,
+        need_push=need_push if need_push is not None else True,
     )
     tag_id = int(tag_data.get("id") or tag_data.get("tagId"))
 

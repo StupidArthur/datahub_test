@@ -3108,6 +3108,90 @@
         "destructive",
         "integration"
       ]
+    },
+    {
+      "id": "UA-2-1-098",
+      "chapter": "UA-2-1",
+      "title": "实时推送_默认值",
+      "nodeid": "tests/integration/ua2/test_tag_creation_needpush.py::test_needpush_default",
+      "preconditions": [
+        "数据源 alive=true"
+      ],
+      "steps": [
+        "不传 needPush 新增并查询"
+      ],
+      "expected": [
+        "needPush=true"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-099",
+      "chapter": "UA-2-1",
+      "title": "实时推送_关闭字段",
+      "nodeid": "tests/integration/ua2/test_tag_creation_needpush.py::test_needpush_false",
+      "preconditions": [
+        "数据源 alive=true"
+      ],
+      "steps": [
+        "新增 needPush=false 并查询"
+      ],
+      "expected": [
+        "needPush=false"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-100",
+      "chapter": "UA-2-1",
+      "title": "实时推送_关闭后RT行为",
+      "nodeid": "tests/integration/ua2/test_tag_creation_needpush.py::test_needpush_false_rt_behavior",
+      "preconditions": [
+        "needPush=false",
+        "Mock 值持续变化"
+      ],
+      "steps": [
+        "连续读取 RT 与质量",
+        "记录观察",
+        "动态 XFAIL"
+      ],
+      "expected": [
+        "记录 RT 是否继续更新、更新周期和质量变化"
+      ],
+      "markers": [
+        "spec_pending",
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-101",
+      "chapter": "UA-2-1",
+      "title": "实时推送_关闭后历史行为",
+      "nodeid": "tests/integration/ua2/test_tag_creation_needpush.py::test_needpush_false_history_behavior",
+      "preconditions": [
+        "needPush=false",
+        "Mock 值持续变化"
+      ],
+      "steps": [
+        "运行 30s 后查询历史",
+        "记录观察",
+        "动态 XFAIL"
+      ],
+      "expected": [
+        "记录是否落历史、数量和时间间隔"
+      ],
+      "markers": [
+        "spec_pending",
+        "destructive",
+        "integration"
+      ]
     }
   ]
 }
