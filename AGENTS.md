@@ -160,7 +160,30 @@ GUI (`ua_test_gui/`) 当前仍通过 `pytestrunner` 启动旧 Harness（`python 
 
 ## 当前状态参考
 
-* 已迁移 18 条 Case（UA-1-1-01 ~ 12，UA-1-2-01/02/04/06/07/08）
-* 阻塞：UA-1-1-07 鉴权（产品能力待确认）、UA-1-2-03/05 历史（迁移中）、UA-1-3 整组（未迁移）
-* GUI：仍 default legacy；native pytest 后端作为增量能力
-* 详细迁移历史：见 `docs/migration/` 下各 blocker 文件
+### 迁移计数
+| 组 | 总量 | PASS | FAIL (产品限) | XFAIL (未约定) | 未迁移 |
+|----|------|------|--------------|----------------|--------|
+| UA-1-1 | 12 | 12 | 0 | 0 | 0 |
+| UA-1-2 | 6 | 4 | 0 | 2 | 0 |
+| UA-2-1 | 49 | 35 | 3 | 11 | 0 |
+
+FAIL 三道确认产品能力限制：
+- **UA-2-1-044** Byte 255 → DataHub signed-byte 映射限制（`Write tag value type convert failed`）
+- **UA-2-1-048** UInt16 65535 → DataHub U_SHORT 映射限制
+- **UA-2-1-019** 空 tagName → 产品接受空 tagName，回落为节点名
+
+XFAIL 11 道为行为未约定（overflow / coercion / whitespace / length 129 / special chars / unicode）。
+
+### 清理基础设施
+- **`tests/support/ua2_cleanup.py`**: `strict_cleanup_ua2_context()` — 六步严格清理（物理删 tag → 清回收站 → 禁 DS → 删 DS → 停 mocker → 验端口），所有错误聚合不吞
+- **残差验证**: 执行前后 COW 审计 DS/active-tag/recycle-tag/mocker/dynamic-port 零残留
+
+### 架构约束已确认
+- UA-2-1-012/015 使用 `setup_ds_only()` + `try_add_tag()` 分步模式，严格 cleanup 后动态 `pytest.xfail`
+- 不动态生成测试函数、不创建 Catalog/Runner、不在 fixture 隐藏场景
+- GUI 仍 default legacy；native pytest 后端作为增量能力
+
+### 详细迁移历史
+- UA-1-1 阻塞（UA-1-1-07 鉴权）：见 `docs/migration/ua-1-1-07-blocker.md`
+- UA-1-2 阻塞（UA-1-2-03/05 历史）：见 `docs/migration/ua-1-2-03-blocker.md`
+- UA-2-1 全组已迁移并回归

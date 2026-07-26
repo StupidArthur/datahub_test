@@ -27,6 +27,7 @@ from tests.support.mocker_process import (
 from tests.support.naming import unique_name
 from tests.support.polling import wait_until
 from tests.support.rt_helpers import assert_rt_unavailable, get_rt_point, try_get_rt_point
+from tests.support.ua2_cleanup import strict_cleanup_ua2_context
 
 
 def _is_alive(api, ds_id: int) -> bool:
@@ -311,7 +312,16 @@ def test_ds_enabled_mocker_stopped(api, settings, tmp_path_factory, mocker_endpo
             f"quality should be None/0 when mocker is offline, got {qval!r}"
         )
     finally:
-        _teardown(api, ctx)
+        strict_cleanup_ua2_context(
+            api,
+            tag_id=ctx.get("tag_id"),
+            tag_name=ctx.get("tag_name"),
+            ds_id=ctx.get("ds_id"),
+            ds_name=ctx.get("ds_name"),
+            mocker=ctx.get("mocker"),
+            host=ctx.get("host"),
+            port=ctx.get("port"),
+        )
 
 
 @pytest.mark.case(

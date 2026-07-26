@@ -17,12 +17,15 @@ from tests.support.mocker_process import (
 from tests.support.naming import unique_name
 from tests.support.polling import wait_until
 from tests.support.rt_helpers import get_rt_point
+from tests.support.ua2_cleanup import strict_cleanup_ua2_context
 from tests.support.ua2_helpers import (
     find_unique_tag,
     is_ds_alive,
     opcua_read_sync,
     setup_ds_and_tag,
+    setup_ds_only,
     teardown_ds_tag_mocker,
+    try_add_tag,
     wait_ds_alive,
     wait_qtq_valid,
 )
@@ -257,25 +260,53 @@ def test_base_name_duplicate_mapping(api, settings, tmp_path_factory, mocker_end
         "不得影响其他位号",
     ],
 )
-@pytest.mark.xfail(strict=True, reason="spec_pending: invalid tagBaseName format behavior")
 @pytest.mark.integration
 @pytest.mark.destructive
 @pytest.mark.spec_pending
 def test_base_name_invalid_format(api, settings, tmp_path_factory, mocker_endpoint):
-    ctx = setup_ds_and_tag(
+    observation: dict = {}
+
+    ctx = setup_ds_only(
         api, settings, mocker_endpoint, tmp_path_factory, "UA-2-1-012",
-        tag_base_name="invalid_format",
-        data_type=DataTypes["DOUBLE"],
+        nodes=None,
     )
     try:
-        rec = find_unique_tag(api, ctx["tag_name"])
-        saved_base_name = rec.get("tagBaseName")
-        assert saved_base_name is not None, "tagBaseName should be saved"
-
-        pt = get_rt_point(api, ctx["tag_name"])
-        assert pt.get("tagValue") is not None or pt.get("quality", 0) == 0
+        tag_name = unique_name(settings.test_prefix, "UA-2-1-012-tag")
+        result = try_add_tag(
+            api, tag_name=tag_name, data_type=DataTypes["DOUBLE"],
+            tag_type=1, ds_id=ctx["ds_id"], only_read=True,
+            tag_base_name="invalid_format",
+        )
+        if result["ok"]:
+            tag_data = result["data"]
+            tag_id = int(tag_data.get("id") or tag_data.get("tagId"))
+            observation["tag_id"] = tag_id
+            observation["tag_name"] = tag_name
+            observation["accepted"] = True
+            rec = find_unique_tag(api, tag_name)
+            observation["saved_base_name"] = rec.get("tagBaseName")
+            pt = get_rt_point(api, tag_name)
+            observation["rt_value"] = pt.get("tagValue")
+            observation["quality"] = pt.get("quality", 0)
+        else:
+            observation["accepted"] = False
+            observation["error"] = str(result["error"])
     finally:
-        teardown_ds_tag_mocker(api, ctx)
+        strict_cleanup_ua2_context(
+            api,
+            tag_id=observation.get("tag_id"),
+            tag_name=observation.get("tag_name"),
+            ds_id=ctx.get("ds_id"),
+            ds_name=ctx.get("ds_name"),
+            mocker=ctx.get("mocker"),
+            host=ctx.get("host"),
+            port=ctx.get("port"),
+        )
+
+    pytest.xfail(
+        f"UA-2-1-012 invalid tagBaseName semantics are not specified; "
+        f"observed={observation}"
+    )
 
 
 @pytest.mark.case(
@@ -404,33 +435,55 @@ def test_base_name_empty(api, settings, tmp_path_factory, mocker_endpoint):
         "不得产生进程异常",
     ],
 )
-@pytest.mark.xfail(strict=True, reason="spec_pending: dataType mismatch behavior")
 @pytest.mark.integration
 @pytest.mark.destructive
 @pytest.mark.spec_pending
 def test_base_name_data_type_mismatch(api, settings, tmp_path_factory, mocker_endpoint):
-    ctx = setup_ds_and_tag(
+    observation: dict = {}
+
+    ctx = setup_ds_only(
         api, settings, mocker_endpoint, tmp_path_factory, "UA-2-1-015",
-        tag_base_name="1_double_ch_1",
-        data_type=DataTypes["BOOLEAN"],
         nodes=_DOUBLE_CH_1,
         namespace_index=1,
     )
     try:
-        rec = find_unique_tag(api, ctx["tag_name"])
-        saved_dt = int(rec.get("dataType", -1))
-        assert saved_dt != -1, "dataType should be present in config"
-        if saved_dt == DataTypes["BOOLEAN"]:
-            pt = get_rt_point(api, ctx["tag_name"])
-            assert pt.get("quality", 0) == 0 or pt.get("tagValue") is None
+        tag_name = unique_name(settings.test_prefix, "UA-2-1-015-tag")
+        result = try_add_tag(
+            api, tag_name=tag_name, data_type=DataTypes["BOOLEAN"],
+            tag_type=1, ds_id=ctx["ds_id"], only_read=True,
+            tag_base_name="1_double_ch_1",
+        )
+        if result["ok"]:
+            tag_data = result["data"]
+            tag_id = int(tag_data.get("id") or tag_data.get("tagId"))
+            observation["tag_id"] = tag_id
+            observation["tag_name"] = tag_name
+            observation["accepted"] = True
+            rec = find_unique_tag(api, tag_name)
+            observation["saved_data_type"] = int(rec.get("dataType", -1))
+            pt = get_rt_point(api, tag_name)
+            observation["rt_value"] = pt.get("tagValue")
+            observation["quality"] = pt.get("quality", 0)
+            qwq = query_tags_with_quality(api, ds_id=ctx["ds_id"], tag_name=tag_name)
+            qrecs = (qwq.get("tagInfoList") or {}).get("records") or []
+            qmatch = [r for r in qrecs if r.get("tagName") == tag_name]
+            observation["qtq_count"] = len(qmatch)
         else:
-            pt = get_rt_point(api, ctx["tag_name"])
-            assert pt.get("tagValue") is not None
-            assert pt.get("quality", 0) != 0
-
-        qwq = query_tags_with_quality(api, ds_id=ctx["ds_id"], tag_name=ctx["tag_name"])
-        qrecs = (qwq.get("tagInfoList") or {}).get("records") or []
-        qmatch = [r for r in qrecs if r.get("tagName") == ctx["tag_name"]]
-        assert len(qmatch) == 1
+            observation["accepted"] = False
+            observation["error"] = str(result["error"])
     finally:
-        teardown_ds_tag_mocker(api, ctx)
+        strict_cleanup_ua2_context(
+            api,
+            tag_id=observation.get("tag_id"),
+            tag_name=observation.get("tag_name"),
+            ds_id=ctx.get("ds_id"),
+            ds_name=ctx.get("ds_name"),
+            mocker=ctx.get("mocker"),
+            host=ctx.get("host"),
+            port=ctx.get("port"),
+        )
+
+    pytest.xfail(
+        f"UA-2-1-015 dataType mismatch behavior is not specified; "
+        f"observed={observation}"
+    )
