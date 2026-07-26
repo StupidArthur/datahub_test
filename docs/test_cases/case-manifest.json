@@ -2615,6 +2615,140 @@
         "destructive",
         "integration"
       ]
+    },
+    {
+      "id": "UA-2-1-076",
+      "chapter": "UA-2-1",
+      "title": "单位_普通值",
+      "nodeid": "tests/integration/ua2/test_tag_creation_unit_desc.py::test_unit_normal",
+      "preconditions": [
+        "数据源 alive=true"
+      ],
+      "steps": [
+        "新增 unit='kW' 并查询",
+        "验证实时采集"
+      ],
+      "expected": [
+        "新增成功",
+        "unit='kW'",
+        "不影响实时采集"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-077",
+      "chapter": "UA-2-1",
+      "title": "单位_空值",
+      "nodeid": "tests/integration/ua2/test_tag_creation_unit_desc.py::test_unit_empty",
+      "preconditions": [
+        "数据源 alive=true"
+      ],
+      "steps": [
+        "不传 unit 或传空字符串",
+        "查询值稳定一致",
+        "验证实时采集"
+      ],
+      "expected": [
+        "按接口默认值保存",
+        "查询值稳定一致",
+        "不影响实时采集"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-078",
+      "chapter": "UA-2-1",
+      "title": "单位_Unicode与长度",
+      "nodeid": "tests/integration/ua2/test_tag_creation_unit_desc.py::test_unit_unicode_and_length",
+      "preconditions": [
+        "数据源 alive=true"
+      ],
+      "steps": [
+        "使用中文单位新增",
+        "使用长字符串单位新增",
+        "记录观察",
+        "动态 XFAIL"
+      ],
+      "expected": [
+        "记录允许字符与最大长度",
+        "成功时字段完整保存"
+      ],
+      "markers": [
+        "spec_pending",
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-079",
+      "chapter": "UA-2-1",
+      "title": "描述_普通值",
+      "nodeid": "tests/integration/ua2/test_tag_creation_unit_desc.py::test_desc_normal",
+      "preconditions": [
+        "数据源 alive=true"
+      ],
+      "steps": [
+        "新增 tagDesc='test desc'",
+        "查询记录"
+      ],
+      "expected": [
+        "查询记录 tagDesc='test desc'"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-080",
+      "chapter": "UA-2-1",
+      "title": "描述_默认值",
+      "nodeid": "tests/integration/ua2/test_tag_creation_unit_desc.py::test_desc_default",
+      "preconditions": [
+        "数据源 alive=true"
+      ],
+      "steps": [
+        "不传 tagDesc 新增",
+        "查询记录"
+      ],
+      "expected": [
+        "tagDesc='{tagName} 描述'"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-081",
+      "chapter": "UA-2-1",
+      "title": "描述_Unicode与长度",
+      "nodeid": "tests/integration/ua2/test_tag_creation_unit_desc.py::test_desc_unicode_and_length",
+      "preconditions": [
+        "数据源 alive=true"
+      ],
+      "steps": [
+        "使用中文描述新增",
+        "使用换行描述新增",
+        "使用长描述新增",
+        "记录观察",
+        "动态 XFAIL"
+      ],
+      "expected": [
+        "记录字符和长度规则",
+        "成功时内容完整保存"
+      ],
+      "markers": [
+        "spec_pending",
+        "destructive",
+        "integration"
+      ]
     }
   ]
 }

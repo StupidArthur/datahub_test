@@ -71,7 +71,7 @@
     }
   ],
   "duplicates_in_source": [],
-  "pytest_total": 103,
+  "pytest_total": 109,
   "migrated": [
     "UA-1-1-01",
     "UA-1-1-02",
@@ -175,7 +175,13 @@
     "UA-2-1-072",
     "UA-2-1-073",
     "UA-2-1-074",
-    "UA-2-1-075"
+    "UA-2-1-075",
+    "UA-2-1-076",
+    "UA-2-1-077",
+    "UA-2-1-078",
+    "UA-2-1-079",
+    "UA-2-1-080",
+    "UA-2-1-081"
   ],
   "missing": [
     "UA-1-4-01",
@@ -206,12 +212,6 @@
     "UA-1-6-11",
     "UA-1-6-12",
     "UA-1-6-13",
-    "UA-2-1-076",
-    "UA-2-1-077",
-    "UA-2-1-078",
-    "UA-2-1-079",
-    "UA-2-1-080",
-    "UA-2-1-081",
     "UA-2-1-082",
     "UA-2-1-083",
     "UA-2-1-084",
@@ -805,6 +805,24 @@
     ],
     "UA-2-1-025": [
       "tests/integration/ua2/test_tag_creation_system_name.py::test_system_name_unicode_and_case"
+    ],
+    "UA-2-1-076": [
+      "tests/integration/ua2/test_tag_creation_unit_desc.py::test_unit_normal"
+    ],
+    "UA-2-1-077": [
+      "tests/integration/ua2/test_tag_creation_unit_desc.py::test_unit_empty"
+    ],
+    "UA-2-1-078": [
+      "tests/integration/ua2/test_tag_creation_unit_desc.py::test_unit_unicode_and_length"
+    ],
+    "UA-2-1-079": [
+      "tests/integration/ua2/test_tag_creation_unit_desc.py::test_desc_normal"
+    ],
+    "UA-2-1-080": [
+      "tests/integration/ua2/test_tag_creation_unit_desc.py::test_desc_default"
+    ],
+    "UA-2-1-081": [
+      "tests/integration/ua2/test_tag_creation_unit_desc.py::test_desc_unicode_and_length"
     ]
   },
   "nodeid_to_case": {
@@ -910,7 +928,13 @@
     "tests/integration/ua2/test_tag_creation_system_name.py::test_system_name_length_128": "UA-2-1-022",
     "tests/integration/ua2/test_tag_creation_system_name.py::test_system_name_length_129": "UA-2-1-023",
     "tests/integration/ua2/test_tag_creation_system_name.py::test_system_name_special_chars": "UA-2-1-024",
-    "tests/integration/ua2/test_tag_creation_system_name.py::test_system_name_unicode_and_case": "UA-2-1-025"
+    "tests/integration/ua2/test_tag_creation_system_name.py::test_system_name_unicode_and_case": "UA-2-1-025",
+    "tests/integration/ua2/test_tag_creation_unit_desc.py::test_unit_normal": "UA-2-1-076",
+    "tests/integration/ua2/test_tag_creation_unit_desc.py::test_unit_empty": "UA-2-1-077",
+    "tests/integration/ua2/test_tag_creation_unit_desc.py::test_unit_unicode_and_length": "UA-2-1-078",
+    "tests/integration/ua2/test_tag_creation_unit_desc.py::test_desc_normal": "UA-2-1-079",
+    "tests/integration/ua2/test_tag_creation_unit_desc.py::test_desc_default": "UA-2-1-080",
+    "tests/integration/ua2/test_tag_creation_unit_desc.py::test_desc_unicode_and_length": "UA-2-1-081"
   },
   "by_chapter": [
     {
@@ -983,9 +1007,9 @@
     {
       "chapter": "UA-2",
       "source": 265,
-      "pytest": 75,
-      "migrated_count": 75,
-      "missing_count": 190,
+      "pytest": 81,
+      "migrated_count": 81,
+      "missing_count": 184,
       "migrated": [
         "UA-2-1-001",
         "UA-2-1-002",
@@ -1061,15 +1085,15 @@
         "UA-2-1-072",
         "UA-2-1-073",
         "UA-2-1-074",
-        "UA-2-1-075"
-      ],
-      "missing": [
+        "UA-2-1-075",
         "UA-2-1-076",
         "UA-2-1-077",
         "UA-2-1-078",
         "UA-2-1-079",
         "UA-2-1-080",
-        "UA-2-1-081",
+        "UA-2-1-081"
+      ],
+      "missing": [
         "UA-2-1-082",
         "UA-2-1-083",
         "UA-2-1-084",

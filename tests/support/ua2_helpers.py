@@ -57,6 +57,8 @@ def setup_ds_and_tag(
     launch_mocker: bool = True,
     wait_for_rt: bool = True,
     cycle: int = 500,
+    unit: str = "",
+    tag_desc: str | None = None,
 ) -> dict:
     """Create mocker + datasource + tag, return context dict."""
     parsed = parse_mocker_endpoint(mocker_endpoint)
@@ -85,6 +87,7 @@ def setup_ds_and_tag(
         api, tag_name=tag_name, data_type=data_type,
         tag_type=tag_type, ds_id=ds_id, only_read=only_read,
         tag_base_name=tag_base_name,
+        unit=unit, tag_desc=tag_desc,
     )
     tag_id = int(tag_data.get("id") or tag_data.get("tagId"))
 
