@@ -157,21 +157,35 @@ def opcua_read_sync(endpoint: str, node_name: str, namespace_index: int = 2):
     return asyncio.run(_read())
 
 
-def opcua_write_sync(endpoint: str, node_name: str, value: object, *, namespace_index: int = 1) -> None:
+def opcua_write_sync(endpoint: str, node_name: str, value: object, *, namespace_index: int = 1, variant_type=None) -> object:
     async def _write():
         async with Client(endpoint) as client:
             nid = f"ns={namespace_index};s={node_name}"
             node = client.get_node(nid)
-            await node.write_value(value)
+            from asyncua import ua
+            if variant_type is not None:
+                dv = ua.DataValue(ua.Variant(value, variant_type))
+                await node.write_value(dv)
+            else:
+                await node.write_value(value)
             readback = await node.read_value()
-        actual_type = type(readback)
-        actual_val = readback
-        if isinstance(value, bool) and actual_type is not bool:
+        if isinstance(value, bool) and not isinstance(readback, bool):
             raise AssertionError(
-                f"OPC UA readback type mismatch after write: expected bool, got {actual_type.__name__} "
-                f"(value={actual_val!r})"
+                f"OPC UA readback type mismatch after write: expected bool, got {type(readback).__name__} "
+                f"(value={readback!r})"
             )
-    asyncio.run(_write())
+        return readback
+    return asyncio.run(_write())
+
+
+def opcua_read_variant_type_sync(endpoint: str, node_name: str, *, namespace_index: int = 1) -> tuple:
+    async def _read():
+        async with Client(endpoint) as client:
+            nid = f"ns={namespace_index};s={node_name}"
+            node = client.get_node(nid)
+            dv = await node.read_data_value()
+            return dv.Value.Value, dv.Value.VariantType
+    return asyncio.run(_read())
 
 
 def assert_write_accepted(response: dict, tag_name: str) -> None:

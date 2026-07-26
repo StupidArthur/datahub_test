@@ -1743,6 +1743,218 @@
         "destructive",
         "integration"
       ]
+    },
+    {
+      "id": "UA-2-1-042",
+      "chapter": "UA-2-1",
+      "title": "SByte 最小值与最大值",
+      "nodeid": "tests/integration/ua2/test_tag_creation_integer_writes_8_16.py::test_sbyte_min_max",
+      "preconditions": [
+        "数据源 alive=true",
+        "SByte 可写节点初始为 7"
+      ],
+      "steps": [
+        "写入 -128",
+        "验证三端一致",
+        "写入 127",
+        "验证三端一致"
+      ],
+      "expected": [
+        "写响应成功",
+        "源端值正确",
+        "VariantType 不变",
+        "RT/QwQ 一致"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-043",
+      "chapter": "UA-2-1",
+      "title": "SByte 越界值",
+      "nodeid": "tests/integration/ua2/test_tag_creation_integer_writes_8_16.py::test_sbyte_out_of_range",
+      "preconditions": [
+        "数据源 alive=true",
+        "SByte 可写节点初始为 7"
+      ],
+      "steps": [
+        "写入 -129",
+        "记录观察",
+        "写入 128",
+        "记录观察",
+        "动态 XFAIL"
+      ],
+      "expected": [
+        "记录拒绝或转换行为",
+        "被拒绝时源端保持 7",
+        "VariantType 不变"
+      ],
+      "markers": [
+        "spec_pending",
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-044",
+      "chapter": "UA-2-1",
+      "title": "Byte 最小值与最大值",
+      "nodeid": "tests/integration/ua2/test_tag_creation_integer_writes_8_16.py::test_byte_min_max",
+      "preconditions": [
+        "数据源 alive=true",
+        "Byte 可写节点初始为 7"
+      ],
+      "steps": [
+        "写入 0",
+        "验证三端一致",
+        "写入 255",
+        "验证三端一致"
+      ],
+      "expected": [
+        "写响应成功",
+        "源端值正确",
+        "VariantType 不变",
+        "RT/QwQ 一致"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-045",
+      "chapter": "UA-2-1",
+      "title": "Byte 越界值",
+      "nodeid": "tests/integration/ua2/test_tag_creation_integer_writes_8_16.py::test_byte_out_of_range",
+      "preconditions": [
+        "数据源 alive=true",
+        "Byte 可写节点初始为 7"
+      ],
+      "steps": [
+        "写入 -1",
+        "记录观察",
+        "写入 256",
+        "记录观察",
+        "动态 XFAIL"
+      ],
+      "expected": [
+        "记录拒绝或转换行为",
+        "被拒绝时源端保持 7",
+        "VariantType 不变"
+      ],
+      "markers": [
+        "spec_pending",
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-046",
+      "chapter": "UA-2-1",
+      "title": "Int16 最小值与最大值",
+      "nodeid": "tests/integration/ua2/test_tag_creation_integer_writes_8_16.py::test_int16_min_max",
+      "preconditions": [
+        "数据源 alive=true",
+        "Int16 可写节点初始为 123"
+      ],
+      "steps": [
+        "写入 -32768",
+        "验证三端一致",
+        "写入 32767",
+        "验证三端一致"
+      ],
+      "expected": [
+        "写响应成功",
+        "源端值正确",
+        "VariantType 不变",
+        "RT/QwQ 一致"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-047",
+      "chapter": "UA-2-1",
+      "title": "Int16 越界值",
+      "nodeid": "tests/integration/ua2/test_tag_creation_integer_writes_8_16.py::test_int16_out_of_range",
+      "preconditions": [
+        "数据源 alive=true",
+        "Int16 可写节点初始为 123"
+      ],
+      "steps": [
+        "写入 -32769",
+        "记录观察",
+        "写入 32768",
+        "记录观察",
+        "动态 XFAIL"
+      ],
+      "expected": [
+        "记录拒绝或转换行为",
+        "被拒绝时源端保持 123",
+        "VariantType 不变"
+      ],
+      "markers": [
+        "spec_pending",
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-048",
+      "chapter": "UA-2-1",
+      "title": "UInt16 最小值与最大值",
+      "nodeid": "tests/integration/ua2/test_tag_creation_integer_writes_8_16.py::test_uint16_min_max",
+      "preconditions": [
+        "数据源 alive=true",
+        "UInt16 可写节点初始为 123"
+      ],
+      "steps": [
+        "写入 0",
+        "验证三端一致",
+        "写入 65535",
+        "验证三端一致"
+      ],
+      "expected": [
+        "写响应成功",
+        "源端值正确",
+        "VariantType 不变",
+        "RT/QwQ 一致"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-049",
+      "chapter": "UA-2-1",
+      "title": "UInt16 越界值",
+      "nodeid": "tests/integration/ua2/test_tag_creation_integer_writes_8_16.py::test_uint16_out_of_range",
+      "preconditions": [
+        "数据源 alive=true",
+        "UInt16 可写节点初始为 123"
+      ],
+      "steps": [
+        "写入 -1",
+        "记录观察",
+        "写入 65536",
+        "记录观察",
+        "动态 XFAIL"
+      ],
+      "expected": [
+        "记录拒绝或转换行为",
+        "被拒绝时源端保持 123",
+        "VariantType 不变"
+      ],
+      "markers": [
+        "spec_pending",
+        "destructive",
+        "integration"
+      ]
     }
   ]
 }
