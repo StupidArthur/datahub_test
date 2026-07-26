@@ -1045,21 +1045,23 @@ class TestRestoreAndVerifySource:
                     mocker=m,
                 )
 
-    def test_mocker_none_is_noop(self):
-        restore_and_verify_source(
-            endpoint="x", node_name="y", namespace_index=1,
-            value=123456, variant_type=ua.VariantType.Int64,
-            mocker=None,
-        )
+    def test_mocker_none_raises(self):
+        with pytest.raises(AssertionError, match="mocker is None"):
+            restore_and_verify_source(
+                endpoint="x", node_name="y", namespace_index=1,
+                value=123456, variant_type=ua.VariantType.Int64,
+                mocker=None,
+            )
 
-    def test_mocker_exited_is_noop(self):
+    def test_mocker_exited_raises(self):
         m = Mock()
         m.process.poll.return_value = 1
-        restore_and_verify_source(
-            endpoint="x", node_name="y", namespace_index=1,
-            value=123456, variant_type=ua.VariantType.Int64,
-            mocker=m,
-        )
+        with pytest.raises(AssertionError, match="returncode=1"):
+            restore_and_verify_source(
+                endpoint="x", node_name="y", namespace_index=1,
+                value=123456, variant_type=ua.VariantType.Int64,
+                mocker=m,
+            )
 
     def test_write_failure_propagates(self):
         m = Mock()
@@ -1217,6 +1219,42 @@ class TestRejectionImmediateFail:
             "tests.support.ua2_write_assertions.query_tags_with_quality",
             Mock(side_effect=TptAPIError(code=500, msg="API error")),
             "queryWithQuality API error",
+        )
+
+    def test_rt_tagvalue_missing_immediate_fail(self, mock_mocker):
+        api = Mock()
+        self._run_with_override(
+            api, mock_mocker,
+            "tests.support.ua2_write_assertions.get_rt_value",
+            Mock(return_value=[{"quality": 0}]),
+            "RT tagValue missing",
+        )
+
+    def test_rt_tagvalue_none_immediate_fail(self, mock_mocker):
+        api = Mock()
+        self._run_with_override(
+            api, mock_mocker,
+            "tests.support.ua2_write_assertions.get_rt_value",
+            Mock(return_value=[{"tagValue": None, "quality": 0}]),
+            "RT tagValue missing",
+        )
+
+    def test_qwq_tagvalue_missing_immediate_fail(self, mock_mocker):
+        api = Mock()
+        self._run_with_override(
+            api, mock_mocker,
+            "tests.support.ua2_write_assertions.query_tags_with_quality",
+            Mock(return_value={"tagInfoList": {"records": [{"tagName": "t"}]}}),
+            "QwQ tagValue missing",
+        )
+
+    def test_qwq_tagvalue_none_immediate_fail(self, mock_mocker):
+        api = Mock()
+        self._run_with_override(
+            api, mock_mocker,
+            "tests.support.ua2_write_assertions.query_tags_with_quality",
+            Mock(return_value={"tagInfoList": {"records": [{"tagName": "t", "tagValue": None}]}}),
+            "QwQ tagValue missing",
         )
 
 

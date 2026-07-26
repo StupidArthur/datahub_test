@@ -506,46 +506,50 @@ def observe_integer_decimal_rejection(
         qmatch = [r for r in qrecs if r.get("tagName") == tag_name]
         qwq = qmatch[0] if qmatch else {}
 
+        # --- RT/QwQ tagValue must be present ---
+        if "tagValue" not in rt or rt["tagValue"] is None:
+            raise AssertionError(
+                f"RT tagValue missing during rejection observation for {tag_name}: "
+                f"{rt!r}"
+            )
+        if "tagValue" not in qwq or qwq["tagValue"] is None:
+            raise AssertionError(
+                f"QwQ tagValue missing during rejection observation for {tag_name}: "
+                f"{qwq!r}"
+            )
+
+        rt_v = rt["tagValue"]
+        qwq_v = qwq["tagValue"]
+
         # --- float checks ---
-        if isinstance(source, float):
-            raise AssertionError(f"source is float during rejection observation for {tag_name}: {source!r}")
-        rt_v = rt.get("tagValue")
-        qwq_v = qwq.get("tagValue")
-        if rt_v is not None and isinstance(rt_v, float):
+        if isinstance(rt_v, float):
             raise AssertionError(f"RT tagValue is float during rejection observation for {tag_name}: {rt_v!r}")
-        if qwq_v is not None and isinstance(qwq_v, float):
+        if isinstance(qwq_v, float):
             raise AssertionError(f"QwQ tagValue is float during rejection observation for {tag_name}: {qwq_v!r}")
 
-        # --- RT/QwQ decimal normalization ---
-        if rt_v is not None:
-            try:
-                rt_decimal = normalize_integer_decimal(rt_v, data_type)
-            except (TypeError, ValueError) as exc:
-                raise AssertionError(
-                    f"RT tagValue cannot be decimal-normalized during rejection "
-                    f"observation for {tag_name}: {rt_v!r} ({exc})"
-                )
-        else:
-            rt_decimal = None
+        # --- RT/QwQ decimal normalization (unconditional) ---
+        try:
+            rt_decimal = normalize_integer_decimal(rt_v, data_type)
+        except (TypeError, ValueError) as exc:
+            raise AssertionError(
+                f"RT tagValue cannot be decimal-normalized during rejection "
+                f"observation for {tag_name}: {rt_v!r} ({exc})"
+            )
+        try:
+            qwq_decimal = normalize_integer_decimal(qwq_v, data_type)
+        except (TypeError, ValueError) as exc:
+            raise AssertionError(
+                f"QwQ tagValue cannot be decimal-normalized during rejection "
+                f"observation for {tag_name}: {qwq_v!r} ({exc})"
+            )
 
-        if qwq_v is not None:
-            try:
-                qwq_decimal = normalize_integer_decimal(qwq_v, data_type)
-            except (TypeError, ValueError) as exc:
-                raise AssertionError(
-                    f"QwQ tagValue cannot be decimal-normalized during rejection "
-                    f"observation for {tag_name}: {qwq_v!r} ({exc})"
-                )
-        else:
-            qwq_decimal = None
-
-        # --- RT/QwQ baseline consistency ---
-        if rt_decimal is not None and rt_decimal != baseline_decimal:
+        # --- RT/QwQ baseline consistency (unconditional) ---
+        if rt_decimal != baseline_decimal:
             raise AssertionError(
                 f"RT value changed during rejection observation for {tag_name}: "
                 f"{rt_decimal} != {baseline_decimal}"
             )
-        if qwq_decimal is not None and qwq_decimal != baseline_decimal:
+        if qwq_decimal != baseline_decimal:
             raise AssertionError(
                 f"QwQ value changed during rejection observation for {tag_name}: "
                 f"{qwq_decimal} != {baseline_decimal}"
@@ -599,12 +603,12 @@ def observe_integer_decimal_rejection(
         if s["source_decimal"] != baseline_decimal:
             all_stable = False
             issues.append(f"sample[{i}] source {s['source_decimal']} != baseline {baseline_decimal}")
-        rtd = s.get("rt_decimal")
-        qwd = s.get("qwq_decimal")
-        if rtd is not None and rtd != baseline_decimal:
+        rtd = s["rt_decimal"]
+        qwd = s["qwq_decimal"]
+        if rtd != baseline_decimal:
             all_stable = False
             issues.append(f"sample[{i}] RT {rtd} != baseline {baseline_decimal}")
-        if qwd is not None and qwd != baseline_decimal:
+        if qwd != baseline_decimal:
             all_stable = False
             issues.append(f"sample[{i}] QwQ {qwd} != baseline {baseline_decimal}")
         if s["variant_type"] != baseline_vt_name:
@@ -641,8 +645,16 @@ def restore_and_verify_source(
     variant_type,
     mocker,
 ) -> None:
-    if mocker is None or mocker.process.poll() is not None:
-        return
+    if mocker is None:
+        raise AssertionError(
+            "restore_and_verify_source unavailable: mocker is None"
+        )
+    returncode = mocker.process.poll()
+    if returncode is not None:
+        raise AssertionError(
+            "restore_and_verify_source unavailable: "
+            f"mocker exited, returncode={returncode}"
+        )
     from asyncua import ua as ua_module
     dv = ua_module.DataValue(ua_module.Variant(value, variant_type))
     import asyncio
