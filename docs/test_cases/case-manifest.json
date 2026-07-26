@@ -2842,6 +2842,118 @@
         "destructive",
         "integration"
       ]
+    },
+    {
+      "id": "UA-2-1-086",
+      "chapter": "UA-2-1",
+      "title": "频率_默认值",
+      "nodeid": "tests/integration/ua2/test_tag_creation_frequency.py::test_frequency_default",
+      "preconditions": [
+        "数据源 alive=true"
+      ],
+      "steps": [
+        "不传 frequency 新增并查询"
+      ],
+      "expected": [
+        "新增成功",
+        "frequency=10",
+        "RT 可正常读取"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-087",
+      "chapter": "UA-2-1",
+      "title": "频率_1秒效果",
+      "nodeid": "tests/integration/ua2/test_tag_creation_frequency.py::test_frequency_1s_effect",
+      "preconditions": [
+        "Mock 值每秒变化",
+        "新增 frequency=1"
+      ],
+      "steps": [
+        "运行 30s",
+        "采集 RT 时间戳和历史记录",
+        "统计数量与间隔"
+      ],
+      "expected": [
+        "记录 RT 刷新间隔",
+        "记录历史数量和中位间隔",
+        "记录首次采集延迟"
+      ],
+      "markers": [
+        "spec_pending",
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-088",
+      "chapter": "UA-2-1",
+      "title": "频率_5秒效果",
+      "nodeid": "tests/integration/ua2/test_tag_creation_frequency.py::test_frequency_5s_effect",
+      "preconditions": [
+        "Mock 值持续变化",
+        "新增 frequency=5"
+      ],
+      "steps": [
+        "运行 60s 并统计 RT、历史时间间隔"
+      ],
+      "expected": [
+        "输出 5 秒配置下的实测模型"
+      ],
+      "markers": [
+        "spec_pending",
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-089",
+      "chapter": "UA-2-1",
+      "title": "频率_30秒效果",
+      "nodeid": "tests/integration/ua2/test_tag_creation_frequency.py::test_frequency_30s_effect",
+      "preconditions": [
+        "Mock 值持续变化",
+        "新增 frequency=30"
+      ],
+      "steps": [
+        "运行 120s 并统计 RT、历史时间间隔"
+      ],
+      "expected": [
+        "输出 30 秒配置下的实测模型"
+      ],
+      "markers": [
+        "spec_pending",
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-090",
+      "chapter": "UA-2-1",
+      "title": "频率_非法值",
+      "nodeid": "tests/integration/ua2/test_tag_creation_frequency.py::test_frequency_invalid",
+      "preconditions": [
+        "数据源 alive=true"
+      ],
+      "steps": [
+        "分别使用 0、负数、极大值新增",
+        "记录观察",
+        "动态 XFAIL"
+      ],
+      "expected": [
+        "记录校验和默认规则",
+        "成功时查询实际保存值",
+        "不得导致采集线程异常"
+      ],
+      "markers": [
+        "spec_pending",
+        "destructive",
+        "integration"
+      ]
     }
   ]
 }

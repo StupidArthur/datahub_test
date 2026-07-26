@@ -59,6 +59,7 @@ def setup_ds_and_tag(
     cycle: int = 500,
     unit: str = "",
     tag_desc: str | None = None,
+    frequency: int | None = None,
 ) -> dict:
     """Create mocker + datasource + tag, return context dict."""
     parsed = parse_mocker_endpoint(mocker_endpoint)
@@ -88,6 +89,7 @@ def setup_ds_and_tag(
         tag_type=tag_type, ds_id=ds_id, only_read=only_read,
         tag_base_name=tag_base_name,
         unit=unit, tag_desc=tag_desc,
+        frequency=frequency if frequency is not None else 10,
     )
     tag_id = int(tag_data.get("id") or tag_data.get("tagId"))
 

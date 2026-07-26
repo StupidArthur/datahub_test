@@ -71,7 +71,7 @@
     }
   ],
   "duplicates_in_source": [],
-  "pytest_total": 113,
+  "pytest_total": 118,
   "migrated": [
     "UA-1-1-01",
     "UA-1-1-02",
@@ -185,7 +185,12 @@
     "UA-2-1-082",
     "UA-2-1-083",
     "UA-2-1-084",
-    "UA-2-1-085"
+    "UA-2-1-085",
+    "UA-2-1-086",
+    "UA-2-1-087",
+    "UA-2-1-088",
+    "UA-2-1-089",
+    "UA-2-1-090"
   ],
   "missing": [
     "UA-1-4-01",
@@ -216,11 +221,6 @@
     "UA-1-6-11",
     "UA-1-6-12",
     "UA-1-6-13",
-    "UA-2-1-086",
-    "UA-2-1-087",
-    "UA-2-1-088",
-    "UA-2-1-089",
-    "UA-2-1-090",
     "UA-2-1-091",
     "UA-2-1-092",
     "UA-2-1-093",
@@ -707,6 +707,21 @@
     "UA-2-1-065": [
       "tests/integration/ua2/test_tag_creation_float_double_writes.py::test_double_nan_and_inf"
     ],
+    "UA-2-1-086": [
+      "tests/integration/ua2/test_tag_creation_frequency.py::test_frequency_default"
+    ],
+    "UA-2-1-087": [
+      "tests/integration/ua2/test_tag_creation_frequency.py::test_frequency_1s_effect"
+    ],
+    "UA-2-1-088": [
+      "tests/integration/ua2/test_tag_creation_frequency.py::test_frequency_5s_effect"
+    ],
+    "UA-2-1-089": [
+      "tests/integration/ua2/test_tag_creation_frequency.py::test_frequency_30s_effect"
+    ],
+    "UA-2-1-090": [
+      "tests/integration/ua2/test_tag_creation_frequency.py::test_frequency_invalid"
+    ],
     "UA-2-1-050": [
       "tests/integration/ua2/test_tag_creation_integer_writes_32.py::test_int32_min_max"
     ],
@@ -908,6 +923,11 @@
     "tests/integration/ua2/test_tag_creation_float_double_writes.py::test_double_normal_and_negative": "UA-2-1-063",
     "tests/integration/ua2/test_tag_creation_float_double_writes.py::test_double_precision": "UA-2-1-064",
     "tests/integration/ua2/test_tag_creation_float_double_writes.py::test_double_nan_and_inf": "UA-2-1-065",
+    "tests/integration/ua2/test_tag_creation_frequency.py::test_frequency_default": "UA-2-1-086",
+    "tests/integration/ua2/test_tag_creation_frequency.py::test_frequency_1s_effect": "UA-2-1-087",
+    "tests/integration/ua2/test_tag_creation_frequency.py::test_frequency_5s_effect": "UA-2-1-088",
+    "tests/integration/ua2/test_tag_creation_frequency.py::test_frequency_30s_effect": "UA-2-1-089",
+    "tests/integration/ua2/test_tag_creation_frequency.py::test_frequency_invalid": "UA-2-1-090",
     "tests/integration/ua2/test_tag_creation_integer_writes_32.py::test_int32_min_max": "UA-2-1-050",
     "tests/integration/ua2/test_tag_creation_integer_writes_32.py::test_int32_out_of_range": "UA-2-1-051",
     "tests/integration/ua2/test_tag_creation_integer_writes_32.py::test_uint32_min_max": "UA-2-1-052",
@@ -1023,9 +1043,9 @@
     {
       "chapter": "UA-2",
       "source": 265,
-      "pytest": 85,
-      "migrated_count": 85,
-      "missing_count": 180,
+      "pytest": 90,
+      "migrated_count": 90,
+      "missing_count": 175,
       "migrated": [
         "UA-2-1-001",
         "UA-2-1-002",
@@ -1111,14 +1131,14 @@
         "UA-2-1-082",
         "UA-2-1-083",
         "UA-2-1-084",
-        "UA-2-1-085"
-      ],
-      "missing": [
+        "UA-2-1-085",
         "UA-2-1-086",
         "UA-2-1-087",
         "UA-2-1-088",
         "UA-2-1-089",
-        "UA-2-1-090",
+        "UA-2-1-090"
+      ],
+      "missing": [
         "UA-2-1-091",
         "UA-2-1-092",
         "UA-2-1-093",
