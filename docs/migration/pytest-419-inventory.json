@@ -71,7 +71,7 @@
     }
   ],
   "duplicates_in_source": [],
-  "pytest_total": 109,
+  "pytest_total": 113,
   "migrated": [
     "UA-1-1-01",
     "UA-1-1-02",
@@ -181,7 +181,11 @@
     "UA-2-1-078",
     "UA-2-1-079",
     "UA-2-1-080",
-    "UA-2-1-081"
+    "UA-2-1-081",
+    "UA-2-1-082",
+    "UA-2-1-083",
+    "UA-2-1-084",
+    "UA-2-1-085"
   ],
   "missing": [
     "UA-1-4-01",
@@ -212,10 +216,6 @@
     "UA-1-6-11",
     "UA-1-6-12",
     "UA-1-6-13",
-    "UA-2-1-082",
-    "UA-2-1-083",
-    "UA-2-1-084",
-    "UA-2-1-085",
     "UA-2-1-086",
     "UA-2-1-087",
     "UA-2-1-088",
@@ -761,6 +761,18 @@
     "UA-2-1-059": [
       "tests/integration/ua2/test_tag_creation_integer_writes_uint64.py::test_uint64_negative_and_out_of_range"
     ],
+    "UA-2-1-082": [
+      "tests/integration/ua2/test_tag_creation_onlyread.py::test_onlyread_source_writable_tag_readonly"
+    ],
+    "UA-2-1-083": [
+      "tests/integration/ua2/test_tag_creation_onlyread.py::test_onlyread_source_writable_tag_writable"
+    ],
+    "UA-2-1-084": [
+      "tests/integration/ua2/test_tag_creation_onlyread.py::test_onlyread_source_readonly_tag_readonly"
+    ],
+    "UA-2-1-085": [
+      "tests/integration/ua2/test_tag_creation_onlyread.py::test_onlyread_source_readonly_tag_writable"
+    ],
     "UA-2-1-066": [
       "tests/integration/ua2/test_tag_creation_string_writes.py::test_string_empty"
     ],
@@ -914,6 +926,10 @@
     "tests/integration/ua2/test_tag_creation_integer_writes_uint64.py::test_uint64_js_safe_value": "UA-2-1-057",
     "tests/integration/ua2/test_tag_creation_integer_writes_uint64.py::test_uint64_max_value": "UA-2-1-058",
     "tests/integration/ua2/test_tag_creation_integer_writes_uint64.py::test_uint64_negative_and_out_of_range": "UA-2-1-059",
+    "tests/integration/ua2/test_tag_creation_onlyread.py::test_onlyread_source_writable_tag_readonly": "UA-2-1-082",
+    "tests/integration/ua2/test_tag_creation_onlyread.py::test_onlyread_source_writable_tag_writable": "UA-2-1-083",
+    "tests/integration/ua2/test_tag_creation_onlyread.py::test_onlyread_source_readonly_tag_readonly": "UA-2-1-084",
+    "tests/integration/ua2/test_tag_creation_onlyread.py::test_onlyread_source_readonly_tag_writable": "UA-2-1-085",
     "tests/integration/ua2/test_tag_creation_string_writes.py::test_string_empty": "UA-2-1-066",
     "tests/integration/ua2/test_tag_creation_string_writes.py::test_string_normal_and_chinese": "UA-2-1-067",
     "tests/integration/ua2/test_tag_creation_string_writes.py::test_string_special_chars": "UA-2-1-068",
@@ -1007,9 +1023,9 @@
     {
       "chapter": "UA-2",
       "source": 265,
-      "pytest": 81,
-      "migrated_count": 81,
-      "missing_count": 184,
+      "pytest": 85,
+      "migrated_count": 85,
+      "missing_count": 180,
       "migrated": [
         "UA-2-1-001",
         "UA-2-1-002",
@@ -1091,13 +1107,13 @@
         "UA-2-1-078",
         "UA-2-1-079",
         "UA-2-1-080",
-        "UA-2-1-081"
-      ],
-      "missing": [
+        "UA-2-1-081",
         "UA-2-1-082",
         "UA-2-1-083",
         "UA-2-1-084",
-        "UA-2-1-085",
+        "UA-2-1-085"
+      ],
+      "missing": [
         "UA-2-1-086",
         "UA-2-1-087",
         "UA-2-1-088",
