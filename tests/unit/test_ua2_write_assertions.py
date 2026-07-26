@@ -158,6 +158,71 @@ class TestClassifyOutcomeValue:
     def test_uint16_kept(self):
         assert classify_outcome_value(5, 123, 123) == "kept_original"
 
+    def test_int32_range(self):
+        name, lo, hi = INTEGER_RANGES[6]
+        assert name == "Int32"
+        assert lo == -2147483648
+        assert hi == 2147483647
+
+    def test_uint32_range(self):
+        name, lo, hi = INTEGER_RANGES[7]
+        assert name == "UInt32"
+        assert lo == 0
+        assert hi == 4294967295
+
+    def test_int32_neg2147483649_wraps_to_2147483647(self):
+        assert is_wrap_behaviour(6, -2147483649) is True
+        assert expected_wrap_value(6, -2147483649) == 2147483647
+
+    def test_int32_2147483648_wraps_to_neg2147483648(self):
+        assert is_wrap_behaviour(6, 2147483648) is True
+        assert expected_wrap_value(6, 2147483648) == -2147483648
+
+    def test_uint32_neg1_wraps_to_4294967295(self):
+        assert is_wrap_behaviour(7, -1) is True
+        assert expected_wrap_value(7, -1) == 4294967295
+
+    def test_uint32_4294967296_wraps_to_0(self):
+        assert is_wrap_behaviour(7, 4294967296) is True
+        assert expected_wrap_value(7, 4294967296) == 0
+
+    def test_uint32_max_is_valid_int(self):
+        """4294967295 is a valid Python int, not a float or str."""
+        val = 4294967295
+        assert isinstance(val, int)
+        assert not isinstance(val, bool)
+        assert val > 0
+
+    def test_uint32_neg1_is_out_of_range(self):
+        assert classify_outcome_value(7, -1, 123456) == "out_of_range"
+
+    def test_uint32_4294967296_is_out_of_range(self):
+        assert classify_outcome_value(7, 4294967296, 123456) == "out_of_range"
+
+    def test_int32_clamped_min(self):
+        assert classify_outcome_value(6, -2147483648, 123456) == "clamped"
+
+    def test_int32_clamped_max(self):
+        assert classify_outcome_value(6, 2147483647, 123456) == "clamped"
+
+    def test_uint32_clamped_min(self):
+        assert classify_outcome_value(7, 0, 123456) == "clamped"
+
+    def test_uint32_clamped_max(self):
+        assert classify_outcome_value(7, 4294967295, 123456) == "clamped"
+
+    def test_int32_kept_original(self):
+        assert classify_outcome_value(6, 123456, 123456) == "kept_original"
+
+    def test_uint32_kept_original(self):
+        assert classify_outcome_value(7, 123456, 123456) == "kept_original"
+
+    def test_int32_converted(self):
+        assert classify_outcome_value(6, 100000, 123456) == "converted"
+
+    def test_uint32_converted(self):
+        assert classify_outcome_value(7, 999999, 123456) == "converted"
+
 
 class TestClassifyOutcomeExtended:
     def test_sbyte_wrap_127_is_clamped(self):
@@ -187,6 +252,18 @@ class TestClassifyOutcomeExtended:
 
     def test_uint16_wrap_0_is_clamped(self):
         assert classify_outcome_value(5, 0, 123) == "clamped"
+
+    def test_int32_wrap_2147483647_is_clamped(self):
+        assert classify_outcome_value(6, 2147483647, 123456) == "clamped"
+
+    def test_int32_wrap_neg2147483648_is_clamped(self):
+        assert classify_outcome_value(6, -2147483648, 123456) == "clamped"
+
+    def test_uint32_wrap_4294967295_is_clamped(self):
+        assert classify_outcome_value(7, 4294967295, 123456) == "clamped"
+
+    def test_uint32_wrap_0_is_clamped(self):
+        assert classify_outcome_value(7, 0, 123456) == "clamped"
 
     def test_out_of_range_above_uint16(self):
         assert classify_outcome_value(5, 70000, 123) == "out_of_range"
@@ -463,3 +540,20 @@ class TestNormalizeInt:
     def test_large_negative_int(self):
         from tests.support.ua2_value_normalization import normalize_int
         assert normalize_int(-32768) == -32768
+
+    def test_int32_min(self):
+        from tests.support.ua2_value_normalization import normalize_int
+        assert normalize_int(-2147483648) == -2147483648
+
+    def test_int32_max(self):
+        from tests.support.ua2_value_normalization import normalize_int
+        assert normalize_int(2147483647) == 2147483647
+
+    def test_uint32_max(self):
+        from tests.support.ua2_value_normalization import normalize_int
+        assert normalize_int(4294967295) == 4294967295
+
+    def test_bool_rejected_as_int32(self):
+        from tests.support.ua2_value_normalization import normalize_int
+        with pytest.raises(TypeError, match="boolean"):
+            normalize_int(True)

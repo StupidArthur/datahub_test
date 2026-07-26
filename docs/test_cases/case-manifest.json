@@ -1955,6 +1955,112 @@
         "destructive",
         "integration"
       ]
+    },
+    {
+      "id": "UA-2-1-050",
+      "chapter": "UA-2-1",
+      "title": "Int32 最小值与最大值",
+      "nodeid": "tests/integration/ua2/test_tag_creation_integer_writes_32.py::test_int32_min_max",
+      "preconditions": [
+        "数据源 alive=true",
+        "Int32 可写节点初始为 123456"
+      ],
+      "steps": [
+        "写入 -2147483648",
+        "验证三端一致",
+        "写入 2147483647",
+        "验证三端一致"
+      ],
+      "expected": [
+        "写响应成功",
+        "源端值正确",
+        "VariantType 不变",
+        "RT/QwQ 一致"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-051",
+      "chapter": "UA-2-1",
+      "title": "Int32 越界值",
+      "nodeid": "tests/integration/ua2/test_tag_creation_integer_writes_32.py::test_int32_out_of_range",
+      "preconditions": [
+        "数据源 alive=true",
+        "Int32 可写节点初始为 123456"
+      ],
+      "steps": [
+        "写入 -2147483649",
+        "记录观察",
+        "写入 2147483648",
+        "记录观察",
+        "动态 XFAIL"
+      ],
+      "expected": [
+        "记录拒绝或转换行为",
+        "被拒绝时源端保持 123456",
+        "VariantType 不变"
+      ],
+      "markers": [
+        "spec_pending",
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-052",
+      "chapter": "UA-2-1",
+      "title": "UInt32 最小值与最大值",
+      "nodeid": "tests/integration/ua2/test_tag_creation_integer_writes_32.py::test_uint32_min_max",
+      "preconditions": [
+        "数据源 alive=true",
+        "UInt32 可写节点初始为 123456"
+      ],
+      "steps": [
+        "写入 0",
+        "验证三端一致",
+        "写入 4294967295",
+        "验证三端一致"
+      ],
+      "expected": [
+        "写响应成功",
+        "源端值正确",
+        "VariantType 不变",
+        "RT/QwQ 一致"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-053",
+      "chapter": "UA-2-1",
+      "title": "UInt32 越界值",
+      "nodeid": "tests/integration/ua2/test_tag_creation_integer_writes_32.py::test_uint32_out_of_range",
+      "preconditions": [
+        "数据源 alive=true",
+        "UInt32 可写节点初始为 123456"
+      ],
+      "steps": [
+        "写入 -1",
+        "记录观察",
+        "写入 4294967296",
+        "记录观察",
+        "动态 XFAIL"
+      ],
+      "expected": [
+        "记录拒绝或转换行为",
+        "被拒绝时源端保持 123456",
+        "VariantType 不变"
+      ],
+      "markers": [
+        "spec_pending",
+        "destructive",
+        "integration"
+      ]
     }
   ]
 }
