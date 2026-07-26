@@ -71,7 +71,7 @@
     }
   ],
   "duplicates_in_source": [],
-  "pytest_total": 118,
+  "pytest_total": 125,
   "migrated": [
     "UA-1-1-01",
     "UA-1-1-02",
@@ -190,7 +190,14 @@
     "UA-2-1-087",
     "UA-2-1-088",
     "UA-2-1-089",
-    "UA-2-1-090"
+    "UA-2-1-090",
+    "UA-2-1-091",
+    "UA-2-1-092",
+    "UA-2-1-093",
+    "UA-2-1-094",
+    "UA-2-1-095",
+    "UA-2-1-096",
+    "UA-2-1-097"
   ],
   "missing": [
     "UA-1-4-01",
@@ -221,13 +228,6 @@
     "UA-1-6-11",
     "UA-1-6-12",
     "UA-1-6-13",
-    "UA-2-1-091",
-    "UA-2-1-092",
-    "UA-2-1-093",
-    "UA-2-1-094",
-    "UA-2-1-095",
-    "UA-2-1-096",
-    "UA-2-1-097",
     "UA-2-1-098",
     "UA-2-1-099",
     "UA-2-1-100",
@@ -788,6 +788,27 @@
     "UA-2-1-085": [
       "tests/integration/ua2/test_tag_creation_onlyread.py::test_onlyread_source_readonly_tag_writable"
     ],
+    "UA-2-1-091": [
+      "tests/integration/ua2/test_tag_creation_range_alarm.py::test_range_field_save"
+    ],
+    "UA-2-1-092": [
+      "tests/integration/ua2/test_tag_creation_range_alarm.py::test_range_within_write"
+    ],
+    "UA-2-1-093": [
+      "tests/integration/ua2/test_tag_creation_range_alarm.py::test_range_out_of_range_write"
+    ],
+    "UA-2-1-094": [
+      "tests/integration/ua2/test_tag_creation_range_alarm.py::test_range_invalid_config"
+    ],
+    "UA-2-1-095": [
+      "tests/integration/ua2/test_tag_creation_range_alarm.py::test_alarm_limits_legal"
+    ],
+    "UA-2-1-096": [
+      "tests/integration/ua2/test_tag_creation_range_alarm.py::test_alarm_limits_invalid_order"
+    ],
+    "UA-2-1-097": [
+      "tests/integration/ua2/test_tag_creation_range_alarm.py::test_alarm_limits_out_of_range"
+    ],
     "UA-2-1-066": [
       "tests/integration/ua2/test_tag_creation_string_writes.py::test_string_empty"
     ],
@@ -950,6 +971,13 @@
     "tests/integration/ua2/test_tag_creation_onlyread.py::test_onlyread_source_writable_tag_writable": "UA-2-1-083",
     "tests/integration/ua2/test_tag_creation_onlyread.py::test_onlyread_source_readonly_tag_readonly": "UA-2-1-084",
     "tests/integration/ua2/test_tag_creation_onlyread.py::test_onlyread_source_readonly_tag_writable": "UA-2-1-085",
+    "tests/integration/ua2/test_tag_creation_range_alarm.py::test_range_field_save": "UA-2-1-091",
+    "tests/integration/ua2/test_tag_creation_range_alarm.py::test_range_within_write": "UA-2-1-092",
+    "tests/integration/ua2/test_tag_creation_range_alarm.py::test_range_out_of_range_write": "UA-2-1-093",
+    "tests/integration/ua2/test_tag_creation_range_alarm.py::test_range_invalid_config": "UA-2-1-094",
+    "tests/integration/ua2/test_tag_creation_range_alarm.py::test_alarm_limits_legal": "UA-2-1-095",
+    "tests/integration/ua2/test_tag_creation_range_alarm.py::test_alarm_limits_invalid_order": "UA-2-1-096",
+    "tests/integration/ua2/test_tag_creation_range_alarm.py::test_alarm_limits_out_of_range": "UA-2-1-097",
     "tests/integration/ua2/test_tag_creation_string_writes.py::test_string_empty": "UA-2-1-066",
     "tests/integration/ua2/test_tag_creation_string_writes.py::test_string_normal_and_chinese": "UA-2-1-067",
     "tests/integration/ua2/test_tag_creation_string_writes.py::test_string_special_chars": "UA-2-1-068",
@@ -1043,9 +1071,9 @@
     {
       "chapter": "UA-2",
       "source": 265,
-      "pytest": 90,
-      "migrated_count": 90,
-      "missing_count": 175,
+      "pytest": 97,
+      "migrated_count": 97,
+      "missing_count": 168,
       "migrated": [
         "UA-2-1-001",
         "UA-2-1-002",
@@ -1136,16 +1164,16 @@
         "UA-2-1-087",
         "UA-2-1-088",
         "UA-2-1-089",
-        "UA-2-1-090"
-      ],
-      "missing": [
+        "UA-2-1-090",
         "UA-2-1-091",
         "UA-2-1-092",
         "UA-2-1-093",
         "UA-2-1-094",
         "UA-2-1-095",
         "UA-2-1-096",
-        "UA-2-1-097",
+        "UA-2-1-097"
+      ],
+      "missing": [
         "UA-2-1-098",
         "UA-2-1-099",
         "UA-2-1-100",

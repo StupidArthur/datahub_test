@@ -2954,6 +2954,160 @@
         "destructive",
         "integration"
       ]
+    },
+    {
+      "id": "UA-2-1-091",
+      "chapter": "UA-2-1",
+      "title": "量程_字段保存",
+      "nodeid": "tests/integration/ua2/test_tag_creation_range_alarm.py::test_range_field_save",
+      "preconditions": [
+        "数值型节点"
+      ],
+      "steps": [
+        "新增 hiEU=100, loEU=0 并查询"
+      ],
+      "expected": [
+        "hiEU=100、loEU=0 精确保存",
+        "不影响范围内值采集"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-092",
+      "chapter": "UA-2-1",
+      "title": "量程_范围内写值",
+      "nodeid": "tests/integration/ua2/test_tag_creation_range_alarm.py::test_range_within_write",
+      "preconditions": [
+        "可写数值位号",
+        "hiEU=100, loEU=0"
+      ],
+      "steps": [
+        "写入 50 并闭环验证"
+      ],
+      "expected": [
+        "源端和 RT 均为 50",
+        "质量有效"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-093",
+      "chapter": "UA-2-1",
+      "title": "量程_超范围写值",
+      "nodeid": "tests/integration/ua2/test_tag_creation_range_alarm.py::test_range_out_of_range_write",
+      "preconditions": [
+        "可写数值位号",
+        "hiEU=100, loEU=0"
+      ],
+      "steps": [
+        "分别写 150、-50",
+        "记录观察",
+        "动态 XFAIL"
+      ],
+      "expected": [
+        "记录量程仅作元数据、拒绝或裁剪的实际规则",
+        "源端与 RT 必须一致"
+      ],
+      "markers": [
+        "spec_pending",
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-094",
+      "chapter": "UA-2-1",
+      "title": "量程_配置非法",
+      "nodeid": "tests/integration/ua2/test_tag_creation_range_alarm.py::test_range_invalid_config",
+      "preconditions": [
+        "数值型节点"
+      ],
+      "steps": [
+        "分别新增 hiEU=loEU、hiEU<loEU、仅传一个边界",
+        "记录观察",
+        "动态 XFAIL"
+      ],
+      "expected": [
+        "记录校验规则",
+        "成功时字段值必须与请求一致"
+      ],
+      "markers": [
+        "spec_pending",
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-095",
+      "chapter": "UA-2-1",
+      "title": "报警限_合法递增",
+      "nodeid": "tests/integration/ua2/test_tag_creation_range_alarm.py::test_alarm_limits_legal",
+      "preconditions": [
+        "数值型节点"
+      ],
+      "steps": [
+        "新增 低低低=0, 低低=5, 低=10, 高=80, 高高=90, 高高高=100"
+      ],
+      "expected": [
+        "新增成功",
+        "六个字段精确保存",
+        "字段顺序关系正确"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-096",
+      "chapter": "UA-2-1",
+      "title": "报警限_顺序非法",
+      "nodeid": "tests/integration/ua2/test_tag_creation_range_alarm.py::test_alarm_limits_invalid_order",
+      "preconditions": [
+        "数值型节点"
+      ],
+      "steps": [
+        "提交低限逆序或高限逆序配置",
+        "记录观察",
+        "动态 XFAIL"
+      ],
+      "expected": [
+        "记录拒绝或接受规则",
+        "若接受，字段不得被静默改写"
+      ],
+      "markers": [
+        "spec_pending",
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-097",
+      "chapter": "UA-2-1",
+      "title": "报警限_超出量程",
+      "nodeid": "tests/integration/ua2/test_tag_creation_range_alarm.py::test_alarm_limits_out_of_range",
+      "preconditions": [
+        "hiEU=50, loEU=0"
+      ],
+      "steps": [
+        "分别提交 limitUp=80、limitDown=-20",
+        "记录观察",
+        "动态 XFAIL"
+      ],
+      "expected": [
+        "记录报警限与工程量范围的约束关系"
+      ],
+      "markers": [
+        "spec_pending",
+        "destructive",
+        "integration"
+      ]
     }
   ]
 }
