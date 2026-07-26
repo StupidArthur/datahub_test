@@ -15,6 +15,54 @@ from tests.support.ua2_value_normalization import (
 )
 
 
+def test_boolean_2_rejected():
+    with pytest.raises(ValueError, match="not a valid boolean"):
+        normalize_boolean(2)
+
+
+def test_boolean_minus1_rejected():
+    with pytest.raises(ValueError, match="not a valid boolean"):
+        normalize_boolean(-1)
+
+
+def test_int64_plus00012_normalized():
+    assert normalize_int64_as_str("+00012") == "12"
+
+
+def test_int64_minus00012_normalized():
+    assert normalize_int64_as_str("-00012") == "-12"
+
+
+def test_uint64_negative_rejected():
+    with pytest.raises(ValueError, match="negative"):
+        normalize_int64_as_str(-5, unsigned=True)
+
+
+def test_uint64_negative_string_rejected():
+    with pytest.raises(ValueError, match="negative"):
+        normalize_int64_as_str("-5", unsigned=True)
+
+
+def test_int64_float_rejected():
+    with pytest.raises(TypeError, match="float"):
+        normalize_int64_as_str(42.0)
+
+
+def test_uint64_float_rejected():
+    with pytest.raises(TypeError, match="float"):
+        normalize_int64_as_str(42.0, unsigned=True)
+
+
+def test_datetime_float_rejected():
+    with pytest.raises(TypeError, match="float"):
+        normalize_datetime(123456.0)
+
+
+def test_datetime_invalid_iso_rejected():
+    with pytest.raises((ValueError, AssertionError)):
+        normalize_datetime("not-a-date")
+
+
 class TestNormalizeBoolean:
     def test_true(self):
         assert normalize_boolean(True) is True

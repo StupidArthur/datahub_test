@@ -1229,12 +1229,23 @@
       ],
       "steps": [
         "创建 Boolean 节点并新增位号",
-        "读取 RT 和源端"
+        "等待第一次 RT 值",
+        "等待第二次 RT 值发生变化",
+        "联合轮询 RT 与 queryWithQuality 直到一致"
       ],
       "expected": [
-        "数据类型正确",
-        "RT 值与源端一致",
-        "质量有效"
+        "dataType 与请求一致",
+        "tagBaseName 与请求一致",
+        "两次 RT 值发生变化",
+        "两次 RT quality 有效",
+        "两次 RT tagTime 可严格解析",
+        "第二次 RT 时间不早于第一次",
+        "queryWithQuality 返回唯一目标记录",
+        "queryWithQuality quality 存在且有效",
+        "queryWithQuality tagTime 存在且可解析",
+        "queryWithQuality tagValue 存在",
+        "queryWithQuality 与 getRTValue 值一致",
+        "RT 与 asyncua 源端夹逼值一致"
       ],
       "markers": [
         "destructive",
@@ -1251,12 +1262,23 @@
       ],
       "steps": [
         "创建 SByte 节点并新增位号",
-        "读取 RT 和源端"
+        "等待第一次 RT 值",
+        "等待第二次 RT 值发生变化",
+        "联合轮询 RT 与 queryWithQuality 直到一致"
       ],
       "expected": [
-        "数据类型正确",
-        "RT 值与源端一致",
-        "质量有效"
+        "dataType 与请求一致",
+        "tagBaseName 与请求一致",
+        "两次 RT 值发生变化",
+        "两次 RT quality 有效",
+        "两次 RT tagTime 可严格解析",
+        "第二次 RT 时间不早于第一次",
+        "queryWithQuality 返回唯一目标记录",
+        "queryWithQuality quality 存在且有效",
+        "queryWithQuality tagTime 存在且可解析",
+        "queryWithQuality tagValue 存在",
+        "queryWithQuality 与 getRTValue 值一致",
+        "RT 与 asyncua 源端夹逼值一致"
       ],
       "markers": [
         "destructive",
@@ -1273,12 +1295,23 @@
       ],
       "steps": [
         "创建 Byte 节点并新增位号",
-        "读取 RT 和源端"
+        "等待第一次 RT 值",
+        "等待第二次 RT 值发生变化",
+        "联合轮询 RT 与 queryWithQuality 直到一致"
       ],
       "expected": [
-        "数据类型正确",
-        "RT 值与源端一致",
-        "质量有效"
+        "dataType 与请求一致",
+        "tagBaseName 与请求一致",
+        "两次 RT 值发生变化",
+        "两次 RT quality 有效",
+        "两次 RT tagTime 可严格解析",
+        "第二次 RT 时间不早于第一次",
+        "queryWithQuality 返回唯一目标记录",
+        "queryWithQuality quality 存在且有效",
+        "queryWithQuality tagTime 存在且可解析",
+        "queryWithQuality tagValue 存在",
+        "queryWithQuality 与 getRTValue 值一致",
+        "RT 与 asyncua 源端夹逼值一致"
       ],
       "markers": [
         "destructive",
@@ -1295,12 +1328,23 @@
       ],
       "steps": [
         "创建 Int16 节点并新增位号",
-        "读取 RT 和源端"
+        "等待第一次 RT 值",
+        "等待第二次 RT 值发生变化",
+        "联合轮询 RT 与 queryWithQuality 直到一致"
       ],
       "expected": [
-        "数据类型正确",
-        "RT 值与源端一致",
-        "质量有效"
+        "dataType 与请求一致",
+        "tagBaseName 与请求一致",
+        "两次 RT 值发生变化",
+        "两次 RT quality 有效",
+        "两次 RT tagTime 可严格解析",
+        "第二次 RT 时间不早于第一次",
+        "queryWithQuality 返回唯一目标记录",
+        "queryWithQuality quality 存在且有效",
+        "queryWithQuality tagTime 存在且可解析",
+        "queryWithQuality tagValue 存在",
+        "queryWithQuality 与 getRTValue 值一致",
+        "RT 与 asyncua 源端夹逼值一致"
       ],
       "markers": [
         "destructive",
@@ -1317,12 +1361,23 @@
       ],
       "steps": [
         "创建 UInt16 节点并新增位号",
-        "读取 RT 和源端"
+        "等待第一次 RT 值",
+        "等待第二次 RT 值发生变化",
+        "联合轮询 RT 与 queryWithQuality 直到一致"
       ],
       "expected": [
-        "数据类型正确",
-        "RT 值与源端一致",
-        "质量有效"
+        "dataType 与请求一致",
+        "tagBaseName 与请求一致",
+        "两次 RT 值发生变化",
+        "两次 RT quality 有效",
+        "两次 RT tagTime 可严格解析",
+        "第二次 RT 时间不早于第一次",
+        "queryWithQuality 返回唯一目标记录",
+        "queryWithQuality quality 存在且有效",
+        "queryWithQuality tagTime 存在且可解析",
+        "queryWithQuality tagValue 存在",
+        "queryWithQuality 与 getRTValue 值一致",
+        "RT 与 asyncua 源端夹逼值一致"
       ],
       "markers": [
         "destructive",
@@ -1339,12 +1394,23 @@
       ],
       "steps": [
         "创建 Int32 节点并新增位号",
-        "读取 RT 和源端"
+        "等待第一次 RT 值",
+        "等待第二次 RT 值发生变化",
+        "联合轮询 RT 与 queryWithQuality 直到一致"
       ],
       "expected": [
-        "数据类型正确",
-        "RT 值与源端一致",
-        "质量有效"
+        "dataType 与请求一致",
+        "tagBaseName 与请求一致",
+        "两次 RT 值发生变化",
+        "两次 RT quality 有效",
+        "两次 RT tagTime 可严格解析",
+        "第二次 RT 时间不早于第一次",
+        "queryWithQuality 返回唯一目标记录",
+        "queryWithQuality quality 存在且有效",
+        "queryWithQuality tagTime 存在且可解析",
+        "queryWithQuality tagValue 存在",
+        "queryWithQuality 与 getRTValue 值一致",
+        "RT 与 asyncua 源端夹逼值一致"
       ],
       "markers": [
         "destructive",
@@ -1361,12 +1427,23 @@
       ],
       "steps": [
         "创建 UInt32 节点并新增位号",
-        "读取 RT 和源端"
+        "等待第一次 RT 值",
+        "等待第二次 RT 值发生变化",
+        "联合轮询 RT 与 queryWithQuality 直到一致"
       ],
       "expected": [
-        "数据类型正确",
-        "RT 值与源端一致",
-        "质量有效"
+        "dataType 与请求一致",
+        "tagBaseName 与请求一致",
+        "两次 RT 值发生变化",
+        "两次 RT quality 有效",
+        "两次 RT tagTime 可严格解析",
+        "第二次 RT 时间不早于第一次",
+        "queryWithQuality 返回唯一目标记录",
+        "queryWithQuality quality 存在且有效",
+        "queryWithQuality tagTime 存在且可解析",
+        "queryWithQuality tagValue 存在",
+        "queryWithQuality 与 getRTValue 值一致",
+        "RT 与 asyncua 源端夹逼值一致"
       ],
       "markers": [
         "destructive",
@@ -1383,12 +1460,23 @@
       ],
       "steps": [
         "创建 Int64 节点并新增位号",
-        "读取 RT 和源端"
+        "等待第一次 RT 值",
+        "等待第二次 RT 值发生变化",
+        "联合轮询 RT 与 queryWithQuality 直到一致"
       ],
       "expected": [
-        "数据类型正确",
-        "RT 值与源端一致",
-        "质量有效"
+        "dataType 与请求一致",
+        "tagBaseName 与请求一致",
+        "两次 RT 值发生变化",
+        "两次 RT quality 有效",
+        "两次 RT tagTime 可严格解析",
+        "第二次 RT 时间不早于第一次",
+        "queryWithQuality 返回唯一目标记录",
+        "queryWithQuality quality 存在且有效",
+        "queryWithQuality tagTime 存在且可解析",
+        "queryWithQuality tagValue 存在",
+        "queryWithQuality 与 getRTValue 值一致",
+        "RT 与 asyncua 源端夹逼值一致"
       ],
       "markers": [
         "destructive",
@@ -1405,12 +1493,23 @@
       ],
       "steps": [
         "创建 UInt64 节点并新增位号",
-        "读取 RT 和源端"
+        "等待第一次 RT 值",
+        "等待第二次 RT 值发生变化",
+        "联合轮询 RT 与 queryWithQuality 直到一致"
       ],
       "expected": [
-        "数据类型正确",
-        "RT 值与源端一致",
-        "质量有效"
+        "dataType 与请求一致",
+        "tagBaseName 与请求一致",
+        "两次 RT 值发生变化",
+        "两次 RT quality 有效",
+        "两次 RT tagTime 可严格解析",
+        "第二次 RT 时间不早于第一次",
+        "queryWithQuality 返回唯一目标记录",
+        "queryWithQuality quality 存在且有效",
+        "queryWithQuality tagTime 存在且可解析",
+        "queryWithQuality tagValue 存在",
+        "queryWithQuality 与 getRTValue 值一致",
+        "RT 与 asyncua 源端夹逼值一致"
       ],
       "markers": [
         "destructive",
@@ -1427,12 +1526,23 @@
       ],
       "steps": [
         "创建 Float 节点并新增位号",
-        "读取 RT 和源端"
+        "等待第一次 RT 值",
+        "等待第二次 RT 值发生变化",
+        "联合轮询 RT 与 queryWithQuality 直到一致"
       ],
       "expected": [
-        "数据类型正确",
-        "RT 值与源端一致",
-        "质量有效"
+        "dataType 与请求一致",
+        "tagBaseName 与请求一致",
+        "两次 RT 值发生变化",
+        "两次 RT quality 有效",
+        "两次 RT tagTime 可严格解析",
+        "第二次 RT 时间不早于第一次",
+        "queryWithQuality 返回唯一目标记录",
+        "queryWithQuality quality 存在且有效",
+        "queryWithQuality tagTime 存在且可解析",
+        "queryWithQuality tagValue 存在",
+        "queryWithQuality 与 getRTValue 值一致",
+        "RT 与 asyncua 源端夹逼值一致"
       ],
       "markers": [
         "destructive",
@@ -1449,12 +1559,23 @@
       ],
       "steps": [
         "创建 Double 节点并新增位号",
-        "读取 RT 和源端"
+        "等待第一次 RT 值",
+        "等待第二次 RT 值发生变化",
+        "联合轮询 RT 与 queryWithQuality 直到一致"
       ],
       "expected": [
-        "数据类型正确",
-        "RT 值与源端一致",
-        "质量有效"
+        "dataType 与请求一致",
+        "tagBaseName 与请求一致",
+        "两次 RT 值发生变化",
+        "两次 RT quality 有效",
+        "两次 RT tagTime 可严格解析",
+        "第二次 RT 时间不早于第一次",
+        "queryWithQuality 返回唯一目标记录",
+        "queryWithQuality quality 存在且有效",
+        "queryWithQuality tagTime 存在且可解析",
+        "queryWithQuality tagValue 存在",
+        "queryWithQuality 与 getRTValue 值一致",
+        "RT 与 asyncua 源端夹逼值一致"
       ],
       "markers": [
         "destructive",
@@ -1471,12 +1592,23 @@
       ],
       "steps": [
         "创建 String 节点并新增位号",
-        "读取 RT 和源端"
+        "等待第一次 RT 值",
+        "等待第二次 RT 值发生变化",
+        "联合轮询 RT 与 queryWithQuality 直到一致"
       ],
       "expected": [
-        "数据类型正确",
-        "RT 值与源端一致",
-        "质量有效"
+        "dataType 与请求一致",
+        "tagBaseName 与请求一致",
+        "两次 RT 值发生变化",
+        "两次 RT quality 有效",
+        "两次 RT tagTime 可严格解析",
+        "第二次 RT 时间不早于第一次",
+        "queryWithQuality 返回唯一目标记录",
+        "queryWithQuality quality 存在且有效",
+        "queryWithQuality tagTime 存在且可解析",
+        "queryWithQuality tagValue 存在",
+        "queryWithQuality 与 getRTValue 值一致",
+        "RT 与 asyncua 源端夹逼值一致"
       ],
       "markers": [
         "destructive",
@@ -1493,12 +1625,23 @@
       ],
       "steps": [
         "创建 DateTime 节点并新增位号",
-        "读取 RT 和源端"
+        "等待第一次 RT 值",
+        "等待第二次 RT 值发生变化",
+        "联合轮询 RT 与 queryWithQuality 直到一致"
       ],
       "expected": [
-        "数据类型正确",
-        "RT 值与源端一致",
-        "质量有效"
+        "dataType 与请求一致",
+        "tagBaseName 与请求一致",
+        "两次 RT 值发生变化",
+        "两次 RT quality 有效",
+        "两次 RT tagTime 可严格解析",
+        "第二次 RT 时间不早于第一次",
+        "queryWithQuality 返回唯一目标记录",
+        "queryWithQuality quality 存在且有效",
+        "queryWithQuality tagTime 存在且可解析",
+        "queryWithQuality tagValue 存在",
+        "queryWithQuality 与 getRTValue 值一致",
+        "RT 与 asyncua 源端夹逼值一致"
       ],
       "markers": [
         "destructive",

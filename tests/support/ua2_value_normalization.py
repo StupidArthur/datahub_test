@@ -18,7 +18,11 @@ def normalize_boolean(raw: object) -> bool:
     if isinstance(raw, bool):
         return raw
     if isinstance(raw, int):
-        return bool(raw)
+        if raw == 1:
+            return True
+        if raw == 0:
+            return False
+        raise ValueError(f"integer {raw} is not a valid boolean (only 0/1)")
     if isinstance(raw, str):
         lower = raw.strip().lower()
         if lower in ("true", "1"):
@@ -46,34 +50,36 @@ def normalize_int(raw: object) -> int:
     raise TypeError(f"unexpected int type: {type(raw).__name__} {raw!r}")
 
 
-def normalize_int64_as_str(raw: object) -> str:
+def normalize_int64_as_str(raw: object, *, unsigned: bool = False) -> str:
     """Normalize Int64/UInt64 values to decimal string for lossless comparison.
 
-    The canonical representation is a decimal integer string. This avoids
-    precision loss from float or JavaScript-number intermediates.
+    When ``unsigned=True`` (UInt64), negative values are rejected.
+    Leading zeros are stripped. Leading ``+`` is stripped.
     """
     if isinstance(raw, bool):
         raise TypeError(f"boolean {raw!r} must not be accepted as Int64")
     if isinstance(raw, int):
+        if unsigned and raw < 0:
+            raise ValueError(f"negative value {raw} not allowed for UInt64")
         return str(raw)
     if isinstance(raw, str):
         raw = raw.strip()
-        if not raw or (raw[0] in "+-" and not raw[1:].lstrip("-").isdigit()):
+        if not raw:
             raise ValueError(f"not a valid integer string: {raw!r}")
+        negative = raw[0] == "-"
         if raw[0] in "+-":
-            sign = raw[0]
-            digits = raw[1:]
-            if not digits.isdigit():
-                raise ValueError(f"not a valid integer string: {raw!r}")
-            return sign + digits
+            raw = raw[1:]
+        if negative and unsigned:
+            raise ValueError(f"negative value {raw!r} not allowed for UInt64")
         if not raw.isdigit():
-            if raw.lstrip("-").isdigit():
-                return raw
             raise ValueError(f"not a valid integer string: {raw!r}")
-        return raw
+        digits = raw.lstrip("0") or "0"
+        if negative:
+            return "-" + digits
+        return digits
     if isinstance(raw, float):
         raise TypeError("float must not be used for Int64/UInt64 normalization")
-    raise TypeError(f"unexpected type for Int64: {type(raw).__name__} {raw!r}")
+    raise TypeError(f"unexpected type for Int64/UInt64: {type(raw).__name__} {raw!r}")
 
 
 def normalize_float(raw: object, abs_tol: float = 1e-6) -> float:
@@ -104,13 +110,14 @@ def normalize_datetime(raw: object) -> datetime:
 
     Accepted input forms:
     - **int**: OPC UA FILETIME (100-ns intervals since 1601-01-01 UTC)
-    - **float**: same FILETIME but expressed as float
-    - **str**: ISO-format datetime string
+    - **str**: ISO-format datetime string or ``DateTime{utcTime=...}``
     - **datetime**: naive → assume UTC; aware → convert to UTC
     """
     epoch = datetime(1601, 1, 1, tzinfo=timezone.utc)
-    if isinstance(raw, (int, float)):
-        utc_ticks = int(raw)
+    if isinstance(raw, float):
+        raise TypeError(f"float {raw} must not be used for datetime normalization")
+    if isinstance(raw, int):
+        utc_ticks = raw
         seconds, remainder = divmod(utc_ticks, 10_000_000)
         return epoch + timedelta(seconds=seconds, microseconds=remainder // 10)
     if isinstance(raw, str):
@@ -135,7 +142,8 @@ def assert_value_equal(expected: object, actual: object, data_type: int, *, abs_
     """Compare two values according to ``data_type`` after normalization."""
     _BOOL_TYPES = {1}
     _INT_TYPES = {2, 3, 4, 5, 6, 7}
-    _INT64_TYPES = {8, 9}
+    _INT64_TYPE = 8
+    _UINT64_TYPE = 9
     _FLOAT_TYPES = {10}
     _DOUBLE_TYPES = {11}
     _STRING_TYPES = {12}
@@ -149,10 +157,14 @@ def assert_value_equal(expected: object, actual: object, data_type: int, *, abs_
         a = normalize_int(expected)
         b = normalize_int(actual)
         assert a == b, f"int mismatch: {a} != {b}"
-    elif data_type in _INT64_TYPES:
+    elif data_type == _INT64_TYPE:
         a = normalize_int64_as_str(expected)
         b = normalize_int64_as_str(actual)
         assert a == b, f"Int64 mismatch: {a} != {b}"
+    elif data_type == _UINT64_TYPE:
+        a = normalize_int64_as_str(expected, unsigned=True)
+        b = normalize_int64_as_str(actual, unsigned=True)
+        assert a == b, f"UInt64 mismatch: {a} != {b}"
     elif data_type in _FLOAT_TYPES:
         a = normalize_float(expected, abs_tol_float)
         b = normalize_float(actual, abs_tol_float)
