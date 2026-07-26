@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import time
 
 import pytest
 
@@ -22,17 +21,19 @@ from tests.support.ua2_helpers import (
 from tests.support.ua2_rt_assertions import parse_required_timestamp
 from tests.support.ua2_write_assertions import (
     WRAP_MAP,
+    classify_outcome_value,
     classify_write_result,
+    expected_wrap_value,
     is_wrap_behaviour,
-    strict_teardown,
-    wait_integer_write_closed_loop,
+    observe_integer_write_outcome,
+    strict_restore_and_teardown,
+    wait_three_way_sync,
 )
 from tests.support.ua2_value_normalization import normalize_int
 
 from asyncua import ua
 
 _TYPE_CONFIG = {
-    # data_type: (type_name, node_suffix, variant_type, default)
     2: ("SByte", "sbyte_w_1", ua.VariantType.SByte, 7),
     3: ("Byte", "byte_w_1", ua.VariantType.Byte, 7),
     4: ("Int16", "int16_w_1", ua.VariantType.Int16, 123),
@@ -88,6 +89,7 @@ def _run_boundary_case(
     cfg = _TYPE_CONFIG[data_type]
     node_name = cfg[1]
     variant_type = cfg[2]
+    default_val = cfg[3]
     ctx = _build_context(api, settings, tmp_path_factory, mocker_endpoint, case_id, data_type)
     tag_name = ctx["tag_name"]
     endpoint = ctx["endpoint"]
@@ -101,39 +103,52 @@ def _run_boundary_case(
             return pt.get("tagValue") is not None and pt.get("quality") not in (None, 0)
         wait_until(f"rt_ready:{tag_name}", _has_rt, timeout=30.0, interval=0.5)
 
+        wait_three_way_sync(
+            api, endpoint=endpoint, node_name=node_name, namespace_index=1,
+            ds_id=ctx["ds_id"], tag_name=tag_name,
+            data_type=data_type, expected_value=default_val,
+            expected_variant_type=variant_type,
+        )
+
         for val in boundary_values:
             resp = write_tag_values(api, {tag_name: val})
             assert_write_accepted(resp, tag_name)
 
-            result = wait_integer_write_closed_loop(
-                api,
-                endpoint=endpoint, node_name=node_name, namespace_index=1,
+            trio = wait_three_way_sync(
+                api, endpoint=endpoint, node_name=node_name, namespace_index=1,
                 ds_id=ctx["ds_id"], tag_name=tag_name,
                 data_type=data_type, expected_value=val,
-                timeout=30.0, interval=0.5,
+                expected_variant_type=variant_type,
             )
 
             _verify_variant_type(endpoint, node_name, variant_type)
 
-            rv = normalize_int(result["rt"]["tagValue"])
-            qv = normalize_int(result["qwq"]["tagValue"])
-            assert result["source"] == val, \
-                f"source mismatch for {val}: {result['source']!r}"
+            rv = normalize_int(trio["rt"]["tagValue"])
+            qv = normalize_int(trio["qwq"]["tagValue"])
+            assert trio["source"] == val, \
+                f"source mismatch for {val}: {trio['source']!r}"
             assert rv == val, \
                 f"RT mismatch for {val}: {rv}"
             assert qv == val, \
                 f"QwQ mismatch for {val}: {qv}"
-            assert result["rt"].get("quality") not in (None, 0)
-            assert result["qwq"].get("quality") not in (None, 0)
-            parse_required_timestamp(result["rt"].get("tagTime", ""))
-            parse_required_timestamp(result["qwq"].get("tagTime", ""))
+            assert trio["rt"].get("quality") not in (None, 0)
+            assert trio["qwq"].get("quality") not in (None, 0)
+            parse_required_timestamp(trio["rt"].get("tagTime", ""))
+            parse_required_timestamp(trio["qwq"].get("tagTime", ""))
+            assert trio["datasource_alive"] is True, \
+                f"datasource not alive during {val}"
 
-        opcua_write_sync(endpoint, node_name, cfg[3], namespace_index=1, variant_type=variant_type)
+        opcua_write_sync(endpoint, node_name, default_val, namespace_index=1, variant_type=variant_type)
 
     finally:
-        strict_teardown(api, tag_id=ctx["tag_id"], tag_name=tag_name,
-                        ds_id=ctx["ds_id"], ds_name=ctx["ds_name"],
-                        mocker=ctx.get("mocker"))
+        strict_restore_and_teardown(
+            api,
+            endpoint=endpoint, node_name=node_name, namespace_index=1,
+            original_value=default_val, original_variant_type=variant_type,
+            tag_id=ctx["tag_id"], tag_name=tag_name,
+            ds_id=ctx["ds_id"], ds_name=ctx["ds_name"],
+            mocker=ctx.get("mocker"), port=ctx["port"],
+        )
 
 
 def _run_out_of_range_case(
@@ -160,11 +175,20 @@ def _run_out_of_range_case(
             return pt.get("tagValue") is not None and pt.get("quality") not in (None, 0)
         wait_until(f"rt_ready:{tag_name}", _has_rt, timeout=30.0, interval=0.5)
 
+        wait_three_way_sync(
+            api, endpoint=endpoint, node_name=node_name, namespace_index=1,
+            ds_id=ctx["ds_id"], tag_name=tag_name,
+            data_type=data_type, expected_value=default_val,
+            expected_variant_type=variant_type,
+        )
+
         for val in out_of_range_values:
-            opcua_write_sync(endpoint, node_name, default_val, namespace_index=1, variant_type=variant_type)
-            _wait_source_rt_qwq_sync(api, endpoint, node_name, ds_id=ctx["ds_id"],
-                                      tag_name=tag_name, data_type=data_type,
-                                      expected=default_val)
+            wait_three_way_sync(
+                api, endpoint=endpoint, node_name=node_name, namespace_index=1,
+                ds_id=ctx["ds_id"], tag_name=tag_name,
+                data_type=data_type, expected_value=default_val,
+                expected_variant_type=variant_type,
+            )
 
             obs: dict = {
                 "input_value": val,
@@ -176,72 +200,77 @@ def _run_out_of_range_case(
                 obs["write_exception"] = None
                 obs["write_response"] = resp
             except TptAPIError as exc:
+                resp = None
                 obs["write_exception"] = {"code": exc.code, "msg": exc.msg}
                 obs["write_response"] = None
 
-            verdict = classify_write_result(
-                obs.get("write_response"), tag_name,
-                exception=obs.get("write_exception"),
-            )
+            verdict = classify_write_result(resp, tag_name, exception=obs.get("write_exception"))
             obs["verdict"] = verdict
 
-            time.sleep(3.0)
-
-            source_final = opcua_read_sync(endpoint, node_name, namespace_index=1)
-            obs["source_final"] = source_final
-            obs["source_final_type"] = type(source_final).__name__
-            try:
-                sf_val, sf_vt = opcua_read_variant_type_sync(endpoint, node_name, namespace_index=1)
-                obs["source_variant_type"] = sf_vt.name
-            except Exception as exc:
-                obs["source_variant_type_error"] = str(exc)
-
-            rt_final = get_rt_point(api, tag_name)
-            obs["rt_final"] = rt_final.get("tagValue")
-            obs["rt_quality"] = rt_final.get("quality")
-            obs["rt_tagTime"] = rt_final.get("tagTime")
-
-            try:
-                from tpt_api.datahub import query_tags_with_quality
-                qwq_all = query_tags_with_quality(api, ds_id=ctx["ds_id"], tag_name=tag_name)
-                qrecs = (qwq_all.get("tagInfoList") or {}).get("records") or []
-                qmatch = [r for r in qrecs if r.get("tagName") == tag_name]
-                qwq_rec = qmatch[0] if qmatch else {}
-                obs["qwq_final"] = qwq_rec.get("tagValue")
-                obs["qwq_quality"] = qwq_rec.get("quality")
-            except Exception as exc:
-                obs["qwq_error"] = str(exc)
-
             if verdict == "rejected":
-                assert isinstance(source_final, int) and not isinstance(source_final, bool), \
-                    f"source type after rejection: {type(source_final).__name__}"
-                assert source_final == default_val, \
-                    f"source changed after rejection: {source_final} != {default_val}"
+                outcome = observe_integer_write_outcome(
+                    api, endpoint=endpoint, node_name=node_name, namespace_index=1,
+                    ds_id=ctx["ds_id"], tag_name=tag_name,
+                    data_type=data_type, input_value=val, baseline_value=default_val,
+                    expected_variant_type=variant_type, mocker=ctx.get("mocker"),
+                    min_observation_period=4.0,
+                )
+                obs["observation"] = outcome
+
+                stable = outcome["stable"]
+                assert stable["stable"], \
+                    f"rejected but observation not stable: {stable['issues']}"
+
+                final_source = opcua_read_sync(endpoint, node_name, namespace_index=1)
+                _, final_vt = opcua_read_variant_type_sync(endpoint, node_name, namespace_index=1)
+                obs["source_final"] = final_source
+                obs["source_variant_type"] = final_vt.name
+
+                rt_final = get_rt_point(api, tag_name)
+                obs["rt_final"] = rt_final.get("tagValue")
+                obs["rt_quality"] = rt_final.get("quality")
+                obs["rt_tagTime"] = rt_final.get("tagTime")
+
+                assert not isinstance(final_source, bool), \
+                    f"source type after rejection: {type(final_source).__name__}"
+                assert final_source == default_val, \
+                    f"source changed after rejection: {final_source} != {default_val}"
                 assert rt_final.get("tagValue") is not None, "RT missing after rejection"
-                try:
-                    rfv = normalize_int(rt_final["tagValue"])
-                except (TypeError, ValueError):
-                    rfv = None
-                assert rfv == default_val, \
-                    f"RT changed after rejection: {rfv} != {default_val}"
-                assert rt_final.get("quality") not in (None, 0)
+                assert rt_final.get("quality") not in (None, 0), "RT quality invalid after rejection"
+
+            else:
+                trio = wait_three_way_sync(
+                    api, endpoint=endpoint, node_name=node_name, namespace_index=1,
+                    ds_id=ctx["ds_id"], tag_name=tag_name,
+                    data_type=data_type, expected_value=val,
+                    expected_variant_type=variant_type,
+                )
+                obs["trio"] = {
+                    "source": trio["source"],
+                    "variant_type": trio["variant_type"].name,
+                    "rt": trio["rt"],
+                    "qwq": trio["qwq"],
+                    "datasource_alive": trio["datasource_alive"],
+                }
 
                 if is_wrap_behaviour(data_type, val):
-                    expected_wrap = WRAP_MAP.get((data_type, val))
-                    if expected_wrap is not None and source_final == expected_wrap:
+                    expected = expected_wrap_value(data_type, val)
+                    if trio["source"] == expected:
                         pytest.fail(
-                            f"silent wrap detected: {val} → {source_final} "
-                            f"(expected {default_val} for rejection)"
+                            f"silent wrap detected: input={val}, "
+                            f"source={trio['source']}, dataType={data_type}"
                         )
-            else:
-                assert isinstance(source_final, int) and not isinstance(source_final, bool), \
-                    f"source type after acceptance: {type(source_final).__name__}"
-                assert rt_final.get("quality") not in (None, 0)
-                if rt_final.get("tagTime"):
-                    parse_required_timestamp(rt_final["tagTime"])
+
+                ooc = classify_outcome_value(data_type, trio["source"], default_val)
+                obs["outcome_classification"] = ooc
+                obs["source_final"] = trio["source"]
+                obs["source_variant_type"] = trio["variant_type"].name
 
             observations.append(obs)
-            record_property("observation", obs)
+            record_property(
+                f"observation_{val}",
+                json.dumps(obs, ensure_ascii=False, default=str),
+            )
 
             opcua_write_sync(endpoint, node_name, default_val, namespace_index=1, variant_type=variant_type)
 
@@ -250,34 +279,16 @@ def _run_out_of_range_case(
             opcua_write_sync(endpoint, node_name, default_val, namespace_index=1, variant_type=variant_type)
         except Exception:
             pass
-        strict_teardown(api, tag_id=ctx["tag_id"], tag_name=tag_name,
-                        ds_id=ctx["ds_id"], ds_name=ctx["ds_name"],
-                        mocker=ctx.get("mocker"))
+        strict_restore_and_teardown(
+            api,
+            endpoint=endpoint, node_name=node_name, namespace_index=1,
+            original_value=default_val, original_variant_type=variant_type,
+            tag_id=ctx["tag_id"], tag_name=tag_name,
+            ds_id=ctx["ds_id"], ds_name=ctx["ds_name"],
+            mocker=ctx.get("mocker"), port=ctx["port"],
+        )
 
     return observations
-
-
-def _wait_source_rt_qwq_sync(api, endpoint, node_name, *, ds_id, tag_name, data_type, expected, timeout=30.0):
-    from tests.support.polling import wait_until
-    def _synced():
-        src = opcua_read_sync(endpoint, node_name, namespace_index=1)
-        if isinstance(src, bool) or src is None:
-            return False
-        try:
-            sv = normalize_int(src)
-        except (TypeError, ValueError):
-            return False
-        if sv != expected:
-            return False
-        pt = get_rt_point(api, tag_name)
-        if pt.get("tagValue") is None or pt.get("quality") in (None, 0):
-            return False
-        try:
-            pv = normalize_int(pt["tagValue"])
-        except (TypeError, ValueError):
-            return False
-        return pv == expected
-    wait_until(f"sync:{tag_name}", _synced, timeout=timeout, interval=0.5)
 
 
 @pytest.mark.case(

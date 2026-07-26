@@ -3,7 +3,9 @@ from __future__ import annotations
 from tests.support.ua2_write_assertions import (
     INTEGER_RANGES,
     WRAP_MAP,
+    classify_outcome_value,
     classify_write_result,
+    expected_wrap_value,
     is_wrap_behaviour,
 )
 
@@ -37,35 +39,35 @@ class TestIntegerRanges:
 class TestWrapMap:
     def test_sbyte_neg129_wraps_to_127(self):
         assert is_wrap_behaviour(2, -129) is True
-        assert WRAP_MAP[(2, -129)] == 127
+        assert expected_wrap_value(2, -129) == 127
 
     def test_sbyte_128_wraps_to_neg128(self):
         assert is_wrap_behaviour(2, 128) is True
-        assert WRAP_MAP[(2, 128)] == -128
+        assert expected_wrap_value(2, 128) == -128
 
     def test_byte_neg1_wraps_to_255(self):
         assert is_wrap_behaviour(3, -1) is True
-        assert WRAP_MAP[(3, -1)] == 255
+        assert expected_wrap_value(3, -1) == 255
 
     def test_byte_256_wraps_to_0(self):
         assert is_wrap_behaviour(3, 256) is True
-        assert WRAP_MAP[(3, 256)] == 0
+        assert expected_wrap_value(3, 256) == 0
 
     def test_int16_neg32769_wraps_to_32767(self):
         assert is_wrap_behaviour(4, -32769) is True
-        assert WRAP_MAP[(4, -32769)] == 32767
+        assert expected_wrap_value(4, -32769) == 32767
 
     def test_int16_32768_wraps_to_neg32768(self):
         assert is_wrap_behaviour(4, 32768) is True
-        assert WRAP_MAP[(4, 32768)] == -32768
+        assert expected_wrap_value(4, 32768) == -32768
 
     def test_uint16_neg1_wraps_to_65535(self):
         assert is_wrap_behaviour(5, -1) is True
-        assert WRAP_MAP[(5, -1)] == 65535
+        assert expected_wrap_value(5, -1) == 65535
 
     def test_uint16_65536_wraps_to_0(self):
         assert is_wrap_behaviour(5, 65536) is True
-        assert WRAP_MAP[(5, 65536)] == 0
+        assert expected_wrap_value(5, 65536) == 0
 
     def test_in_range_not_wrap(self):
         assert is_wrap_behaviour(2, 0) is False
@@ -111,14 +113,64 @@ class TestClassifyWriteResult:
         result = classify_write_result(None, "tag1")
         assert result == "rejected"
 
+
+class TestClassifyOutcomeValue:
+    def test_kept_original(self):
+        assert classify_outcome_value(2, 7, 7) == "kept_original"
+
+    def test_clamped_min(self):
+        assert classify_outcome_value(3, 0, 7) == "clamped"
+
+    def test_clamped_max(self):
+        assert classify_outcome_value(3, 255, 7) == "clamped"
+
+    def test_converted_byte(self):
+        assert classify_outcome_value(3, 100, 7) == "converted"
+
+    def test_converted_sbyte(self):
+        assert classify_outcome_value(2, 50, 7) == "converted"
+
+    def test_out_of_range(self):
+        assert classify_outcome_value(3, 300, 7) == "out_of_range"
+
+    def test_out_of_range_negative(self):
+        assert classify_outcome_value(3, -5, 7) == "out_of_range"
+
+    def test_sbyte_clamped_min(self):
+        assert classify_outcome_value(2, -128, 7) == "clamped"
+
+    def test_sbyte_clamped_max(self):
+        assert classify_outcome_value(2, 127, 7) == "clamped"
+
+    def test_int16_clamped_min(self):
+        assert classify_outcome_value(4, -32768, 123) == "clamped"
+
+    def test_int16_clamped_max(self):
+        assert classify_outcome_value(4, 32767, 123) == "clamped"
+
+    def test_uint16_kept(self):
+        assert classify_outcome_value(5, 123, 123) == "kept_original"
+
+
+class TestNormalizeInt:
     def test_zero_is_valid_value(self):
-        assert 0 in range(0, 256)
+        from tests.support.ua2_value_normalization import normalize_int
+        assert normalize_int(0) == 0
 
     def test_negative_int_is_valid_value(self):
-        assert -128 in range(-128, 128)
+        from tests.support.ua2_value_normalization import normalize_int
+        assert normalize_int(-128) == -128
 
     def test_bool_not_accepted_as_int(self):
         from tests.support.ua2_value_normalization import normalize_int
         import pytest
         with pytest.raises(TypeError, match="boolean"):
             normalize_int(True)
+
+    def test_large_positive_int(self):
+        from tests.support.ua2_value_normalization import normalize_int
+        assert normalize_int(65535) == 65535
+
+    def test_large_negative_int(self):
+        from tests.support.ua2_value_normalization import normalize_int
+        assert normalize_int(-32768) == -32768

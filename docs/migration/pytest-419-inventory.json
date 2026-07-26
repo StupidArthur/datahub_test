@@ -71,7 +71,7 @@
     }
   ],
   "duplicates_in_source": [],
-  "pytest_total": 69,
+  "pytest_total": 77,
   "migrated": [
     "UA-1-1-01",
     "UA-1-1-02",
@@ -141,7 +141,15 @@
     "UA-2-1-038",
     "UA-2-1-039",
     "UA-2-1-040",
-    "UA-2-1-041"
+    "UA-2-1-041",
+    "UA-2-1-042",
+    "UA-2-1-043",
+    "UA-2-1-044",
+    "UA-2-1-045",
+    "UA-2-1-046",
+    "UA-2-1-047",
+    "UA-2-1-048",
+    "UA-2-1-049"
   ],
   "missing": [
     "UA-1-4-01",
@@ -172,14 +180,6 @@
     "UA-1-6-11",
     "UA-1-6-12",
     "UA-1-6-13",
-    "UA-2-1-042",
-    "UA-2-1-043",
-    "UA-2-1-044",
-    "UA-2-1-045",
-    "UA-2-1-046",
-    "UA-2-1-047",
-    "UA-2-1-048",
-    "UA-2-1-049",
     "UA-2-1-050",
     "UA-2-1-051",
     "UA-2-1-052",
@@ -674,6 +674,30 @@
     "UA-2-1-038": [
       "tests/integration/ua2/test_tag_creation_default_reads.py::test_default_read_datetime"
     ],
+    "UA-2-1-042": [
+      "tests/integration/ua2/test_tag_creation_integer_writes_8_16.py::test_sbyte_min_max"
+    ],
+    "UA-2-1-043": [
+      "tests/integration/ua2/test_tag_creation_integer_writes_8_16.py::test_sbyte_out_of_range"
+    ],
+    "UA-2-1-044": [
+      "tests/integration/ua2/test_tag_creation_integer_writes_8_16.py::test_byte_min_max"
+    ],
+    "UA-2-1-045": [
+      "tests/integration/ua2/test_tag_creation_integer_writes_8_16.py::test_byte_out_of_range"
+    ],
+    "UA-2-1-046": [
+      "tests/integration/ua2/test_tag_creation_integer_writes_8_16.py::test_int16_min_max"
+    ],
+    "UA-2-1-047": [
+      "tests/integration/ua2/test_tag_creation_integer_writes_8_16.py::test_int16_out_of_range"
+    ],
+    "UA-2-1-048": [
+      "tests/integration/ua2/test_tag_creation_integer_writes_8_16.py::test_uint16_min_max"
+    ],
+    "UA-2-1-049": [
+      "tests/integration/ua2/test_tag_creation_integer_writes_8_16.py::test_uint16_out_of_range"
+    ],
     "UA-2-1-016": [
       "tests/integration/ua2/test_tag_creation_system_name.py::test_system_name_independent_from_base"
     ],
@@ -765,6 +789,14 @@
     "tests/integration/ua2/test_tag_creation_default_reads.py::test_default_read_double": "UA-2-1-036",
     "tests/integration/ua2/test_tag_creation_default_reads.py::test_default_read_string": "UA-2-1-037",
     "tests/integration/ua2/test_tag_creation_default_reads.py::test_default_read_datetime": "UA-2-1-038",
+    "tests/integration/ua2/test_tag_creation_integer_writes_8_16.py::test_sbyte_min_max": "UA-2-1-042",
+    "tests/integration/ua2/test_tag_creation_integer_writes_8_16.py::test_sbyte_out_of_range": "UA-2-1-043",
+    "tests/integration/ua2/test_tag_creation_integer_writes_8_16.py::test_byte_min_max": "UA-2-1-044",
+    "tests/integration/ua2/test_tag_creation_integer_writes_8_16.py::test_byte_out_of_range": "UA-2-1-045",
+    "tests/integration/ua2/test_tag_creation_integer_writes_8_16.py::test_int16_min_max": "UA-2-1-046",
+    "tests/integration/ua2/test_tag_creation_integer_writes_8_16.py::test_int16_out_of_range": "UA-2-1-047",
+    "tests/integration/ua2/test_tag_creation_integer_writes_8_16.py::test_uint16_min_max": "UA-2-1-048",
+    "tests/integration/ua2/test_tag_creation_integer_writes_8_16.py::test_uint16_out_of_range": "UA-2-1-049",
     "tests/integration/ua2/test_tag_creation_system_name.py::test_system_name_independent_from_base": "UA-2-1-016",
     "tests/integration/ua2/test_tag_creation_system_name.py::test_system_name_duplicate_same_ds": "UA-2-1-017",
     "tests/integration/ua2/test_tag_creation_system_name.py::test_system_name_duplicate_cross_ds": "UA-2-1-018",
@@ -847,9 +879,9 @@
     {
       "chapter": "UA-2",
       "source": 265,
-      "pytest": 41,
-      "migrated_count": 41,
-      "missing_count": 224,
+      "pytest": 49,
+      "migrated_count": 49,
+      "missing_count": 216,
       "migrated": [
         "UA-2-1-001",
         "UA-2-1-002",
@@ -891,9 +923,7 @@
         "UA-2-1-038",
         "UA-2-1-039",
         "UA-2-1-040",
-        "UA-2-1-041"
-      ],
-      "missing": [
+        "UA-2-1-041",
         "UA-2-1-042",
         "UA-2-1-043",
         "UA-2-1-044",
@@ -901,7 +931,9 @@
         "UA-2-1-046",
         "UA-2-1-047",
         "UA-2-1-048",
-        "UA-2-1-049",
+        "UA-2-1-049"
+      ],
+      "missing": [
         "UA-2-1-050",
         "UA-2-1-051",
         "UA-2-1-052",
