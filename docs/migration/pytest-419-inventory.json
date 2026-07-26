@@ -71,7 +71,7 @@
     }
   ],
   "duplicates_in_source": [],
-  "pytest_total": 132,
+  "pytest_total": 140,
   "migrated": [
     "UA-1-1-01",
     "UA-1-1-02",
@@ -204,7 +204,15 @@
     "UA-2-1-101",
     "UA-2-1-102",
     "UA-2-1-103",
-    "UA-2-1-104"
+    "UA-2-1-104",
+    "UA-2-1-105",
+    "UA-2-1-106",
+    "UA-2-1-107",
+    "UA-2-1-108",
+    "UA-2-1-109",
+    "UA-2-1-110",
+    "UA-2-1-111",
+    "UA-2-1-112"
   ],
   "missing": [
     "UA-1-4-01",
@@ -235,14 +243,6 @@
     "UA-1-6-11",
     "UA-1-6-12",
     "UA-1-6-13",
-    "UA-2-1-105",
-    "UA-2-1-106",
-    "UA-2-1-107",
-    "UA-2-1-108",
-    "UA-2-1-109",
-    "UA-2-1-110",
-    "UA-2-1-111",
-    "UA-2-1-112",
     "UA-2-2-001",
     "UA-2-2-002",
     "UA-2-2-003",
@@ -614,6 +614,30 @@
     "UA-2-1-015": [
       "tests/integration/ua2/test_tag_creation_base_mapping.py::test_base_name_data_type_mismatch"
     ],
+    "UA-2-1-105": [
+      "tests/integration/ua2/test_tag_creation_batch_add.py::test_batch_add_10_tags"
+    ],
+    "UA-2-1-106": [
+      "tests/integration/ua2/test_tag_creation_batch_add.py::test_batch_add_conflict_skip"
+    ],
+    "UA-2-1-107": [
+      "tests/integration/ua2/test_tag_creation_batch_add.py::test_batch_add_conflict_overwrite"
+    ],
+    "UA-2-1-108": [
+      "tests/integration/ua2/test_tag_creation_batch_add.py::test_batch_add_empty_list"
+    ],
+    "UA-2-1-109": [
+      "tests/integration/ua2/test_tag_creation_batch_add.py::test_batch_add_partial_invalid"
+    ],
+    "UA-2-1-110": [
+      "tests/integration/ua2/test_tag_creation_batch_add.py::test_batch_add_duplicate_in_batch"
+    ],
+    "UA-2-1-111": [
+      "tests/integration/ua2/test_tag_creation_batch_add.py::test_batch_add_idempotency"
+    ],
+    "UA-2-1-112": [
+      "tests/integration/ua2/test_tag_creation_batch_add.py::test_batch_add_quantity_boundary"
+    ],
     "UA-2-1-039": [
       "tests/integration/ua2/test_tag_creation_boolean_writes.py::test_boolean_write_true"
     ],
@@ -934,6 +958,14 @@
     "tests/integration/ua2/test_tag_creation_base_mapping.py::test_base_name_nonexistent_namespace": "UA-2-1-013",
     "tests/integration/ua2/test_tag_creation_base_mapping.py::test_base_name_empty": "UA-2-1-014",
     "tests/integration/ua2/test_tag_creation_base_mapping.py::test_base_name_data_type_mismatch": "UA-2-1-015",
+    "tests/integration/ua2/test_tag_creation_batch_add.py::test_batch_add_10_tags": "UA-2-1-105",
+    "tests/integration/ua2/test_tag_creation_batch_add.py::test_batch_add_conflict_skip": "UA-2-1-106",
+    "tests/integration/ua2/test_tag_creation_batch_add.py::test_batch_add_conflict_overwrite": "UA-2-1-107",
+    "tests/integration/ua2/test_tag_creation_batch_add.py::test_batch_add_empty_list": "UA-2-1-108",
+    "tests/integration/ua2/test_tag_creation_batch_add.py::test_batch_add_partial_invalid": "UA-2-1-109",
+    "tests/integration/ua2/test_tag_creation_batch_add.py::test_batch_add_duplicate_in_batch": "UA-2-1-110",
+    "tests/integration/ua2/test_tag_creation_batch_add.py::test_batch_add_idempotency": "UA-2-1-111",
+    "tests/integration/ua2/test_tag_creation_batch_add.py::test_batch_add_quantity_boundary": "UA-2-1-112",
     "tests/integration/ua2/test_tag_creation_boolean_writes.py::test_boolean_write_true": "UA-2-1-039",
     "tests/integration/ua2/test_tag_creation_boolean_writes.py::test_boolean_write_false": "UA-2-1-040",
     "tests/integration/ua2/test_tag_creation_boolean_writes.py::test_boolean_write_non_boolean_values": "UA-2-1-041",
@@ -1099,9 +1131,9 @@
     {
       "chapter": "UA-2",
       "source": 265,
-      "pytest": 104,
-      "migrated_count": 104,
-      "missing_count": 161,
+      "pytest": 112,
+      "migrated_count": 112,
+      "missing_count": 153,
       "migrated": [
         "UA-2-1-001",
         "UA-2-1-002",
@@ -1206,9 +1238,7 @@
         "UA-2-1-101",
         "UA-2-1-102",
         "UA-2-1-103",
-        "UA-2-1-104"
-      ],
-      "missing": [
+        "UA-2-1-104",
         "UA-2-1-105",
         "UA-2-1-106",
         "UA-2-1-107",
@@ -1216,7 +1246,9 @@
         "UA-2-1-109",
         "UA-2-1-110",
         "UA-2-1-111",
-        "UA-2-1-112",
+        "UA-2-1-112"
+      ],
+      "missing": [
         "UA-2-2-001",
         "UA-2-2-002",
         "UA-2-2-003",

@@ -3264,6 +3264,186 @@
         "值类型正确"
       ],
       "markers": [
+        "spec_pending",
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-105",
+      "chapter": "UA-2-1",
+      "title": "批量新增_10个位号",
+      "nodeid": "tests/integration/ua2/test_tag_creation_batch_add.py::test_batch_add_10_tags",
+      "preconditions": [
+        "数据源 alive=true",
+        "至少 10 个未注册底层节点"
+      ],
+      "steps": [
+        "Browse 底层节点",
+        "工具侧排除已注册项",
+        "选择 10 个调用 batchAdd",
+        "逐个查询并读取"
+      ],
+      "expected": [
+        "10 个位号均创建成功",
+        "每个位号配置正确",
+        "每个位号均可读取有效 RT"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-106",
+      "chapter": "UA-2-1",
+      "title": "批量新增_冲突跳过",
+      "nodeid": "tests/integration/ua2/test_tag_creation_batch_add.py::test_batch_add_conflict_skip",
+      "preconditions": [
+        "已存在 tagName",
+        "conflictStrategy=0"
+      ],
+      "steps": [
+        "批次包含已有项和新项"
+      ],
+      "expected": [
+        "已有项未被修改",
+        "新项创建成功",
+        "返回结果可区分跳过项与成功项"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-107",
+      "chapter": "UA-2-1",
+      "title": "批量新增_冲突覆盖",
+      "nodeid": "tests/integration/ua2/test_tag_creation_batch_add.py::test_batch_add_conflict_overwrite",
+      "preconditions": [
+        "已存在位号 unit='kW'",
+        "conflictStrategy=1"
+      ],
+      "steps": [
+        "批次提交同名位号 unit='Hz'"
+      ],
+      "expected": [
+        "原记录按接口覆盖规则更新",
+        "unit='Hz'",
+        "位号仍可采集"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-108",
+      "chapter": "UA-2-1",
+      "title": "批量新增_空列表",
+      "nodeid": "tests/integration/ua2/test_tag_creation_batch_add.py::test_batch_add_empty_list",
+      "preconditions": [
+        "无"
+      ],
+      "steps": [
+        "调用 batchAdd(tagInfos=[])"
+      ],
+      "expected": [
+        "记录成功无操作或明确参数错误",
+        "系统状态不变化"
+      ],
+      "markers": [
+        "spec_pending",
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-109",
+      "chapter": "UA-2-1",
+      "title": "批量新增_部分非法",
+      "nodeid": "tests/integration/ua2/test_tag_creation_batch_add.py::test_batch_add_partial_invalid",
+      "preconditions": [
+        "批次含 8 个合法项、1 个重复名、1 个非法类型"
+      ],
+      "steps": [
+        "提交批次并查询所有目标名"
+      ],
+      "expected": [
+        "记录整批回滚或部分成功策略",
+        "返回结果能定位失败项",
+        "不产生不可识别的半成品记录"
+      ],
+      "markers": [
+        "spec_pending",
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-110",
+      "chapter": "UA-2-1",
+      "title": "批量新增_批次内重名",
+      "nodeid": "tests/integration/ua2/test_tag_creation_batch_add.py::test_batch_add_duplicate_in_batch",
+      "preconditions": [
+        "同一批次包含两个相同 tagName"
+      ],
+      "steps": [
+        "提交批次并查询该名称"
+      ],
+      "expected": [
+        "记录冲突处理规则",
+        "不得生成两个全局同名记录",
+        "返回结果明确"
+      ],
+      "markers": [
+        "spec_pending",
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-111",
+      "chapter": "UA-2-1",
+      "title": "批量新增_重复提交幂等性",
+      "nodeid": "tests/integration/ua2/test_tag_creation_batch_add.py::test_batch_add_idempotency",
+      "preconditions": [
+        "已准备固定批次"
+      ],
+      "steps": [
+        "连续提交完全相同批次两次"
+      ],
+      "expected": [
+        "记录第二次跳过、覆盖或失败规则",
+        "位号数量不异常增加",
+        "已有配置不被意外重置"
+      ],
+      "markers": [
+        "spec_pending",
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-112",
+      "chapter": "UA-2-1",
+      "title": "批量新增_数量边界",
+      "nodeid": "tests/integration/ua2/test_tag_creation_batch_add.py::test_batch_add_quantity_boundary",
+      "preconditions": [
+        "准备 1、10、100、接口上限、上限+1 个节点"
+      ],
+      "steps": [
+        "分批提交并记录耗时和结果"
+      ],
+      "expected": [
+        "记录支持的批次上限",
+        "超限时返回明确错误",
+        "成功批次记录数完整",
+        "不出现静默丢项"
+      ],
+      "markers": [
+        "spec_pending",
         "destructive",
         "integration"
       ]
