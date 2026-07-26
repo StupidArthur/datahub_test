@@ -1,6 +1,19 @@
 from __future__ import annotations
 
-from tools.audit_pytest_419 import build_inventory
+import json
+from pathlib import Path
+
+import pytest
+
+from tools.audit_pytest_419 import (
+    AUDIT_DIR,
+    JSON_PATH,
+    MD_PATH,
+    build_inventory,
+    generate_gap_md,
+    read_existing_json,
+    read_existing_md,
+)
 
 
 def _legacy(ids: list[str]) -> dict:
@@ -82,3 +95,59 @@ def test_migrated_missing_no_overlap():
     assert len(inv["missing"]) == 87
     assert inv["source_total"] == 112
     assert inv["pytest_total"] == 25
+
+
+def test_audit_dir_is_docs_migration():
+    """Inventory must live under docs/migration/, not output/."""
+    assert AUDIT_DIR.name == "migration"
+    assert AUDIT_DIR.parent.name == "docs"
+    assert "output" not in str(JSON_PATH)
+    assert "output" not in str(MD_PATH)
+
+
+def test_json_and_md_paths_under_audit_dir():
+    """Both JSON and MD paths must be children of AUDIT_DIR."""
+    assert str(JSON_PATH).startswith(str(AUDIT_DIR))
+    assert str(MD_PATH).startswith(str(AUDIT_DIR))
+
+
+def test_check_fails_when_json_missing(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    """--check must fail when JSON file does not exist."""
+    monkeypatch.setattr("tools.audit_pytest_419.JSON_PATH", tmp_path / "pytest-419-inventory.json")
+    monkeypatch.setattr("tools.audit_pytest_419.MD_PATH", tmp_path / "pytest-419-gap.md")
+    import tools.audit_pytest_419 as mod
+    legacy = _legacy(["UA-2-1-001"])
+    pytest_cases = {"UA-2-1-001": ["tests/integration/x/test_a.py::test_one"]}
+    inv = build_inventory(legacy, pytest_cases)
+    assert mod.read_existing_json() is None
+    assert mod.read_existing_md() is None
+
+
+def test_check_fails_when_json_invalid(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    """--check must fail when JSON file has invalid content."""
+    monkeypatch.setattr("tools.audit_pytest_419.JSON_PATH", tmp_path / "pytest-419-inventory.json")
+    monkeypatch.setattr("tools.audit_pytest_419.MD_PATH", tmp_path / "pytest-419-gap.md")
+    (tmp_path / "pytest-419-inventory.json").write_text("not json", encoding="utf-8")
+    import tools.audit_pytest_419 as mod
+    assert mod.read_existing_json() is None
+
+
+def test_check_pass_when_content_consistent(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
+    """--check must pass when JSON and MD match generated content."""
+    monkeypatch.setattr("tools.audit_pytest_419.JSON_PATH", tmp_path / "pytest-419-inventory.json")
+    monkeypatch.setattr("tools.audit_pytest_419.MD_PATH", tmp_path / "pytest-419-gap.md")
+    import tools.audit_pytest_419 as mod
+
+    legacy = _legacy(["UA-2-1-001"])
+    pytest_cases = {"UA-2-1-001": ["tests/integration/x/test_a.py::test_one"]}
+    inv = build_inventory(legacy, pytest_cases)
+    json_bytes = json.dumps(inv, indent=2, ensure_ascii=False) + "\n"
+    (tmp_path / "pytest-419-inventory.json").write_text(json_bytes, encoding="utf-8")
+    md_content = generate_gap_md(inv)
+    (tmp_path / "pytest-419-gap.md").write_text(md_content, encoding="utf-8")
+
+    assert mod.read_existing_json() is not None
+    assert mod.read_existing_md() is not None
+    assert mod.read_existing_json()["source_total"] == 1
+    assert mod.read_existing_json()["pytest_total"] == 1
+    assert mod.read_existing_json()["migrated"] == ["UA-2-1-001"]

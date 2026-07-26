@@ -5,7 +5,7 @@ with the Case IDs collected from @pytest.mark.case(...) markers via
 pytest collection.
 
 Usage:
-    python -m tools.audit_pytest_419          # regenerate
+    python -m tools.audit_pytest_419          # regenerate → docs/migration/
     python -m tools.audit_pytest_419 --check   # verify without modifying
 """
 from __future__ import annotations
@@ -23,9 +23,9 @@ LEGACY_FILES = [
     "UA-2-1.md", "UA-2-2.md", "UA-2-3.md", "UA-2-4.md", "UA-2-5.md",
     "UA-3-1.md", "UA-3-2.md", "UA-3-3.md", "UA-3-4.md", "UA-3-5.md", "UA-3-6.md",
 ]
-OUTPUT_DIR = REPO / "output"
-JSON_PATH = OUTPUT_DIR / "pytest-419-inventory.json"
-MD_PATH = OUTPUT_DIR / "pytest-419-gap.md"
+AUDIT_DIR = REPO / "docs" / "migration"
+JSON_PATH = AUDIT_DIR / "pytest-419-inventory.json"
+MD_PATH = AUDIT_DIR / "pytest-419-gap.md"
 
 ID_RE = re.compile(r"UA-\d+-\d+-\d+\b")
 
@@ -268,7 +268,7 @@ def main():
         print("audit --check passed", flush=True)
         return
 
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    AUDIT_DIR.mkdir(parents=True, exist_ok=True)
     json_content = json.dumps(inv, indent=2, ensure_ascii=False) + "\n"
     JSON_PATH.write_text(json_content, encoding="utf-8")
     print(f"wrote {JSON_PATH}", flush=True)
