@@ -71,7 +71,7 @@
     }
   ],
   "duplicates_in_source": [],
-  "pytest_total": 87,
+  "pytest_total": 93,
   "migrated": [
     "UA-1-1-01",
     "UA-1-1-02",
@@ -159,7 +159,13 @@
     "UA-2-1-056",
     "UA-2-1-057",
     "UA-2-1-058",
-    "UA-2-1-059"
+    "UA-2-1-059",
+    "UA-2-1-060",
+    "UA-2-1-061",
+    "UA-2-1-062",
+    "UA-2-1-063",
+    "UA-2-1-064",
+    "UA-2-1-065"
   ],
   "missing": [
     "UA-1-4-01",
@@ -190,12 +196,6 @@
     "UA-1-6-11",
     "UA-1-6-12",
     "UA-1-6-13",
-    "UA-2-1-060",
-    "UA-2-1-061",
-    "UA-2-1-062",
-    "UA-2-1-063",
-    "UA-2-1-064",
-    "UA-2-1-065",
     "UA-2-1-066",
     "UA-2-1-067",
     "UA-2-1-068",
@@ -674,6 +674,24 @@
     "UA-2-1-038": [
       "tests/integration/ua2/test_tag_creation_default_reads.py::test_default_read_datetime"
     ],
+    "UA-2-1-060": [
+      "tests/integration/ua2/test_tag_creation_float_double_writes.py::test_float_normal_and_negative"
+    ],
+    "UA-2-1-061": [
+      "tests/integration/ua2/test_tag_creation_float_double_writes.py::test_float_precision"
+    ],
+    "UA-2-1-062": [
+      "tests/integration/ua2/test_tag_creation_float_double_writes.py::test_float_nan_and_inf"
+    ],
+    "UA-2-1-063": [
+      "tests/integration/ua2/test_tag_creation_float_double_writes.py::test_double_normal_and_negative"
+    ],
+    "UA-2-1-064": [
+      "tests/integration/ua2/test_tag_creation_float_double_writes.py::test_double_precision"
+    ],
+    "UA-2-1-065": [
+      "tests/integration/ua2/test_tag_creation_float_double_writes.py::test_double_nan_and_inf"
+    ],
     "UA-2-1-050": [
       "tests/integration/ua2/test_tag_creation_integer_writes_32.py::test_int32_min_max"
     ],
@@ -819,6 +837,12 @@
     "tests/integration/ua2/test_tag_creation_default_reads.py::test_default_read_double": "UA-2-1-036",
     "tests/integration/ua2/test_tag_creation_default_reads.py::test_default_read_string": "UA-2-1-037",
     "tests/integration/ua2/test_tag_creation_default_reads.py::test_default_read_datetime": "UA-2-1-038",
+    "tests/integration/ua2/test_tag_creation_float_double_writes.py::test_float_normal_and_negative": "UA-2-1-060",
+    "tests/integration/ua2/test_tag_creation_float_double_writes.py::test_float_precision": "UA-2-1-061",
+    "tests/integration/ua2/test_tag_creation_float_double_writes.py::test_float_nan_and_inf": "UA-2-1-062",
+    "tests/integration/ua2/test_tag_creation_float_double_writes.py::test_double_normal_and_negative": "UA-2-1-063",
+    "tests/integration/ua2/test_tag_creation_float_double_writes.py::test_double_precision": "UA-2-1-064",
+    "tests/integration/ua2/test_tag_creation_float_double_writes.py::test_double_nan_and_inf": "UA-2-1-065",
     "tests/integration/ua2/test_tag_creation_integer_writes_32.py::test_int32_min_max": "UA-2-1-050",
     "tests/integration/ua2/test_tag_creation_integer_writes_32.py::test_int32_out_of_range": "UA-2-1-051",
     "tests/integration/ua2/test_tag_creation_integer_writes_32.py::test_uint32_min_max": "UA-2-1-052",
@@ -919,9 +943,9 @@
     {
       "chapter": "UA-2",
       "source": 265,
-      "pytest": 59,
-      "migrated_count": 59,
-      "missing_count": 206,
+      "pytest": 65,
+      "migrated_count": 65,
+      "missing_count": 200,
       "migrated": [
         "UA-2-1-001",
         "UA-2-1-002",
@@ -981,15 +1005,15 @@
         "UA-2-1-056",
         "UA-2-1-057",
         "UA-2-1-058",
-        "UA-2-1-059"
-      ],
-      "missing": [
+        "UA-2-1-059",
         "UA-2-1-060",
         "UA-2-1-061",
         "UA-2-1-062",
         "UA-2-1-063",
         "UA-2-1-064",
-        "UA-2-1-065",
+        "UA-2-1-065"
+      ],
+      "missing": [
         "UA-2-1-066",
         "UA-2-1-067",
         "UA-2-1-068",

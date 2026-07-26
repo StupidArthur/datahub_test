@@ -2213,6 +2213,160 @@
         "destructive",
         "integration"
       ]
+    },
+    {
+      "id": "UA-2-1-060",
+      "chapter": "UA-2-1",
+      "title": "Float 普通值与负数",
+      "nodeid": "tests/integration/ua2/test_tag_creation_float_double_writes.py::test_float_normal_and_negative",
+      "preconditions": [
+        "数据源 alive=true",
+        "Float 可写节点初始为 123.456"
+      ],
+      "steps": [
+        "写入 1.25",
+        "验证三端一致",
+        "写入 -999.99",
+        "验证三端一致"
+      ],
+      "expected": [
+        "写响应成功",
+        "源端与 RT 在 Float 误差阈值内相等",
+        "VariantType 保持 Float"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-061",
+      "chapter": "UA-2-1",
+      "title": "Float 有效位数与小数",
+      "nodeid": "tests/integration/ua2/test_tag_creation_float_double_writes.py::test_float_precision",
+      "preconditions": [
+        "数据源 alive=true",
+        "Float 可写节点初始为 123.456"
+      ],
+      "steps": [
+        "写入 1.23456789",
+        "验证 Float32 精度",
+        "写入 0.000001",
+        "验证 Float32 精度"
+      ],
+      "expected": [
+        "返回值符合 Float32 精度",
+        "使用相对误差或绝对误差判定"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-062",
+      "chapter": "UA-2-1",
+      "title": "Float NaN 与无穷值",
+      "nodeid": "tests/integration/ua2/test_tag_creation_float_double_writes.py::test_float_nan_and_inf",
+      "preconditions": [
+        "数据源 alive=true",
+        "Float 可写节点初始为 123.456"
+      ],
+      "steps": [
+        "写入 NaN",
+        "记录观察",
+        "写入 +Inf",
+        "记录观察",
+        "写入 -Inf",
+        "记录观察",
+        "动态 XFAIL"
+      ],
+      "expected": [
+        "记录序列化和服务端处理规则",
+        "拒绝时原值保持"
+      ],
+      "markers": [
+        "spec_pending",
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-063",
+      "chapter": "UA-2-1",
+      "title": "Double 普通值与负数",
+      "nodeid": "tests/integration/ua2/test_tag_creation_float_double_writes.py::test_double_normal_and_negative",
+      "preconditions": [
+        "数据源 alive=true",
+        "Double 可写节点初始为 123.456"
+      ],
+      "steps": [
+        "写入 1.25",
+        "验证三端一致",
+        "写入 -999.99",
+        "验证三端一致"
+      ],
+      "expected": [
+        "写响应成功",
+        "源端与 RT 在 Double 误差阈值内相等",
+        "VariantType 保持 Double"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-064",
+      "chapter": "UA-2-1",
+      "title": "Double 有效位数与小数",
+      "nodeid": "tests/integration/ua2/test_tag_creation_float_double_writes.py::test_double_precision",
+      "preconditions": [
+        "数据源 alive=true",
+        "Double 可写节点初始为 123.456"
+      ],
+      "steps": [
+        "写入 1.23456789012345",
+        "验证 Float64 精度",
+        "写入 0.0000000001",
+        "验证 Float64 精度"
+      ],
+      "expected": [
+        "返回值符合 Float64 精度",
+        "使用相对误差或绝对误差判定"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-065",
+      "chapter": "UA-2-1",
+      "title": "Double NaN 与无穷值",
+      "nodeid": "tests/integration/ua2/test_tag_creation_float_double_writes.py::test_double_nan_and_inf",
+      "preconditions": [
+        "数据源 alive=true",
+        "Double 可写节点初始为 123.456"
+      ],
+      "steps": [
+        "写入 NaN",
+        "记录观察",
+        "写入 +Inf",
+        "记录观察",
+        "写入 -Inf",
+        "记录观察",
+        "动态 XFAIL"
+      ],
+      "expected": [
+        "记录序列化和服务端处理规则",
+        "拒绝时原值保持"
+      ],
+      "markers": [
+        "spec_pending",
+        "destructive",
+        "integration"
+      ]
     }
   ]
 }
