@@ -2494,6 +2494,127 @@
         "destructive",
         "integration"
       ]
+    },
+    {
+      "id": "UA-2-1-071",
+      "chapter": "UA-2-1",
+      "title": "DateTime 写入 UTC ISO",
+      "nodeid": "tests/integration/ua2/test_tag_creation_datetime_writes.py::test_datetime_utc_iso",
+      "preconditions": [
+        "数据源 alive=true",
+        "DateTime 可写节点初始为 2025-01-01T00:00:00Z"
+      ],
+      "steps": [
+        "写入 2025-06-01T12:00:00Z",
+        "验证三端一致"
+      ],
+      "expected": [
+        "写响应成功",
+        "源端时刻等于输入 UTC",
+        "RT utcTime 等于输入 UTC"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-072",
+      "chapter": "UA-2-1",
+      "title": "DateTime 写入带时区值",
+      "nodeid": "tests/integration/ua2/test_tag_creation_datetime_writes.py::test_datetime_with_timezone",
+      "preconditions": [
+        "数据源 alive=true",
+        "DateTime 可写节点初始为 2025-01-01T00:00:00Z"
+      ],
+      "steps": [
+        "写入 2025-06-01T20:00:00+08:00",
+        "验证三端一致"
+      ],
+      "expected": [
+        "写响应成功",
+        "源端和 RT 归一化后均等于 2025-06-01T12:00:00Z"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-073",
+      "chapter": "UA-2-1",
+      "title": "DateTime 非法日期字符串",
+      "nodeid": "tests/integration/ua2/test_tag_creation_datetime_writes.py::test_datetime_invalid",
+      "preconditions": [
+        "数据源 alive=true",
+        "DateTime 可写节点初始为 2025-01-01T00:00:00Z"
+      ],
+      "steps": [
+        "写入 not-a-date",
+        "验证拒绝",
+        "写入 2025-02-30T00:00:00Z",
+        "验证拒绝"
+      ],
+      "expected": [
+        "请求被拒绝",
+        "原值保持不变",
+        "不产生异常历史值"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-074",
+      "chapter": "UA-2-1",
+      "title": "DateTime 1601 与 1970 边界",
+      "nodeid": "tests/integration/ua2/test_tag_creation_datetime_writes.py::test_datetime_epoch_boundaries",
+      "preconditions": [
+        "数据源 alive=true",
+        "DateTime 可写节点初始为 2025-01-01T00:00:00Z"
+      ],
+      "steps": [
+        "写入 1601-01-01T00:00:00Z",
+        "验证三端一致",
+        "写入 1970-01-01T00:00:00Z",
+        "验证三端一致"
+      ],
+      "expected": [
+        "utcTime 按 1601 epoch 正确换算",
+        "1970 不得被错误当作 UA epoch",
+        "源端与 RT 归一化一致"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-075",
+      "chapter": "UA-2-1",
+      "title": "DateTime 小数秒与无时区",
+      "nodeid": "tests/integration/ua2/test_tag_creation_datetime_writes.py::test_datetime_fractional_and_no_timezone",
+      "preconditions": [
+        "数据源 alive=true",
+        "DateTime 可写节点初始为 2025-01-01T00:00:00Z"
+      ],
+      "steps": [
+        "写入带毫秒值",
+        "记录观察",
+        "写入不带时区值",
+        "记录观察",
+        "动态 XFAIL"
+      ],
+      "expected": [
+        "记录支持的时间精度",
+        "记录无时区输入按 UTC、本地时区或拒绝处理"
+      ],
+      "markers": [
+        "spec_pending",
+        "destructive",
+        "integration"
+      ]
     }
   ]
 }

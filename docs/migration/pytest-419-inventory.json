@@ -71,7 +71,7 @@
     }
   ],
   "duplicates_in_source": [],
-  "pytest_total": 98,
+  "pytest_total": 103,
   "migrated": [
     "UA-1-1-01",
     "UA-1-1-02",
@@ -170,7 +170,12 @@
     "UA-2-1-067",
     "UA-2-1-068",
     "UA-2-1-069",
-    "UA-2-1-070"
+    "UA-2-1-070",
+    "UA-2-1-071",
+    "UA-2-1-072",
+    "UA-2-1-073",
+    "UA-2-1-074",
+    "UA-2-1-075"
   ],
   "missing": [
     "UA-1-4-01",
@@ -201,11 +206,6 @@
     "UA-1-6-11",
     "UA-1-6-12",
     "UA-1-6-13",
-    "UA-2-1-071",
-    "UA-2-1-072",
-    "UA-2-1-073",
-    "UA-2-1-074",
-    "UA-2-1-075",
     "UA-2-1-076",
     "UA-2-1-077",
     "UA-2-1-078",
@@ -635,6 +635,21 @@
     "UA-2-1-007": [
       "tests/integration/ua2/test_tag_creation_datasource_state.py::test_ds_disabled_then_enable"
     ],
+    "UA-2-1-071": [
+      "tests/integration/ua2/test_tag_creation_datetime_writes.py::test_datetime_utc_iso"
+    ],
+    "UA-2-1-072": [
+      "tests/integration/ua2/test_tag_creation_datetime_writes.py::test_datetime_with_timezone"
+    ],
+    "UA-2-1-073": [
+      "tests/integration/ua2/test_tag_creation_datetime_writes.py::test_datetime_invalid"
+    ],
+    "UA-2-1-074": [
+      "tests/integration/ua2/test_tag_creation_datetime_writes.py::test_datetime_epoch_boundaries"
+    ],
+    "UA-2-1-075": [
+      "tests/integration/ua2/test_tag_creation_datetime_writes.py::test_datetime_fractional_and_no_timezone"
+    ],
     "UA-2-1-026": [
       "tests/integration/ua2/test_tag_creation_default_reads.py::test_default_read_boolean"
     ],
@@ -839,6 +854,11 @@
     "tests/integration/ua2/test_tag_creation_datasource_state.py::test_ds_offline_then_start_mocker": "UA-2-1-005",
     "tests/integration/ua2/test_tag_creation_datasource_state.py::test_ds_disabled": "UA-2-1-006",
     "tests/integration/ua2/test_tag_creation_datasource_state.py::test_ds_disabled_then_enable": "UA-2-1-007",
+    "tests/integration/ua2/test_tag_creation_datetime_writes.py::test_datetime_utc_iso": "UA-2-1-071",
+    "tests/integration/ua2/test_tag_creation_datetime_writes.py::test_datetime_with_timezone": "UA-2-1-072",
+    "tests/integration/ua2/test_tag_creation_datetime_writes.py::test_datetime_invalid": "UA-2-1-073",
+    "tests/integration/ua2/test_tag_creation_datetime_writes.py::test_datetime_epoch_boundaries": "UA-2-1-074",
+    "tests/integration/ua2/test_tag_creation_datetime_writes.py::test_datetime_fractional_and_no_timezone": "UA-2-1-075",
     "tests/integration/ua2/test_tag_creation_default_reads.py::test_default_read_boolean": "UA-2-1-026",
     "tests/integration/ua2/test_tag_creation_default_reads.py::test_default_read_sbyte": "UA-2-1-027",
     "tests/integration/ua2/test_tag_creation_default_reads.py::test_default_read_byte": "UA-2-1-028",
@@ -963,9 +983,9 @@
     {
       "chapter": "UA-2",
       "source": 265,
-      "pytest": 70,
-      "migrated_count": 70,
-      "missing_count": 195,
+      "pytest": 75,
+      "migrated_count": 75,
+      "missing_count": 190,
       "migrated": [
         "UA-2-1-001",
         "UA-2-1-002",
@@ -1036,14 +1056,14 @@
         "UA-2-1-067",
         "UA-2-1-068",
         "UA-2-1-069",
-        "UA-2-1-070"
-      ],
-      "missing": [
+        "UA-2-1-070",
         "UA-2-1-071",
         "UA-2-1-072",
         "UA-2-1-073",
         "UA-2-1-074",
-        "UA-2-1-075",
+        "UA-2-1-075"
+      ],
+      "missing": [
         "UA-2-1-076",
         "UA-2-1-077",
         "UA-2-1-078",
