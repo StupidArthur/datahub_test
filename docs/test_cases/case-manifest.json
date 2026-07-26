@@ -2367,6 +2367,133 @@
         "destructive",
         "integration"
       ]
+    },
+    {
+      "id": "UA-2-1-066",
+      "chapter": "UA-2-1",
+      "title": "String 空串",
+      "nodeid": "tests/integration/ua2/test_tag_creation_string_writes.py::test_string_empty",
+      "preconditions": [
+        "数据源 alive=true",
+        "String 可写节点初始为 'initial'"
+      ],
+      "steps": [
+        "写入空字符串",
+        "验证三端一致"
+      ],
+      "expected": [
+        "写响应成功",
+        "源端与 RT 均为空字符串",
+        "不得转换为 null"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-067",
+      "chapter": "UA-2-1",
+      "title": "String 普通与中文",
+      "nodeid": "tests/integration/ua2/test_tag_creation_string_writes.py::test_string_normal_and_chinese",
+      "preconditions": [
+        "数据源 alive=true",
+        "String 可写节点初始为 'initial'"
+      ],
+      "steps": [
+        "写入 'hello'",
+        "验证三端一致",
+        "写入 '测试用例'",
+        "验证三端一致"
+      ],
+      "expected": [
+        "写响应成功",
+        "源端与 RT 完整一致",
+        "编码无损"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-068",
+      "chapter": "UA-2-1",
+      "title": "String 特殊字符与转义",
+      "nodeid": "tests/integration/ua2/test_tag_creation_string_writes.py::test_string_special_chars",
+      "preconditions": [
+        "数据源 alive=true",
+        "String 可写节点初始为 'initial'"
+      ],
+      "steps": [
+        "写入包含特殊字符的字符串",
+        "验证三端一致"
+      ],
+      "expected": [
+        "写响应成功",
+        "源端与 RT 完整保留字符",
+        "JSON 转义后语义一致"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-069",
+      "chapter": "UA-2-1",
+      "title": "String 长度边界",
+      "nodeid": "tests/integration/ua2/test_tag_creation_string_writes.py::test_string_length_boundary",
+      "preconditions": [
+        "数据源 alive=true",
+        "String 可写节点初始为 'initial'"
+      ],
+      "steps": [
+        "写入 1 字符",
+        "记录观察",
+        "写入 255 字符",
+        "记录观察",
+        "写入 256 字符",
+        "记录观察",
+        "写入 1000 字符",
+        "记录观察",
+        "动态 XFAIL"
+      ],
+      "expected": [
+        "记录最大长度与拒绝或截断规则",
+        "若成功，源端和 RT 长度及内容一致"
+      ],
+      "markers": [
+        "spec_pending",
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-070",
+      "chapter": "UA-2-1",
+      "title": "String null 与缺失字段",
+      "nodeid": "tests/integration/ua2/test_tag_creation_string_writes.py::test_string_null_and_missing",
+      "preconditions": [
+        "数据源 alive=true",
+        "String 可写节点初始为 'initial'"
+      ],
+      "steps": [
+        "写入 null",
+        "记录观察",
+        "缺失 value 字段",
+        "记录观察",
+        "动态 XFAIL"
+      ],
+      "expected": [
+        "记录校验规则",
+        "拒绝时原值保持"
+      ],
+      "markers": [
+        "spec_pending",
+        "destructive",
+        "integration"
+      ]
     }
   ]
 }

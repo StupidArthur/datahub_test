@@ -71,7 +71,7 @@
     }
   ],
   "duplicates_in_source": [],
-  "pytest_total": 93,
+  "pytest_total": 98,
   "migrated": [
     "UA-1-1-01",
     "UA-1-1-02",
@@ -165,7 +165,12 @@
     "UA-2-1-062",
     "UA-2-1-063",
     "UA-2-1-064",
-    "UA-2-1-065"
+    "UA-2-1-065",
+    "UA-2-1-066",
+    "UA-2-1-067",
+    "UA-2-1-068",
+    "UA-2-1-069",
+    "UA-2-1-070"
   ],
   "missing": [
     "UA-1-4-01",
@@ -196,11 +201,6 @@
     "UA-1-6-11",
     "UA-1-6-12",
     "UA-1-6-13",
-    "UA-2-1-066",
-    "UA-2-1-067",
-    "UA-2-1-068",
-    "UA-2-1-069",
-    "UA-2-1-070",
     "UA-2-1-071",
     "UA-2-1-072",
     "UA-2-1-073",
@@ -746,6 +746,21 @@
     "UA-2-1-059": [
       "tests/integration/ua2/test_tag_creation_integer_writes_uint64.py::test_uint64_negative_and_out_of_range"
     ],
+    "UA-2-1-066": [
+      "tests/integration/ua2/test_tag_creation_string_writes.py::test_string_empty"
+    ],
+    "UA-2-1-067": [
+      "tests/integration/ua2/test_tag_creation_string_writes.py::test_string_normal_and_chinese"
+    ],
+    "UA-2-1-068": [
+      "tests/integration/ua2/test_tag_creation_string_writes.py::test_string_special_chars"
+    ],
+    "UA-2-1-069": [
+      "tests/integration/ua2/test_tag_creation_string_writes.py::test_string_length_boundary"
+    ],
+    "UA-2-1-070": [
+      "tests/integration/ua2/test_tag_creation_string_writes.py::test_string_null_and_missing"
+    ],
     "UA-2-1-016": [
       "tests/integration/ua2/test_tag_creation_system_name.py::test_system_name_independent_from_base"
     ],
@@ -861,6 +876,11 @@
     "tests/integration/ua2/test_tag_creation_integer_writes_uint64.py::test_uint64_js_safe_value": "UA-2-1-057",
     "tests/integration/ua2/test_tag_creation_integer_writes_uint64.py::test_uint64_max_value": "UA-2-1-058",
     "tests/integration/ua2/test_tag_creation_integer_writes_uint64.py::test_uint64_negative_and_out_of_range": "UA-2-1-059",
+    "tests/integration/ua2/test_tag_creation_string_writes.py::test_string_empty": "UA-2-1-066",
+    "tests/integration/ua2/test_tag_creation_string_writes.py::test_string_normal_and_chinese": "UA-2-1-067",
+    "tests/integration/ua2/test_tag_creation_string_writes.py::test_string_special_chars": "UA-2-1-068",
+    "tests/integration/ua2/test_tag_creation_string_writes.py::test_string_length_boundary": "UA-2-1-069",
+    "tests/integration/ua2/test_tag_creation_string_writes.py::test_string_null_and_missing": "UA-2-1-070",
     "tests/integration/ua2/test_tag_creation_system_name.py::test_system_name_independent_from_base": "UA-2-1-016",
     "tests/integration/ua2/test_tag_creation_system_name.py::test_system_name_duplicate_same_ds": "UA-2-1-017",
     "tests/integration/ua2/test_tag_creation_system_name.py::test_system_name_duplicate_cross_ds": "UA-2-1-018",
@@ -943,9 +963,9 @@
     {
       "chapter": "UA-2",
       "source": 265,
-      "pytest": 65,
-      "migrated_count": 65,
-      "missing_count": 200,
+      "pytest": 70,
+      "migrated_count": 70,
+      "missing_count": 195,
       "migrated": [
         "UA-2-1-001",
         "UA-2-1-002",
@@ -1011,14 +1031,14 @@
         "UA-2-1-062",
         "UA-2-1-063",
         "UA-2-1-064",
-        "UA-2-1-065"
-      ],
-      "missing": [
+        "UA-2-1-065",
         "UA-2-1-066",
         "UA-2-1-067",
         "UA-2-1-068",
         "UA-2-1-069",
-        "UA-2-1-070",
+        "UA-2-1-070"
+      ],
+      "missing": [
         "UA-2-1-071",
         "UA-2-1-072",
         "UA-2-1-073",
