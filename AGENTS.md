@@ -228,7 +228,7 @@ pytest.skip 掩盖环境未设置
 |----|------|------|--------------|----------------|--------|
 | UA-1-1 | 12 | 12 | 0 | 0 | 0 |
 | UA-1-2 | 6 | 4 | 0 | 2 | 0 |
-| UA-2-1 | 53 | 36 | 4 | 13 | 0 |
+| UA-2-1 | 56 | 38 | 4 | 14 | 0 |
 
 FAIL 四道确认产品能力限制：
 - **UA-2-1-044** Byte 255 → DataHub signed-byte 映射限制（`Write tag value type convert failed`）
@@ -236,7 +236,7 @@ FAIL 四道确认产品能力限制：
 - **UA-2-1-052** UInt32 4294967295 → DataHub U_INT 映射限制
 - **UA-2-1-019** 空 tagName → 产品接受空 tagName，回落为节点名
 
-XFAIL 13 道为行为未约定（overflow / coercion / whitespace / length 129 / special chars / unicode）。
+XFAIL 14 道为行为未约定（overflow / coercion / whitespace / length 129 / special chars / unicode / Int64 out-of-range）。
 
 ### 清理基础设施
 - **`tests/support/ua2_cleanup.py`**: `strict_cleanup_ua2_context()` — 六步严格清理（物理删 tag → 清回收站 → 禁 DS → 删 DS → 停 mocker → 验端口），所有错误聚合不吞
