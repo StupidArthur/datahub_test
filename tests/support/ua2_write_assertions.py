@@ -29,6 +29,7 @@ INTEGER_RANGES: dict[int, tuple] = {
     6: ("Int32", -2147483648, 2147483647),
     7: ("UInt32", 0, 4294967295),
     8: ("Int64", -9223372036854775808, 9223372036854775807),
+    9: ("UInt64", 0, 18446744073709551615),
 }
 
 WRAP_MAP: dict[tuple, int] = {
@@ -46,6 +47,8 @@ WRAP_MAP: dict[tuple, int] = {
     (7, 4294967296): 0,
     (8, -9223372036854775809): 9223372036854775807,
     (8, 9223372036854775808): -9223372036854775808,
+    (9, -1): 18446744073709551615,
+    (9, 18446744073709551616): 0,
 }
 
 
@@ -58,6 +61,8 @@ def normalize_integer_decimal(raw: object, data_type: int) -> str:
         return str(normalize_int(raw))
     if data_type == 8:
         return normalize_int64_as_str(raw, unsigned=False)
+    if data_type == 9:
+        return normalize_int64_as_str(raw, unsigned=True)
     raise ValueError(f"unsupported dataType {data_type} for normalize_integer_decimal")
 
 

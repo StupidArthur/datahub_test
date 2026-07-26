@@ -71,7 +71,7 @@
     }
   ],
   "duplicates_in_source": [],
-  "pytest_total": 84,
+  "pytest_total": 87,
   "migrated": [
     "UA-1-1-01",
     "UA-1-1-02",
@@ -156,7 +156,10 @@
     "UA-2-1-053",
     "UA-2-1-054",
     "UA-2-1-055",
-    "UA-2-1-056"
+    "UA-2-1-056",
+    "UA-2-1-057",
+    "UA-2-1-058",
+    "UA-2-1-059"
   ],
   "missing": [
     "UA-1-4-01",
@@ -187,9 +190,6 @@
     "UA-1-6-11",
     "UA-1-6-12",
     "UA-1-6-13",
-    "UA-2-1-057",
-    "UA-2-1-058",
-    "UA-2-1-059",
     "UA-2-1-060",
     "UA-2-1-061",
     "UA-2-1-062",
@@ -719,6 +719,15 @@
     "UA-2-1-049": [
       "tests/integration/ua2/test_tag_creation_integer_writes_8_16.py::test_uint16_out_of_range"
     ],
+    "UA-2-1-057": [
+      "tests/integration/ua2/test_tag_creation_integer_writes_uint64.py::test_uint64_js_safe_value"
+    ],
+    "UA-2-1-058": [
+      "tests/integration/ua2/test_tag_creation_integer_writes_uint64.py::test_uint64_max_value"
+    ],
+    "UA-2-1-059": [
+      "tests/integration/ua2/test_tag_creation_integer_writes_uint64.py::test_uint64_negative_and_out_of_range"
+    ],
     "UA-2-1-016": [
       "tests/integration/ua2/test_tag_creation_system_name.py::test_system_name_independent_from_base"
     ],
@@ -825,6 +834,9 @@
     "tests/integration/ua2/test_tag_creation_integer_writes_8_16.py::test_int16_out_of_range": "UA-2-1-047",
     "tests/integration/ua2/test_tag_creation_integer_writes_8_16.py::test_uint16_min_max": "UA-2-1-048",
     "tests/integration/ua2/test_tag_creation_integer_writes_8_16.py::test_uint16_out_of_range": "UA-2-1-049",
+    "tests/integration/ua2/test_tag_creation_integer_writes_uint64.py::test_uint64_js_safe_value": "UA-2-1-057",
+    "tests/integration/ua2/test_tag_creation_integer_writes_uint64.py::test_uint64_max_value": "UA-2-1-058",
+    "tests/integration/ua2/test_tag_creation_integer_writes_uint64.py::test_uint64_negative_and_out_of_range": "UA-2-1-059",
     "tests/integration/ua2/test_tag_creation_system_name.py::test_system_name_independent_from_base": "UA-2-1-016",
     "tests/integration/ua2/test_tag_creation_system_name.py::test_system_name_duplicate_same_ds": "UA-2-1-017",
     "tests/integration/ua2/test_tag_creation_system_name.py::test_system_name_duplicate_cross_ds": "UA-2-1-018",
@@ -907,9 +919,9 @@
     {
       "chapter": "UA-2",
       "source": 265,
-      "pytest": 56,
-      "migrated_count": 56,
-      "missing_count": 209,
+      "pytest": 59,
+      "migrated_count": 59,
+      "missing_count": 206,
       "migrated": [
         "UA-2-1-001",
         "UA-2-1-002",
@@ -966,12 +978,12 @@
         "UA-2-1-053",
         "UA-2-1-054",
         "UA-2-1-055",
-        "UA-2-1-056"
-      ],
-      "missing": [
+        "UA-2-1-056",
         "UA-2-1-057",
         "UA-2-1-058",
-        "UA-2-1-059",
+        "UA-2-1-059"
+      ],
+      "missing": [
         "UA-2-1-060",
         "UA-2-1-061",
         "UA-2-1-062",

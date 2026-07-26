@@ -1,0 +1,396 @@
+from __future__ import annotations
+
+import json
+
+import pytest
+
+from tpt_api.datahub import write_tag_values
+from tpt_api.errors import TptAPIError
+from tpt_api.types import TagTypes
+
+from tests.support.polling import wait_until
+from tests.support.rt_helpers import get_rt_point
+from tests.support.ua2_helpers import (
+    assert_write_accepted,
+    find_unique_tag,
+    opcua_read_sync,
+    opcua_read_variant_type_sync,
+    setup_ds_and_tag,
+)
+from tests.support.ua2_rt_assertions import parse_required_timestamp
+from tests.support.ua2_write_assertions import (
+    WRAP_MAP,
+    classify_outcome_value,
+    classify_write_result,
+    expected_wrap_value,
+    is_wrap_behaviour,
+    normalize_integer_decimal,
+    observe_integer_decimal_rejection,
+    restore_and_verify_source,
+    strict_restore_source_and_cleanup,
+    wait_accepted_integer_decimal_outcome,
+    wait_three_way_integer_decimal_sync,
+    wait_three_way_sync,
+)
+
+from asyncua import ua
+
+_TYPE_CONFIG = {
+    9: ("UInt64", "uint64_w_1", ua.VariantType.UInt64, 123456),
+}
+
+
+def _build_context(api, settings, tmp_path_factory, mocker_endpoint, case_id: str, data_type: int) -> dict:
+    cfg = _TYPE_CONFIG[data_type]
+    node = {
+        "name": cfg[1].rstrip("1"),
+        "type": cfg[0],
+        "count": 1,
+        "change": False,
+        "writable": True,
+        "default": cfg[3],
+    }
+    ctx = setup_ds_and_tag(
+        api, settings, mocker_endpoint, tmp_path_factory, case_id,
+        tag_base_name=f"1_{cfg[1]}",
+        data_type=data_type,
+        tag_type=TagTypes["一次位号"],
+        only_read=False,
+        nodes=[node],
+        namespace_index=1,
+        cycle=500,
+    )
+    return ctx
+
+
+def _verify_tag_config(api, tag_name: str, data_type: int) -> dict:
+    rec = find_unique_tag(api, tag_name)
+    assert rec.get("dataType") == data_type, \
+        f"dataType={rec.get('dataType')} != {data_type}"
+    assert rec.get("onlyRead") is False, \
+        f"onlyRead should be False, got {rec.get('onlyRead')}"
+    return rec
+
+
+def _verify_variant_type(endpoint: str, node_name: str, expected_vt) -> None:
+    val, vt = opcua_read_variant_type_sync(endpoint, node_name, namespace_index=1)
+    assert vt == expected_vt, \
+        f"VariantType mismatch: {vt} != {expected_vt} (expected {expected_vt.name})"
+    assert not isinstance(val, bool), \
+        f"source value is bool, expected int: {val!r}"
+
+
+@pytest.mark.case(
+    id="UA-2-1-057", chapter="UA-2-1",
+    title="UInt64 JS 安全范围值",
+    preconditions=["数据源 alive=true", "UInt64 可写节点初始为 123456"],
+    steps=["写入 9999999999", "验证三端一致"],
+    expected=["写响应成功", "源端精确为 9999999999", "VariantType 保持 UInt64", "RT/QwQ 一致"],
+)
+@pytest.mark.integration
+@pytest.mark.destructive
+def test_uint64_js_safe_value(api, settings, tmp_path_factory, mocker_endpoint):
+    data_type = 9
+    cfg = _TYPE_CONFIG[data_type]
+    node_name = cfg[1]
+    variant_type = cfg[2]
+    default_val = cfg[3]
+    ctx = _build_context(api, settings, tmp_path_factory, mocker_endpoint, "UA-2-1-057", data_type)
+    tag_name = ctx["tag_name"]
+    endpoint = ctx["endpoint"]
+
+    try:
+        _verify_tag_config(api, tag_name, data_type)
+        _verify_variant_type(endpoint, node_name, variant_type)
+
+        def _has_rt():
+            pt = get_rt_point(api, tag_name)
+            return pt.get("tagValue") is not None and pt.get("quality") not in (None, 0)
+        wait_until(f"rt_ready:{tag_name}", _has_rt, timeout=30.0, interval=0.5)
+
+        wait_three_way_sync(
+            api, endpoint=endpoint, node_name=node_name, namespace_index=1,
+            ds_id=ctx["ds_id"], tag_name=tag_name,
+            data_type=data_type, expected_value=default_val,
+            expected_variant_type=variant_type,
+            mocker=ctx.get("mocker"),
+        )
+
+        value = 9999999999
+        resp = write_tag_values(api, {tag_name: value})
+        assert_write_accepted(resp, tag_name)
+
+        expected_decimal = "9999999999"
+
+        trio = wait_three_way_integer_decimal_sync(
+            api, endpoint=endpoint, node_name=node_name, namespace_index=1,
+            ds_id=ctx["ds_id"], tag_name=tag_name,
+            data_type=data_type, expected_decimal=expected_decimal,
+            expected_variant_type=variant_type,
+            mocker=ctx.get("mocker"),
+        )
+
+        _verify_variant_type(endpoint, node_name, variant_type)
+
+        src = trio["source"]
+        assert isinstance(src, int) and not isinstance(src, bool), \
+            f"source Python type: {type(src).__name__}"
+        rv_str = normalize_integer_decimal(trio["rt"]["tagValue"], data_type)
+        qv_str = normalize_integer_decimal(trio["qwq"]["tagValue"], data_type)
+        assert trio["datasource_alive"] is True
+        assert trio["rt"].get("quality") not in (None, 0)
+        assert trio["qwq"].get("quality") not in (None, 0)
+        parse_required_timestamp(trio["rt"]["tagTime"])
+        parse_required_timestamp(trio["qwq"]["tagTime"])
+
+    finally:
+        strict_restore_source_and_cleanup(
+            api,
+            endpoint=endpoint, node_name=node_name, namespace_index=1,
+            original_value=default_val, original_variant_type=variant_type,
+            tag_id=ctx["tag_id"], tag_name=tag_name,
+            ds_id=ctx["ds_id"], ds_name=ctx["ds_name"],
+            mocker=ctx.get("mocker"),
+            host=ctx["host"], port=ctx["port"],
+        )
+
+
+@pytest.mark.case(
+    id="UA-2-1-058", chapter="UA-2-1",
+    title="UInt64 最大值",
+    preconditions=["数据源 alive=true", "UInt64 可写节点初始为 123456"],
+    steps=["写入 18446744073709551615", "验证三端一致"],
+    expected=["写响应成功", "源端值正确", "VariantType 不变", "RT/QwQ 一致"],
+)
+@pytest.mark.integration
+@pytest.mark.destructive
+def test_uint64_max_value(api, settings, tmp_path_factory, mocker_endpoint):
+    data_type = 9
+    cfg = _TYPE_CONFIG[data_type]
+    node_name = cfg[1]
+    variant_type = cfg[2]
+    default_val = cfg[3]
+    ctx = _build_context(api, settings, tmp_path_factory, mocker_endpoint, "UA-2-1-058", data_type)
+    tag_name = ctx["tag_name"]
+    endpoint = ctx["endpoint"]
+
+    try:
+        _verify_tag_config(api, tag_name, data_type)
+        _verify_variant_type(endpoint, node_name, variant_type)
+
+        def _has_rt():
+            pt = get_rt_point(api, tag_name)
+            return pt.get("tagValue") is not None and pt.get("quality") not in (None, 0)
+        wait_until(f"rt_ready:{tag_name}", _has_rt, timeout=30.0, interval=0.5)
+
+        wait_three_way_sync(
+            api, endpoint=endpoint, node_name=node_name, namespace_index=1,
+            ds_id=ctx["ds_id"], tag_name=tag_name,
+            data_type=data_type, expected_value=default_val,
+            expected_variant_type=variant_type,
+            mocker=ctx.get("mocker"),
+        )
+
+        input_string = "18446744073709551615"
+        resp = write_tag_values(api, {tag_name: input_string})
+        assert_write_accepted(resp, tag_name)
+
+        trio = wait_three_way_integer_decimal_sync(
+            api, endpoint=endpoint, node_name=node_name, namespace_index=1,
+            ds_id=ctx["ds_id"], tag_name=tag_name,
+            data_type=data_type, expected_decimal=input_string,
+            expected_variant_type=variant_type,
+            mocker=ctx.get("mocker"),
+        )
+
+        _verify_variant_type(endpoint, node_name, variant_type)
+
+        src = trio["source"]
+        assert isinstance(src, int) and not isinstance(src, bool), \
+            f"source Python type: {type(src).__name__}"
+        rv_str = normalize_integer_decimal(trio["rt"]["tagValue"], data_type)
+        qv_str = normalize_integer_decimal(trio["qwq"]["tagValue"], data_type)
+        assert rv_str == input_string, \
+            f"RT mismatch for {input_string}: {rv_str}"
+        assert qv_str == input_string, \
+            f"QwQ mismatch for {input_string}: {qv_str}"
+        assert trio["datasource_alive"] is True
+        assert trio["rt"].get("quality") not in (None, 0)
+        assert trio["qwq"].get("quality") not in (None, 0)
+        parse_required_timestamp(trio["rt"]["tagTime"])
+        parse_required_timestamp(trio["qwq"]["tagTime"])
+
+    finally:
+        strict_restore_source_and_cleanup(
+            api,
+            endpoint=endpoint, node_name=node_name, namespace_index=1,
+            original_value=default_val, original_variant_type=variant_type,
+            tag_id=ctx["tag_id"], tag_name=tag_name,
+            ds_id=ctx["ds_id"], ds_name=ctx["ds_name"],
+            mocker=ctx.get("mocker"),
+            host=ctx["host"], port=ctx["port"],
+        )
+
+
+@pytest.mark.case(
+    id="UA-2-1-059", chapter="UA-2-1",
+    title="UInt64 负数与越界值",
+    preconditions=["数据源 alive=true", "UInt64 可写节点初始为 123456"],
+    steps=["写入 -1", "记录观察", "写入 18446744073709551616", "记录观察", "动态 XFAIL"],
+    expected=["记录拒绝或转换行为", "被拒绝时源端保持 123456", "VariantType 不变"],
+)
+@pytest.mark.integration
+@pytest.mark.destructive
+@pytest.mark.spec_pending
+def test_uint64_negative_and_out_of_range(api, settings, tmp_path_factory, mocker_endpoint, record_property):
+    data_type = 9
+    cfg = _TYPE_CONFIG[data_type]
+    node_name = cfg[1]
+    variant_type = cfg[2]
+    default_val = cfg[3]
+    ctx = _build_context(api, settings, tmp_path_factory, mocker_endpoint, "UA-2-1-059", data_type)
+    tag_name = ctx["tag_name"]
+    endpoint = ctx["endpoint"]
+    observations: list[dict] = []
+
+    try:
+        _verify_tag_config(api, tag_name, data_type)
+        _verify_variant_type(endpoint, node_name, variant_type)
+
+        def _has_rt():
+            pt = get_rt_point(api, tag_name)
+            return pt.get("tagValue") is not None and pt.get("quality") not in (None, 0)
+        wait_until(f"rt_ready:{tag_name}", _has_rt, timeout=30.0, interval=0.5)
+
+        wait_three_way_sync(
+            api, endpoint=endpoint, node_name=node_name, namespace_index=1,
+            ds_id=ctx["ds_id"], tag_name=tag_name,
+            data_type=data_type, expected_value=default_val,
+            expected_variant_type=variant_type,
+            mocker=ctx.get("mocker"),
+        )
+
+        oor_values = ["-1", "18446744073709551616"]
+
+        for input_string in oor_values:
+            restore_and_verify_source(
+                endpoint=endpoint,
+                node_name=node_name,
+                namespace_index=1,
+                value=default_val,
+                variant_type=variant_type,
+                mocker=ctx.get("mocker"),
+            )
+
+            wait_three_way_integer_decimal_sync(
+                api, endpoint=endpoint, node_name=node_name, namespace_index=1,
+                ds_id=ctx["ds_id"], tag_name=tag_name,
+                data_type=data_type, expected_decimal=str(default_val),
+                expected_variant_type=variant_type,
+                mocker=ctx.get("mocker"),
+            )
+
+            input_int = int(input_string)
+
+            obs: dict = {
+                "input_value": input_string,
+                "input_python_type": type(input_string).__name__,
+                "input_int": input_int,
+            }
+
+            try:
+                resp = write_tag_values(api, {tag_name: input_string})
+                obs["write_exception"] = None
+                obs["write_response"] = resp
+            except TptAPIError as exc:
+                resp = None
+                obs["write_exception"] = {"code": exc.code, "msg": exc.msg}
+                obs["write_response"] = None
+
+            verdict = classify_write_result(resp, tag_name, exception=obs.get("write_exception"))
+            obs["verdict"] = verdict
+
+            if verdict == "rejected":
+                outcome = observe_integer_decimal_rejection(
+                    api, endpoint=endpoint, node_name=node_name, namespace_index=1,
+                    ds_id=ctx["ds_id"], tag_name=tag_name,
+                    data_type=data_type, baseline_decimal=str(default_val),
+                    expected_variant_type=variant_type, mocker=ctx.get("mocker"),
+                    min_observation_period=4.0,
+                )
+                obs["observation"] = outcome
+
+                assert outcome["stable"], \
+                    f"rejected but observation not stable: {outcome['issues']}"
+
+                last = outcome["samples"][-1]
+                obs["source_final"] = last["source"]
+                obs["source_decimal"] = last["source_decimal"]
+                obs["source_python_type"] = type(last["source"]).__name__
+                obs["source_variant_type"] = last["variant_type"]
+                obs["rt_final"] = last["rt"]
+                obs["rt_decimal"] = last["rt_decimal"]
+                obs["qwq_final"] = last["qwq"]
+                obs["qwq_decimal"] = last["qwq_decimal"]
+                obs["datasource_alive"] = last["datasource_alive"]
+                obs["mocker_alive"] = last["mocker_alive"]
+
+            else:
+                outcome = wait_accepted_integer_decimal_outcome(
+                    api, endpoint=endpoint, node_name=node_name, namespace_index=1,
+                    ds_id=ctx["ds_id"], tag_name=tag_name,
+                    data_type=data_type, expected_variant_type=variant_type,
+                    mocker=ctx.get("mocker"),
+                )
+
+                final_decimal = outcome["source_decimal"]
+                final_int = int(final_decimal)
+                vt_name = outcome["variant_type"].name
+                obs["source_final"] = outcome["source"]
+                obs["source_decimal"] = final_decimal
+                obs["source_python_type"] = type(outcome["source"]).__name__
+                obs["source_variant_type"] = vt_name
+                obs["rt_final"] = outcome["rt"]
+                obs["rt_decimal"] = outcome["rt_decimal"]
+                obs["qwq_final"] = outcome["qwq"]
+                obs["qwq_decimal"] = outcome["qwq_decimal"]
+                obs["datasource_alive"] = outcome["datasource_alive"]
+                obs["mocker_alive"] = outcome["mocker_alive"]
+
+                ooc = classify_outcome_value(data_type, final_int, default_val)
+                obs["outcome_classification"] = ooc
+                assert ooc != "out_of_range", \
+                    f"accepted write produced out-of-range final value: {final_int} (input={input_string})"
+
+                silent_wrap = False
+                if is_wrap_behaviour(data_type, input_int):
+                    wrap = expected_wrap_value(data_type, input_int)
+                    if final_int == wrap:
+                        silent_wrap = True
+                        pytest.fail(
+                            f"silent wrap detected: input={input_string}, "
+                            f"final={final_int}, dataType={data_type}"
+                        )
+                obs["silent_wrap_detected"] = silent_wrap
+
+            observations.append(obs)
+            record_property(
+                f"observation_{input_string}",
+                json.dumps(obs, ensure_ascii=False, default=str),
+            )
+
+    finally:
+        strict_restore_source_and_cleanup(
+            api,
+            endpoint=endpoint, node_name=node_name, namespace_index=1,
+            original_value=default_val, original_variant_type=variant_type,
+            tag_id=ctx["tag_id"], tag_name=tag_name,
+            ds_id=ctx["ds_id"], ds_name=ctx["ds_name"],
+            mocker=ctx.get("mocker"),
+            host=ctx["host"], port=ctx["port"],
+        )
+
+    pytest.xfail(
+        "UA-2-1-059 UInt64 negative and overflow semantics are not specified; "
+        f"observed={json.dumps(observations, ensure_ascii=False, default=str)}"
+    )
