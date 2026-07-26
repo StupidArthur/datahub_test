@@ -336,12 +336,10 @@ def test_sbyte_out_of_range(api, settings, tmp_path_factory, mocker_endpoint, re
     title="Byte 最小值与最大值",
     preconditions=["数据源 alive=true", "Byte 可写节点初始为 7"],
     steps=["写入 0", "验证三端一致", "写入 255", "验证三端一致"],
-    expected=["写响应成功", "源端值正确", "VariantType 不变", "RT/QwQ 一致",
-              "已知产品限制：255 被 DataHub 拒绝（有符号 byte 映射）；标记 xfail"],
+    expected=["写响应成功", "源端值正确", "VariantType 不变", "RT/QwQ 一致"],
 )
 @pytest.mark.integration
 @pytest.mark.destructive
-@pytest.mark.xfail(strict=False, reason="DataHub maps OPC UA Byte to signed byte; max 127, 255 rejected")
 def test_byte_min_max(api, settings, tmp_path_factory, mocker_endpoint):
     _run_boundary_case(api, settings, tmp_path_factory, mocker_endpoint,
                        "UA-2-1-044", 3, [0, 255])
@@ -404,12 +402,10 @@ def test_int16_out_of_range(api, settings, tmp_path_factory, mocker_endpoint, re
     title="UInt16 最小值与最大值",
     preconditions=["数据源 alive=true", "UInt16 可写节点初始为 123"],
     steps=["写入 0", "验证三端一致", "写入 65535", "验证三端一致"],
-    expected=["写响应成功", "源端值正确", "VariantType 不变", "RT/QwQ 一致",
-              "已知产品限制：65535 被 DataHub 拒绝（内部映射限制）；标记 xfail"],
+    expected=["写响应成功", "源端值正确", "VariantType 不变", "RT/QwQ 一致"],
 )
 @pytest.mark.integration
 @pytest.mark.destructive
-@pytest.mark.xfail(strict=False, reason="DataHub rejects U_SHORT max 65535; internal mapping limitation")
 def test_uint16_min_max(api, settings, tmp_path_factory, mocker_endpoint):
     _run_boundary_case(api, settings, tmp_path_factory, mocker_endpoint,
                        "UA-2-1-048", 5, [0, 65535])

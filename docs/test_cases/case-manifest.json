@@ -1816,8 +1816,7 @@
         "写响应成功",
         "源端值正确",
         "VariantType 不变",
-        "RT/QwQ 一致",
-        "已知产品限制：255 被 DataHub 拒绝（有符号 byte 映射）；标记 xfail"
+        "RT/QwQ 一致"
       ],
       "markers": [
         "destructive",
@@ -1923,8 +1922,7 @@
         "写响应成功",
         "源端值正确",
         "VariantType 不变",
-        "RT/QwQ 一致",
-        "已知产品限制：65535 被 DataHub 拒绝（内部映射限制）；标记 xfail"
+        "RT/QwQ 一致"
       ],
       "markers": [
         "destructive",
