@@ -1647,6 +1647,102 @@
         "destructive",
         "integration"
       ]
+    },
+    {
+      "id": "UA-2-1-039",
+      "chapter": "UA-2-1",
+      "title": "Boolean 写入 true",
+      "nodeid": "tests/integration/ua2/test_tag_creation_boolean_writes.py::test_boolean_write_true",
+      "preconditions": [
+        "数据源 alive=true",
+        "Boolean 可写节点初始为 false"
+      ],
+      "steps": [
+        "创建 Boolean 可写节点，初始 false",
+        "新增位号 onlyRead=false",
+        "确认 dataType=1, onlyRead=false",
+        "保存 asyncua 源端原值",
+        "调用 write_tag_values 写入 True",
+        "轮询 asyncua 源端变为 True",
+        "联合轮询 RT 与 queryWithQuality 均为 True",
+        "验证两个入口 quality 有效、tagTime 可解析",
+        "finally 恢复源端为 False"
+      ],
+      "expected": [
+        "写接口响应成功",
+        "源端 Python 类型为 bool",
+        "源端值 is True",
+        "RT 规范值 is True",
+        "QwQ 规范值 is True",
+        "quality 有效",
+        "tagTime 可解析"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-040",
+      "chapter": "UA-2-1",
+      "title": "Boolean 写入 false",
+      "nodeid": "tests/integration/ua2/test_tag_creation_boolean_writes.py::test_boolean_write_false",
+      "preconditions": [
+        "数据源 alive=true",
+        "Boolean 可写节点初始为 true"
+      ],
+      "steps": [
+        "创建 Boolean 可写节点，初始 true",
+        "新增位号 onlyRead=false",
+        "确认 dataType=1, onlyRead=false",
+        "保存 asyncua 源端原值",
+        "调用 write_tag_values 写入 False",
+        "轮询 asyncua 源端变为 False",
+        "联合轮询 RT 与 queryWithQuality 均为 False",
+        "验证两个入口 quality 有效、tagTime 可解析",
+        "finally 恢复源端为 True"
+      ],
+      "expected": [
+        "写接口响应成功",
+        "源端 Python 类型为 bool",
+        "源端值 is False",
+        "RT 规范值 is False",
+        "QwQ 规范值 is False",
+        "quality 有效",
+        "tagTime 可解析"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-1-041",
+      "chapter": "UA-2-1",
+      "title": "Boolean 写入非布尔值",
+      "nodeid": "tests/integration/ua2/test_tag_creation_boolean_writes.py::test_boolean_write_non_boolean_values",
+      "preconditions": [
+        "数据源 alive=true",
+        "Boolean 可写节点初始为 false"
+      ],
+      "steps": [
+        "创建 Boolean 可写节点，初始 false",
+        "分别写入 1、0、\"true\"",
+        "每个写入后记录完整 observation",
+        "所有输入完成并清理后动态 xfail"
+      ],
+      "expected": [
+        "记录每个输入的被拒绝或转换行为",
+        "被拒绝时源端保持 False",
+        "被接受时源端仍为 bool",
+        "quality 有效",
+        "tagTime 可解析"
+      ],
+      "markers": [
+        "spec_pending",
+        "destructive",
+        "integration"
+      ]
     }
   ]
 }

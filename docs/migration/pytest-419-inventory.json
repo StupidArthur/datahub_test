@@ -71,7 +71,7 @@
     }
   ],
   "duplicates_in_source": [],
-  "pytest_total": 66,
+  "pytest_total": 69,
   "migrated": [
     "UA-1-1-01",
     "UA-1-1-02",
@@ -138,7 +138,10 @@
     "UA-2-1-035",
     "UA-2-1-036",
     "UA-2-1-037",
-    "UA-2-1-038"
+    "UA-2-1-038",
+    "UA-2-1-039",
+    "UA-2-1-040",
+    "UA-2-1-041"
   ],
   "missing": [
     "UA-1-4-01",
@@ -169,9 +172,6 @@
     "UA-1-6-11",
     "UA-1-6-12",
     "UA-1-6-13",
-    "UA-2-1-039",
-    "UA-2-1-040",
-    "UA-2-1-041",
     "UA-2-1-042",
     "UA-2-1-043",
     "UA-2-1-044",
@@ -605,6 +605,15 @@
     "UA-2-1-015": [
       "tests/integration/ua2/test_tag_creation_base_mapping.py::test_base_name_data_type_mismatch"
     ],
+    "UA-2-1-039": [
+      "tests/integration/ua2/test_tag_creation_boolean_writes.py::test_boolean_write_true"
+    ],
+    "UA-2-1-040": [
+      "tests/integration/ua2/test_tag_creation_boolean_writes.py::test_boolean_write_false"
+    ],
+    "UA-2-1-041": [
+      "tests/integration/ua2/test_tag_creation_boolean_writes.py::test_boolean_write_non_boolean_values"
+    ],
     "UA-2-1-001": [
       "tests/integration/ua2/test_tag_creation_datasource_state.py::test_tag_type_read_only"
     ],
@@ -733,6 +742,9 @@
     "tests/integration/ua2/test_tag_creation_base_mapping.py::test_base_name_nonexistent_namespace": "UA-2-1-013",
     "tests/integration/ua2/test_tag_creation_base_mapping.py::test_base_name_empty": "UA-2-1-014",
     "tests/integration/ua2/test_tag_creation_base_mapping.py::test_base_name_data_type_mismatch": "UA-2-1-015",
+    "tests/integration/ua2/test_tag_creation_boolean_writes.py::test_boolean_write_true": "UA-2-1-039",
+    "tests/integration/ua2/test_tag_creation_boolean_writes.py::test_boolean_write_false": "UA-2-1-040",
+    "tests/integration/ua2/test_tag_creation_boolean_writes.py::test_boolean_write_non_boolean_values": "UA-2-1-041",
     "tests/integration/ua2/test_tag_creation_datasource_state.py::test_tag_type_read_only": "UA-2-1-001",
     "tests/integration/ua2/test_tag_creation_datasource_state.py::test_ds_running": "UA-2-1-002",
     "tests/integration/ua2/test_tag_creation_datasource_state.py::test_nonexistent_ds": "UA-2-1-003",
@@ -835,9 +847,9 @@
     {
       "chapter": "UA-2",
       "source": 265,
-      "pytest": 38,
-      "migrated_count": 38,
-      "missing_count": 227,
+      "pytest": 41,
+      "migrated_count": 41,
+      "missing_count": 224,
       "migrated": [
         "UA-2-1-001",
         "UA-2-1-002",
@@ -876,12 +888,12 @@
         "UA-2-1-035",
         "UA-2-1-036",
         "UA-2-1-037",
-        "UA-2-1-038"
-      ],
-      "missing": [
+        "UA-2-1-038",
         "UA-2-1-039",
         "UA-2-1-040",
-        "UA-2-1-041",
+        "UA-2-1-041"
+      ],
+      "missing": [
         "UA-2-1-042",
         "UA-2-1-043",
         "UA-2-1-044",

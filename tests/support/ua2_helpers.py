@@ -157,6 +157,38 @@ def opcua_read_sync(endpoint: str, node_name: str, namespace_index: int = 2):
     return asyncio.run(_read())
 
 
+def opcua_write_sync(endpoint: str, node_name: str, value: object, *, namespace_index: int = 1) -> None:
+    async def _write():
+        async with Client(endpoint) as client:
+            nid = f"ns={namespace_index};s={node_name}"
+            node = client.get_node(nid)
+            await node.write_value(value)
+            readback = await node.read_value()
+        actual_type = type(readback)
+        actual_val = readback
+        if isinstance(value, bool) and actual_type is not bool:
+            raise AssertionError(
+                f"OPC UA readback type mismatch after write: expected bool, got {actual_type.__name__} "
+                f"(value={actual_val!r})"
+            )
+    asyncio.run(_write())
+
+
+def assert_write_accepted(response: dict, tag_name: str) -> None:
+    assert isinstance(response, dict), f"write response is not dict: {type(response).__name__}"
+    tag_names = response.get("tagNames") or []
+    assert tag_name in tag_names, \
+        f"tag_name {tag_name!r} not in write response tagNames={tag_names}"
+    fail_msg = response.get("failMsg") or ""
+    if fail_msg:
+        assert tag_name not in fail_msg, \
+            f"write response failMsg references {tag_name!r}: {fail_msg}"
+    err_msg = response.get("msg") or ""
+    if err_msg:
+        assert tag_name not in err_msg, \
+            f"write response msg references {tag_name!r}: {err_msg}"
+
+
 def setup_ds_only(
     api, settings, mocker_endpoint, tmp_path_factory, case_id: str,
     *,

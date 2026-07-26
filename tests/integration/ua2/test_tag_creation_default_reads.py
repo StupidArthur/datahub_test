@@ -1,15 +1,14 @@
 from __future__ import annotations
 
 import time
-from datetime import datetime, timezone
 
 import pytest
 
-from tpt_api.datahub import add_tag, get_rt_value, query_tags_with_quality
+from tpt_api.datahub import add_tag
 from tpt_api.types import DataTypes, TagTypes
 
 from tests.support.cleanup import delete_tag_if_exists
-from tests.support.polling import wait_until, WaitTimeout
+from tests.support.polling import wait_until
 from tests.support.rt_helpers import get_rt_point
 from tests.support.ua2_helpers import (
     find_unique_tag,
@@ -17,7 +16,8 @@ from tests.support.ua2_helpers import (
     setup_ds_only,
     teardown_ds_tag_mocker,
 )
-from tests.support.ua2_value_normalization import assert_value_equal, normalize_datetime
+from tests.support.ua2_rt_assertions import parse_required_timestamp, wait_consistent_rt_and_qwq
+from tests.support.ua2_value_normalization import assert_value_equal
 
 
 def _build_node(name: str, type_name: str, default_val: object) -> dict:
@@ -29,18 +29,6 @@ def _build_node(name: str, type_name: str, default_val: object) -> dict:
         "change": True,
         "count": 1,
     }
-
-
-def parse_required_timestamp(raw: object) -> datetime:
-    if not isinstance(raw, str) or not raw.strip():
-        raise AssertionError(f"timestamp missing: {raw!r}")
-    try:
-        parsed = datetime.fromisoformat(raw.replace("Z", "+00:00"))
-    except ValueError as exc:
-        raise AssertionError(f"invalid timestamp: {raw!r}") from exc
-    if parsed.tzinfo is None:
-        parsed = parsed.replace(tzinfo=timezone.utc)
-    return parsed.astimezone(timezone.utc)
 
 
 def _clamped_rt_snapshot(api, tag_name: str, source_fn) -> dict:
@@ -89,49 +77,6 @@ def _wait_second_value(api, tag_name: str, first_val: object, timeout: float = 3
         return v is not None and pt.get("quality", 0) != 0 and v != first_val
     wait_until(f"rt_diff:{tag_name}", _diff, timeout=timeout, interval=0.5)
     return get_rt_point(api, tag_name)
-
-
-def wait_consistent_rt_and_qwq(
-    api, ds_id: int, tag_name: str, data_type: int, timeout: float = 20.0
-) -> dict:
-    deadline = time.monotonic() + timeout
-    last_rt = {}
-    last_qwq_rec = {}
-    while time.monotonic() < deadline:
-        rt_list = get_rt_value(api, tag_names=[tag_name])
-        last_rt = rt_list[0] if isinstance(rt_list, list) and rt_list else {}
-        qwq = query_tags_with_quality(api, ds_id=ds_id, tag_name=tag_name)
-        qrecs = (qwq.get("tagInfoList") or {}).get("records") or []
-        qmatch = [r for r in qrecs if r.get("tagName") == tag_name]
-        last_qwq_rec = qmatch[0] if qmatch else {}
-        if not last_rt.get("tagValue") or not last_qwq_rec.get("tagValue"):
-            time.sleep(0.5)
-            continue
-        if last_rt.get("quality") in (None, 0) or last_qwq_rec.get("quality") in (None, 0):
-            time.sleep(0.5)
-            continue
-        if not last_rt.get("tagTime") or not last_qwq_rec.get("tagTime"):
-            time.sleep(0.5)
-            continue
-        try:
-            parse_required_timestamp(last_rt["tagTime"])
-            parse_required_timestamp(last_qwq_rec["tagTime"])
-        except AssertionError:
-            time.sleep(0.5)
-            continue
-        try:
-            assert_value_equal(
-                last_rt["tagValue"], last_qwq_rec["tagValue"], data_type
-            )
-        except AssertionError:
-            time.sleep(0.5)
-            continue
-        return last_qwq_rec
-    raise AssertionError(
-        f"RT/QwQ consistency timeout for {tag_name} (dt={data_type})\n"
-        f"last getRTValue: {last_rt}\n"
-        f"last queryWithQuality record: {last_qwq_rec}"
-    )
 
 
 def _run_default_read_case(
@@ -194,7 +139,8 @@ def _run_default_read_case(
 
         assert ts2 >= ts1, f"second timestamp {ts2} < first {ts1}"
 
-        qr = wait_consistent_rt_and_qwq(api, ctx["ds_id"], tag_name, data_type)
+        result = wait_consistent_rt_and_qwq(api, ds_id=ctx["ds_id"], tag_name=tag_name, data_type=data_type)
+        qr = result["qwq"]
 
         q_quality = qr["quality"]
         assert q_quality not in (None, 0), \
