@@ -152,10 +152,12 @@ GUI (`ua_test_gui/`) 当前仍通过 `pytestrunner` 启动旧 Harness（`python 
 
 ## 提交与推送
 
-* 单一分支：`refactor/native-pytest-slice`
-* 不 rebase 已推送提交，不 force push，不合并 main
-* 每完成一项独立修改 commit + push
-* 禁止 `git add .`；逐文件检查后 `git add <file>`
+* 直接在 main 上工作
+* 每次开始执行 `git switch main` 和 `git pull --ff-only`
+* 小批次独立 commit 并 push origin main
+* 不创建长期分支或 PR
+* 不 rebase 已推送提交，不 force push
+* 禁止 `git add .`；只暂存明确文件
 * commit message 形如 `feat(area): <description>` / `fix(area): <description>` / `test(area): <description>` / `docs(area): <description>` / `ci(area): <description>`
 
 ## 当前状态参考
@@ -165,14 +167,15 @@ GUI (`ua_test_gui/`) 当前仍通过 `pytestrunner` 启动旧 Harness（`python 
 |----|------|------|--------------|----------------|--------|
 | UA-1-1 | 12 | 12 | 0 | 0 | 0 |
 | UA-1-2 | 6 | 4 | 0 | 2 | 0 |
-| UA-2-1 | 49 | 35 | 3 | 11 | 0 |
+| UA-2-1 | 53 | 36 | 4 | 13 | 0 |
 
-FAIL 三道确认产品能力限制：
+FAIL 四道确认产品能力限制：
 - **UA-2-1-044** Byte 255 → DataHub signed-byte 映射限制（`Write tag value type convert failed`）
 - **UA-2-1-048** UInt16 65535 → DataHub U_SHORT 映射限制
+- **UA-2-1-052** UInt32 4294967295 → DataHub U_INT 映射限制
 - **UA-2-1-019** 空 tagName → 产品接受空 tagName，回落为节点名
 
-XFAIL 11 道为行为未约定（overflow / coercion / whitespace / length 129 / special chars / unicode）。
+XFAIL 13 道为行为未约定（overflow / coercion / whitespace / length 129 / special chars / unicode）。
 
 ### 清理基础设施
 - **`tests/support/ua2_cleanup.py`**: `strict_cleanup_ua2_context()` — 六步严格清理（物理删 tag → 清回收站 → 禁 DS → 删 DS → 停 mocker → 验端口），所有错误聚合不吞
