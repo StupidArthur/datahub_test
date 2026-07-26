@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import contextlib
+
 from unittest.mock import AsyncMock, Mock, patch
 
 from asyncua import ua
@@ -15,6 +17,7 @@ from tests.support.ua2_write_assertions import (
     is_wrap_behaviour,
     normalize_integer_decimal,
     observe_integer_decimal_rejection,
+    restore_and_verify_source,
     strict_restore_source_and_cleanup,
     wait_accepted_integer_decimal_outcome,
     wait_accepted_integer_outcome,
@@ -983,3 +986,295 @@ class TestStrictRestoreSourceAndCleanup:
                             mocker=m, host="127.0.0.1", port=9999,
                         )
                     assert "cleanup" in str(excinfo.value)
+
+    def test_mocker_none_records_error_but_cleans_up(self):
+        """mocker=None → restore记录错误，仍执行cleanup。"""
+        from tests.support.ua2_write_assertions import strict_restore_source_and_cleanup
+        api = Mock()
+        with patch("tests.support.ua2_cleanup.strict_cleanup_ua2_context",
+                   side_effect=AssertionError("cleanup error")):
+            with pytest.raises(AssertionError) as excinfo:
+                strict_restore_source_and_cleanup(
+                    api, endpoint="x", node_name="y", namespace_index=1,
+                    original_value=123456, original_variant_type=ua.VariantType.Int64,
+                    tag_id=1, tag_name="t", ds_id=1, ds_name="d",
+                    mocker=None, host="127.0.0.1", port=9999,
+                )
+            msg = str(excinfo.value)
+            assert "restore_unavailable: mocker is None" in msg
+            assert "cleanup" in msg
+
+    def test_mocker_exited_records_returncode_but_cleans_up(self):
+        """mocker已退出 → restore记录returncode，仍执行cleanup。"""
+        from tests.support.ua2_write_assertions import strict_restore_source_and_cleanup
+        api = Mock()
+        m = Mock()
+        m.process.poll.return_value = -1
+        with patch("tests.support.ua2_cleanup.strict_cleanup_ua2_context",
+                   side_effect=AssertionError("cleanup error")):
+            with pytest.raises(AssertionError) as excinfo:
+                strict_restore_source_and_cleanup(
+                    api, endpoint="x", node_name="y", namespace_index=1,
+                    original_value=123456, original_variant_type=ua.VariantType.Int64,
+                    tag_id=1, tag_name="t", ds_id=1, ds_name="d",
+                    mocker=m, host="127.0.0.1", port=9999,
+                )
+            msg = str(excinfo.value)
+            assert "restore_unavailable: mocker exited" in msg
+            assert "returncode=-1" in msg
+            assert "cleanup" in msg
+
+
+class TestRestoreAndVerifySource:
+    def test_success(self):
+        m = Mock()
+        m.process.poll.return_value = None
+        from unittest.mock import MagicMock
+        client_instance = MagicMock()
+        client_instance.__aenter__.return_value = client_instance
+        client_instance.__aexit__.return_value = None
+        node_mock = MagicMock()
+        node_mock.write_value = AsyncMock()
+        client_instance.get_node.return_value = node_mock
+        with patch("asyncua.Client", return_value=client_instance):
+            with patch("tests.support.ua2_write_assertions.opcua_read_variant_type_sync",
+                       return_value=(123456, ua.VariantType.Int64)):
+                restore_and_verify_source(
+                    endpoint="x", node_name="y", namespace_index=1,
+                    value=123456, variant_type=ua.VariantType.Int64,
+                    mocker=m,
+                )
+
+    def test_mocker_none_is_noop(self):
+        restore_and_verify_source(
+            endpoint="x", node_name="y", namespace_index=1,
+            value=123456, variant_type=ua.VariantType.Int64,
+            mocker=None,
+        )
+
+    def test_mocker_exited_is_noop(self):
+        m = Mock()
+        m.process.poll.return_value = 1
+        restore_and_verify_source(
+            endpoint="x", node_name="y", namespace_index=1,
+            value=123456, variant_type=ua.VariantType.Int64,
+            mocker=m,
+        )
+
+    def test_write_failure_propagates(self):
+        m = Mock()
+        m.process.poll.return_value = None
+        with patch("asyncua.Client", side_effect=RuntimeError("connection refused")):
+            with pytest.raises(RuntimeError, match="connection refused"):
+                restore_and_verify_source(
+                    endpoint="x", node_name="y", namespace_index=1,
+                    value=123456, variant_type=ua.VariantType.Int64,
+                    mocker=m,
+                )
+
+    def test_value_mismatch_propagates(self):
+        m = Mock()
+        m.process.poll.return_value = None
+        from unittest.mock import MagicMock
+        client_instance = MagicMock()
+        client_instance.__aenter__.return_value = client_instance
+        client_instance.__aexit__.return_value = None
+        node_mock = MagicMock()
+        node_mock.write_value = AsyncMock()
+        client_instance.get_node.return_value = node_mock
+        with patch("asyncua.Client", return_value=client_instance):
+            with patch("tests.support.ua2_write_assertions.opcua_read_variant_type_sync",
+                       return_value=(999, ua.VariantType.Int64)):
+                with pytest.raises(AssertionError, match="value mismatch"):
+                    restore_and_verify_source(
+                        endpoint="x", node_name="y", namespace_index=1,
+                        value=123456, variant_type=ua.VariantType.Int64,
+                        mocker=m,
+                    )
+
+
+class TestRejectionImmediateFail:
+    """每个样本内立即FAIL的条件测试。"""
+
+    @pytest.fixture
+    def mock_mocker(self):
+        m = Mock()
+        m.process.poll.return_value = None
+        return m
+
+    def _make_default_rejection_patches(self):
+        """返回所有默认patches组成的ExitStack上下文。"""
+        stack = contextlib.ExitStack()
+        stack.enter_context(patch("tests.support.ua2_write_assertions.opcua_read_sync",
+                                   return_value=123456))
+        stack.enter_context(patch("tests.support.ua2_write_assertions.opcua_read_variant_type_sync",
+                                   return_value=(123456, ua.VariantType.Int64)))
+        stack.enter_context(patch("tests.support.ua2_write_assertions.is_ds_alive",
+                                   return_value=True))
+        stack.enter_context(patch("tests.support.ua2_write_assertions.get_rt_value",
+                                   return_value=[{"tagValue": 123456, "quality": 192, "tagTime": "2025-01-01T00:00:00Z"}]))
+        stack.enter_context(patch("tests.support.ua2_write_assertions.query_tags_with_quality",
+                                   return_value={"tagInfoList": {"records": [{"tagName": "t", "tagValue": 123456, "quality": 192, "tagTime": "2025-01-01T00:00:00Z"}]}}))
+        return stack
+
+    def _call_rejection(self, mock_api, mock_mocker, patches_stack=None):
+        if patches_stack:
+            return observe_integer_decimal_rejection(
+                mock_api, endpoint="x", node_name="y", namespace_index=1,
+                ds_id=1, tag_name="t", data_type=8,
+                baseline_decimal="123456",
+                expected_variant_type=ua.VariantType.Int64,
+                mocker=mock_mocker, timeout=2.0, interval=0.1,
+                min_observation_period=1.0,
+            )
+        else:
+            with self._make_default_rejection_patches() as stack:
+                return observe_integer_decimal_rejection(
+                    mock_api, endpoint="x", node_name="y", namespace_index=1,
+                    ds_id=1, tag_name="t", data_type=8,
+                    baseline_decimal="123456",
+                    expected_variant_type=ua.VariantType.Int64,
+                    mocker=mock_mocker, timeout=2.0, interval=0.1,
+                    min_observation_period=1.0,
+                )
+
+    def test_all_baseline_equal_success(self, mock_mocker):
+        api = Mock()
+        result = self._call_rejection(api, mock_mocker)
+        assert result["stable"] is True
+        assert result["issues"] == []
+        assert len(result["samples"]) >= 2
+        for s in result["samples"]:
+            assert s["source_decimal"] == "123456"
+            assert s["rt_decimal"] == "123456"
+            assert s["qwq_decimal"] == "123456"
+
+    def _run_with_override(self, mock_api, mock_mocker, patch_path, new_mock, match):
+        """Enter default patches, then apply override mock before calling rejection."""
+        with self._make_default_rejection_patches() as stack:
+            stack.enter_context(patch(patch_path, new_mock))
+            with pytest.raises(AssertionError, match=match):
+                observe_integer_decimal_rejection(
+                    mock_api, endpoint="x", node_name="y", namespace_index=1,
+                    ds_id=1, tag_name="t", data_type=8,
+                    baseline_decimal="123456",
+                    expected_variant_type=ua.VariantType.Int64,
+                    mocker=mock_mocker, timeout=2.0, interval=0.1,
+                    min_observation_period=1.0,
+                )
+
+    def test_rt_value_changes_immediate_fail(self, mock_mocker):
+        api = Mock()
+        self._run_with_override(
+            api, mock_mocker,
+            "tests.support.ua2_write_assertions.get_rt_value",
+            Mock(return_value=[{"tagValue": 999, "quality": 192, "tagTime": "2025-01-01T00:00:00Z"}]),
+            "RT value changed",
+        )
+
+    def test_qwq_value_changes_immediate_fail(self, mock_mocker):
+        api = Mock()
+        self._run_with_override(
+            api, mock_mocker,
+            "tests.support.ua2_write_assertions.query_tags_with_quality",
+            Mock(return_value={"tagInfoList": {"records": [{"tagName": "t", "tagValue": 999, "quality": 192, "tagTime": "2025-01-01T00:00:00Z"}]}}),
+            "QwQ value changed",
+        )
+
+    def test_rt_timestamp_unparseable_immediate_fail(self, mock_mocker):
+        api = Mock()
+        self._run_with_override(
+            api, mock_mocker,
+            "tests.support.ua2_write_assertions.get_rt_value",
+            Mock(return_value=[{"tagValue": 123456, "quality": 192, "tagTime": "not-a-date"}]),
+            "RT tagTime unparseable",
+        )
+
+    def test_qwq_timestamp_unparseable_immediate_fail(self, mock_mocker):
+        api = Mock()
+        self._run_with_override(
+            api, mock_mocker,
+            "tests.support.ua2_write_assertions.query_tags_with_quality",
+            Mock(return_value={"tagInfoList": {"records": [{"tagName": "t", "tagValue": 123456, "quality": 192, "tagTime": "not-a-date"}]}}),
+            "QwQ tagTime unparseable",
+        )
+
+    def test_get_rt_value_api_error_immediate_fail(self, mock_mocker):
+        api = Mock()
+        from tpt_api.errors import TptAPIError
+        self._run_with_override(
+            api, mock_mocker,
+            "tests.support.ua2_write_assertions.get_rt_value",
+            Mock(side_effect=TptAPIError(code=500, msg="API error")),
+            "getRTValue API error",
+        )
+
+    def test_query_with_quality_api_error_immediate_fail(self, mock_mocker):
+        api = Mock()
+        from tpt_api.errors import TptAPIError
+        self._run_with_override(
+            api, mock_mocker,
+            "tests.support.ua2_write_assertions.query_tags_with_quality",
+            Mock(side_effect=TptAPIError(code=500, msg="API error")),
+            "queryWithQuality API error",
+        )
+
+
+class TestAcceptedImmediateFail:
+    """Accepted helper中立即FAIL条件测试。"""
+
+    @pytest.fixture
+    def mock_mocker(self):
+        m = Mock()
+        m.process.poll.return_value = None
+        return m
+
+    @pytest.fixture
+    def mock_api(self):
+        return Mock()
+
+    def _make_trio(self, source, vt, rv, qv, quality=192,
+                   tag_time="2025-01-01T00:00:00Z", ds_alive=True):
+        return {
+            "source": source,
+            "variant_type": vt,
+            "rt": {"tagValue": rv, "quality": quality, "tagTime": tag_time},
+            "qwq": {"tagValue": qv, "quality": quality, "tagTime": tag_time},
+            "datasource_alive": ds_alive,
+        }
+
+    def test_source_out_of_range_immediate_fail(self, mock_api, mock_mocker):
+        """最终source超出Int64合法范围→立即FAIL."""
+        trio_data = self._make_trio(-9223372036854775809, ua.VariantType.Int64, 100, 100)
+        with patch("tests.support.ua2_write_assertions._sample_trio", return_value=trio_data):
+            with pytest.raises(AssertionError, match="out-of-range"):
+                wait_accepted_integer_decimal_outcome(
+                    mock_api, endpoint="x", node_name="y", namespace_index=1,
+                    ds_id=1, tag_name="t", data_type=8,
+                    expected_variant_type=ua.VariantType.Int64,
+                    mocker=mock_mocker, timeout=1.0, interval=0.1,
+                )
+
+    def test_rt_unparseable_decimal_immediate_fail(self, mock_api, mock_mocker):
+        """RT tagValue已存在但无法十进制规范化(如bool)→立即FAIL."""
+        trio_data = self._make_trio(100, ua.VariantType.Int64, True, 100)
+        with patch("tests.support.ua2_write_assertions._sample_trio", return_value=trio_data):
+            with pytest.raises(AssertionError, match="cannot be decimal-normalized"):
+                wait_accepted_integer_decimal_outcome(
+                    mock_api, endpoint="x", node_name="y", namespace_index=1,
+                    ds_id=1, tag_name="t", data_type=8,
+                    expected_variant_type=ua.VariantType.Int64,
+                    mocker=mock_mocker, timeout=1.0, interval=0.1,
+                )
+
+    def test_qwq_unparseable_decimal_immediate_fail(self, mock_api, mock_mocker):
+        """QwQ tagValue已存在但无法十进制规范化→立即FAIL."""
+        trio_data = self._make_trio(100, ua.VariantType.Int64, 100, True)
+        with patch("tests.support.ua2_write_assertions._sample_trio", return_value=trio_data):
+            with pytest.raises(AssertionError, match="cannot be decimal-normalized"):
+                wait_accepted_integer_decimal_outcome(
+                    mock_api, endpoint="x", node_name="y", namespace_index=1,
+                    ds_id=1, tag_name="t", data_type=8,
+                    expected_variant_type=ua.VariantType.Int64,
+                    mocker=mock_mocker, timeout=1.0, interval=0.1,
+                )

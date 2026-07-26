@@ -26,6 +26,7 @@ from tests.support.ua2_write_assertions import (
     is_wrap_behaviour,
     normalize_integer_decimal,
     observe_integer_decimal_rejection,
+    restore_and_verify_source,
     strict_restore_source_and_cleanup,
     wait_accepted_integer_decimal_outcome,
     wait_three_way_integer_decimal_sync,
@@ -274,6 +275,15 @@ def test_int64_out_of_range(api, settings, tmp_path_factory, mocker_endpoint, re
         oor_values = ["-9223372036854775809", "9223372036854775808"]
 
         for input_string in oor_values:
+            restore_and_verify_source(
+                endpoint=endpoint,
+                node_name=node_name,
+                namespace_index=1,
+                value=default_val,
+                variant_type=variant_type,
+                mocker=ctx.get("mocker"),
+            )
+
             wait_three_way_integer_decimal_sync(
                 api, endpoint=endpoint, node_name=node_name, namespace_index=1,
                 ds_id=ctx["ds_id"], tag_name=tag_name,
@@ -315,25 +325,17 @@ def test_int64_out_of_range(api, settings, tmp_path_factory, mocker_endpoint, re
                 assert outcome["stable"], \
                     f"rejected but observation not stable: {outcome['issues']}"
 
-                final_source = opcua_read_sync(endpoint, node_name, namespace_index=1)
-                _, final_vt = opcua_read_variant_type_sync(endpoint, node_name, namespace_index=1)
-                obs["source_final"] = normalize_integer_decimal(final_source, data_type)
-                obs["source_python_type"] = type(final_source).__name__
-                obs["source_variant_type"] = final_vt.name
-
-                rt_final = get_rt_point(api, tag_name)
-                obs["rt_final"] = rt_final.get("tagValue")
-                obs["rt_quality"] = rt_final.get("quality")
-                obs["rt_tagTime"] = rt_final.get("tagTime")
-
-                assert not isinstance(final_source, bool), \
-                    f"source type after rejection: {type(final_source).__name__}"
-                assert normalize_integer_decimal(final_source, data_type) == str(default_val), \
-                    f"source changed after rejection: {final_source} != {default_val}"
-                assert rt_final.get("tagValue") is not None, "RT missing after rejection"
-                assert rt_final.get("quality") not in (None, 0), "RT quality invalid after rejection"
-                assert final_vt == variant_type, \
-                    f"VariantType changed after rejection: {final_vt} != {variant_type}"
+                last = outcome["samples"][-1]
+                obs["source_final"] = last["source"]
+                obs["source_decimal"] = last["source_decimal"]
+                obs["source_python_type"] = type(last["source"]).__name__
+                obs["source_variant_type"] = last["variant_type"]
+                obs["rt_final"] = last["rt"]
+                obs["rt_decimal"] = last["rt_decimal"]
+                obs["qwq_final"] = last["qwq"]
+                obs["qwq_decimal"] = last["qwq_decimal"]
+                obs["datasource_alive"] = last["datasource_alive"]
+                obs["mocker_alive"] = last["mocker_alive"]
 
             else:
                 outcome = wait_accepted_integer_decimal_outcome(
@@ -346,15 +348,14 @@ def test_int64_out_of_range(api, settings, tmp_path_factory, mocker_endpoint, re
                 final_decimal = outcome["source_decimal"]
                 final_int = int(final_decimal)
                 vt_name = outcome["variant_type"].name
-                obs["source_final"] = final_decimal
+                obs["source_final"] = outcome["source"]
+                obs["source_decimal"] = final_decimal
                 obs["source_python_type"] = type(outcome["source"]).__name__
                 obs["source_variant_type"] = vt_name
-                obs["rt_final"] = outcome["rt"].get("tagValue")
-                obs["rt_quality"] = outcome["rt"].get("quality")
-                obs["rt_tagTime"] = outcome["rt"].get("tagTime")
-                obs["qwq_final"] = outcome["qwq"].get("tagValue")
-                obs["qwq_quality"] = outcome["qwq"].get("quality")
-                obs["qwq_tagTime"] = outcome["qwq"].get("tagTime")
+                obs["rt_final"] = outcome["rt"]
+                obs["rt_decimal"] = outcome["rt_decimal"]
+                obs["qwq_final"] = outcome["qwq"]
+                obs["qwq_decimal"] = outcome["qwq_decimal"]
                 obs["datasource_alive"] = outcome["datasource_alive"]
                 obs["mocker_alive"] = outcome["mocker_alive"]
 

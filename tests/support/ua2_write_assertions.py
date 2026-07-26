@@ -340,8 +340,10 @@ def wait_accepted_integer_decimal_outcome(
 
         sv = int(sv_str)
         if not (lo <= sv <= hi):
-            time.sleep(interval)
-            continue
+            raise AssertionError(
+                f"accepted write produced out-of-range source for {tag_name}: "
+                f"source={sv_str}, dataType={data_type}, range=[{lo}, {hi}]"
+            )
 
         if "tagValue" not in rt or rt["tagValue"] is None:
             time.sleep(interval)
@@ -365,9 +367,11 @@ def wait_accepted_integer_decimal_outcome(
         try:
             rv_str = normalize_integer_decimal(rt["tagValue"], data_type)
             qv_str = normalize_integer_decimal(qwq["tagValue"], data_type)
-        except (TypeError, ValueError):
-            time.sleep(interval)
-            continue
+        except (TypeError, ValueError) as exc:
+            raise AssertionError(
+                f"RT/QwQ tagValue cannot be decimal-normalized for {tag_name}: "
+                f"rt={rt['tagValue']!r} qwq={qwq['tagValue']!r} ({exc})"
+            )
         if rv_str != sv_str or qv_str != sv_str:
             time.sleep(interval)
             continue
@@ -438,6 +442,8 @@ def observe_integer_decimal_rejection(
 
     while time.monotonic() < deadline:
         _assert_mocker_alive(mocker, tag_name, "observe_integer_decimal_rejection")
+
+        # --- source read ---
         try:
             source = opcua_read_sync(endpoint, node_name, namespace_index=namespace_index)
         except Exception as exc:
@@ -448,25 +454,27 @@ def observe_integer_decimal_rejection(
         except Exception as exc:
             raise AssertionError(f"OPC UA variant type read failed during observation: {exc}")
 
+        # --- source type checks ---
         if isinstance(source, bool):
             raise AssertionError(f"source is bool during rejection observation for {tag_name}: {source!r}")
+        if isinstance(source, float):
+            raise AssertionError(f"source is float during rejection observation for {tag_name}: {source!r}")
         if not isinstance(source, int):
             raise AssertionError(
                 f"source Python type is not int during rejection observation for {tag_name}: "
                 f"{type(source).__name__} {source!r}"
             )
-        if isinstance(source, float):
-            raise AssertionError(f"source is float during rejection observation for {tag_name}: {source!r}")
 
+        # --- source decimal normalization ---
         try:
-            src_str = normalize_integer_decimal(source, data_type)
+            source_decimal = normalize_integer_decimal(source, data_type)
         except (TypeError, ValueError) as exc:
             raise AssertionError(f"source decimal normalization failed during rejection observation: {exc}")
 
-        if src_str != baseline_decimal:
+        if source_decimal != baseline_decimal:
             raise AssertionError(
                 f"source changed during rejection observation for {tag_name}: "
-                f"{src_str} != {baseline_decimal}"
+                f"{source_decimal} != {baseline_decimal}"
             )
         if vt_name != baseline_vt_name:
             raise AssertionError(
@@ -474,25 +482,33 @@ def observe_integer_decimal_rejection(
                 f"{vt_name} != {baseline_vt_name}"
             )
 
+        # --- RT read (API error → immediate FAIL) ---
         try:
             rt_list = get_rt_value(api, tag_names=[tag_name])
-        except TptAPIError:
-            rt = {}
+        except TptAPIError as exc:
+            raise AssertionError(
+                f"getRTValue API error during rejection observation for {tag_name}: {exc}"
+            )
         except Exception as exc:
             raise AssertionError(f"getRTValue failed during observation: {exc}")
-        else:
-            rt = rt_list[0] if isinstance(rt_list, list) and rt_list else {}
+        rt = rt_list[0] if isinstance(rt_list, list) and rt_list else {}
 
+        # --- QwQ read (API error → immediate FAIL) ---
         try:
             qwq_all = query_tags_with_quality(api, ds_id=ds_id, tag_name=tag_name)
-        except TptAPIError:
-            qwq_all = {}
+        except TptAPIError as exc:
+            raise AssertionError(
+                f"queryWithQuality API error during rejection observation for {tag_name}: {exc}"
+            )
         except Exception as exc:
             raise AssertionError(f"queryWithQuality failed during observation: {exc}")
         qrecs = (qwq_all.get("tagInfoList") or {}).get("records") or []
         qmatch = [r for r in qrecs if r.get("tagName") == tag_name]
         qwq = qmatch[0] if qmatch else {}
 
+        # --- float checks ---
+        if isinstance(source, float):
+            raise AssertionError(f"source is float during rejection observation for {tag_name}: {source!r}")
         rt_v = rt.get("tagValue")
         qwq_v = qwq.get("tagValue")
         if rt_v is not None and isinstance(rt_v, float):
@@ -500,15 +516,71 @@ def observe_integer_decimal_rejection(
         if qwq_v is not None and isinstance(qwq_v, float):
             raise AssertionError(f"QwQ tagValue is float during rejection observation for {tag_name}: {qwq_v!r}")
 
+        # --- RT/QwQ decimal normalization ---
+        if rt_v is not None:
+            try:
+                rt_decimal = normalize_integer_decimal(rt_v, data_type)
+            except (TypeError, ValueError) as exc:
+                raise AssertionError(
+                    f"RT tagValue cannot be decimal-normalized during rejection "
+                    f"observation for {tag_name}: {rt_v!r} ({exc})"
+                )
+        else:
+            rt_decimal = None
+
+        if qwq_v is not None:
+            try:
+                qwq_decimal = normalize_integer_decimal(qwq_v, data_type)
+            except (TypeError, ValueError) as exc:
+                raise AssertionError(
+                    f"QwQ tagValue cannot be decimal-normalized during rejection "
+                    f"observation for {tag_name}: {qwq_v!r} ({exc})"
+                )
+        else:
+            qwq_decimal = None
+
+        # --- RT/QwQ baseline consistency ---
+        if rt_decimal is not None and rt_decimal != baseline_decimal:
+            raise AssertionError(
+                f"RT value changed during rejection observation for {tag_name}: "
+                f"{rt_decimal} != {baseline_decimal}"
+            )
+        if qwq_decimal is not None and qwq_decimal != baseline_decimal:
+            raise AssertionError(
+                f"QwQ value changed during rejection observation for {tag_name}: "
+                f"{qwq_decimal} != {baseline_decimal}"
+            )
+
+        # --- timestamp parse (must succeed if present) ---
+        if rt.get("tagTime"):
+            try:
+                parse_required_timestamp(rt["tagTime"])
+            except AssertionError:
+                raise AssertionError(
+                    f"RT tagTime unparseable during rejection observation for {tag_name}: "
+                    f"{rt['tagTime']!r}"
+                )
+        if qwq.get("tagTime"):
+            try:
+                parse_required_timestamp(qwq["tagTime"])
+            except AssertionError:
+                raise AssertionError(
+                    f"QwQ tagTime unparseable during rejection observation for {tag_name}: "
+                    f"{qwq['tagTime']!r}"
+                )
+
+        # --- datasource & mocker aliveness ---
         da = is_ds_alive(api, ds_id)
         mocker_alive = mocker is not None and mocker.process.poll() is None
 
         sample = {
             "source": source,
-            "source_decimal": src_str,
+            "source_decimal": source_decimal,
             "variant_type": vt_name,
             "rt": rt,
+            "rt_decimal": rt_decimal,
             "qwq": qwq,
+            "qwq_decimal": qwq_decimal,
             "datasource_alive": da,
             "mocker_alive": mocker_alive,
         }
@@ -527,6 +599,14 @@ def observe_integer_decimal_rejection(
         if s["source_decimal"] != baseline_decimal:
             all_stable = False
             issues.append(f"sample[{i}] source {s['source_decimal']} != baseline {baseline_decimal}")
+        rtd = s.get("rt_decimal")
+        qwd = s.get("qwq_decimal")
+        if rtd is not None and rtd != baseline_decimal:
+            all_stable = False
+            issues.append(f"sample[{i}] RT {rtd} != baseline {baseline_decimal}")
+        if qwd is not None and qwd != baseline_decimal:
+            all_stable = False
+            issues.append(f"sample[{i}] QwQ {qwd} != baseline {baseline_decimal}")
         if s["variant_type"] != baseline_vt_name:
             all_stable = False
             issues.append(f"sample[{i}] VT {s['variant_type']} != {baseline_vt_name}")
@@ -552,6 +632,42 @@ def observe_integer_decimal_rejection(
     }
 
 
+def restore_and_verify_source(
+    *,
+    endpoint: str,
+    node_name: str,
+    namespace_index: int,
+    value: int,
+    variant_type,
+    mocker,
+) -> None:
+    if mocker is None or mocker.process.poll() is not None:
+        return
+    from asyncua import ua as ua_module
+    dv = ua_module.DataValue(ua_module.Variant(value, variant_type))
+    import asyncio
+    from asyncua import Client
+    async def _restore():
+        async with Client(endpoint) as client:
+            nid = f"ns={namespace_index};s={node_name}"
+            node = client.get_node(nid)
+            await node.write_value(dv)
+    asyncio.run(_restore())
+    check_val, check_vt = opcua_read_variant_type_sync(
+        endpoint, node_name, namespace_index=namespace_index
+    )
+    if check_vt != variant_type:
+        raise AssertionError(
+            f"restore_and_verify_source VT mismatch: "
+            f"got {check_vt.name} != {variant_type.name}"
+        )
+    if check_val != value:
+        raise AssertionError(
+            f"restore_and_verify_source value mismatch: "
+            f"got {check_val} != {value}"
+        )
+
+
 def strict_restore_source_and_cleanup(
     api,
     *,
@@ -570,35 +686,25 @@ def strict_restore_source_and_cleanup(
 ) -> None:
     errors: list[str] = []
 
-    if mocker is not None and mocker.process.poll() is None:
+    if mocker is None:
+        errors.append("restore_unavailable: mocker is None")
+    elif mocker.process.poll() is not None:
+        errors.append(
+            f"restore_unavailable: mocker exited, "
+            f"returncode={mocker.process.poll()}"
+        )
+    else:
         try:
-            from asyncua import ua as ua_module
-            dv = ua_module.DataValue(ua_module.Variant(original_value, original_variant_type))
-            import asyncio
-            from asyncua import Client
-            async def _restore():
-                async with Client(endpoint) as client:
-                    nid = f"ns={namespace_index};s={node_name}"
-                    node = client.get_node(nid)
-                    await node.write_value(dv)
-            asyncio.run(_restore())
+            restore_and_verify_source(
+                endpoint=endpoint,
+                node_name=node_name,
+                namespace_index=namespace_index,
+                value=original_value,
+                variant_type=original_variant_type,
+                mocker=mocker,
+            )
         except Exception as exc:
             errors.append(f"restore_source: {exc}")
-        else:
-            try:
-                check_val, check_vt = opcua_read_variant_type_sync(
-                    endpoint, node_name, namespace_index=namespace_index
-                )
-                if check_vt != original_variant_type:
-                    errors.append(
-                        f"restore_vt_mismatch: got {check_vt.name} != {original_variant_type.name}"
-                    )
-                if check_val != original_value:
-                    errors.append(
-                        f"restore_value_mismatch: got {check_val} != {original_value}"
-                    )
-            except Exception as exc:
-                errors.append(f"restore_verify: {exc}")
 
     cleanup_errors: list[str] = []
     try:
