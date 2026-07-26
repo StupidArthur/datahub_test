@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from unittest.mock import Mock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 from asyncua import ua
 import pytest
@@ -8,14 +8,17 @@ import pytest
 from tests.support.ua2_write_assertions import (
     INTEGER_RANGES,
     WRAP_MAP,
+    _check_stable,
     classify_outcome_value,
     classify_write_result,
     expected_wrap_value,
     is_wrap_behaviour,
     normalize_integer_decimal,
+    observe_integer_decimal_rejection,
+    strict_restore_source_and_cleanup,
+    wait_accepted_integer_decimal_outcome,
     wait_accepted_integer_outcome,
     wait_three_way_integer_decimal_sync,
-    _check_stable,
 )
 
 
@@ -702,3 +705,281 @@ class TestNormalizeIntegerDecimalVariantTypes:
         from tests.support.ua2_value_normalization import normalize_int
         assert normalize_int(9999999999) == 9999999999
         assert normalize_int(-9999999999) == -9999999999
+
+
+class TestNoFloatPaths:
+    def test_int64_minus_1_no_float(self):
+        s = "-9223372036854775809"
+        v = int(s)
+        assert isinstance(v, int)
+        assert not isinstance(v, float)
+        assert v == -9223372036854775809
+
+    def test_int64_plus_1_no_float(self):
+        s = "9223372036854775808"
+        v = int(s)
+        assert isinstance(v, int)
+        assert not isinstance(v, float)
+        assert v == 9223372036854775808
+
+    def test_wrap_map_hit_no_float(self):
+        assert is_wrap_behaviour(8, -9223372036854775809) is True
+        assert is_wrap_behaviour(8, 9223372036854775808) is True
+
+    def test_wrap_map_no_int_overflow(self):
+        v = -9223372036854775809
+        assert isinstance(v, int) and not isinstance(v, float)
+        assert expected_wrap_value(8, v) == 9223372036854775807
+        v2 = 9223372036854775808
+        assert isinstance(v2, int) and not isinstance(v2, float)
+        assert expected_wrap_value(8, v2) == -9223372036854775808
+
+    def test_input_python_type_is_str(self):
+        s = "-9223372036854775809"
+        assert type(s).__name__ == "str"
+
+
+class TestWaitAcceptedIntegerDecimalOutcome:
+    @pytest.fixture
+    def mock_mocker(self):
+        m = Mock()
+        m.process.poll.return_value = None
+        return m
+
+    @pytest.fixture
+    def mock_api(self):
+        return Mock()
+
+    def _make_trio_no_float(self, source, vt, rv, qv, quality=192,
+                            tag_time="2025-01-01T00:00:00Z", ds_alive=True):
+        return {
+            "source": source,
+            "variant_type": vt,
+            "rt": {"tagValue": rv, "quality": quality, "tagTime": tag_time},
+            "qwq": {"tagValue": qv, "quality": quality, "tagTime": tag_time},
+            "datasource_alive": ds_alive,
+        }
+
+    def test_source_float_raises_immediately(self, mock_api, mock_mocker):
+        trio_data = self._make_trio_no_float(1.5, ua.VariantType.Int64, 1, 1)
+        from tests.support.ua2_write_assertions import _sample_trio
+        with patch("tests.support.ua2_write_assertions._sample_trio", return_value=trio_data):
+            with pytest.raises(AssertionError, match="float"):
+                wait_accepted_integer_decimal_outcome(
+                    mock_api, endpoint="x", node_name="y", namespace_index=1,
+                    ds_id=1, tag_name="t", data_type=8,
+                    expected_variant_type=ua.VariantType.Int64,
+                    mocker=mock_mocker, timeout=1.0, interval=0.1,
+                )
+
+    def test_rt_float_raises_immediately(self, mock_api, mock_mocker):
+        trio_data = self._make_trio_no_float(100, ua.VariantType.Int64, 1.5, 100)
+        with patch("tests.support.ua2_write_assertions._sample_trio", return_value=trio_data):
+            with pytest.raises(AssertionError, match="float"):
+                wait_accepted_integer_decimal_outcome(
+                    mock_api, endpoint="x", node_name="y", namespace_index=1,
+                    ds_id=1, tag_name="t", data_type=8,
+                    expected_variant_type=ua.VariantType.Int64,
+                    mocker=mock_mocker, timeout=1.0, interval=0.1,
+                )
+
+    def test_qwq_float_raises_immediately(self, mock_api, mock_mocker):
+        trio_data = self._make_trio_no_float(100, ua.VariantType.Int64, 100, 1.5)
+        with patch("tests.support.ua2_write_assertions._sample_trio", return_value=trio_data):
+            with pytest.raises(AssertionError, match="float"):
+                wait_accepted_integer_decimal_outcome(
+                    mock_api, endpoint="x", node_name="y", namespace_index=1,
+                    ds_id=1, tag_name="t", data_type=8,
+                    expected_variant_type=ua.VariantType.Int64,
+                    mocker=mock_mocker, timeout=1.0, interval=0.1,
+                )
+
+    def test_source_bool_raises_immediately(self, mock_api, mock_mocker):
+        trio_data = self._make_trio_no_float(True, ua.VariantType.Boolean, 0, 0)
+        with patch("tests.support.ua2_write_assertions._sample_trio", return_value=trio_data):
+            with pytest.raises(AssertionError, match="bool"):
+                wait_accepted_integer_decimal_outcome(
+                    mock_api, endpoint="x", node_name="y", namespace_index=1,
+                    ds_id=1, tag_name="t", data_type=8,
+                    expected_variant_type=ua.VariantType.Int64,
+                    mocker=mock_mocker, timeout=1.0, interval=0.1,
+                )
+
+    def test_vt_mismatch_raises_immediately(self, mock_api, mock_mocker):
+        trio_data = self._make_trio_no_float(100, ua.VariantType.Int32, 100, 100)
+        with patch("tests.support.ua2_write_assertions._sample_trio", return_value=trio_data):
+            with pytest.raises(AssertionError, match="VariantType mismatch"):
+                wait_accepted_integer_decimal_outcome(
+                    mock_api, endpoint="x", node_name="y", namespace_index=1,
+                    ds_id=1, tag_name="t", data_type=8,
+                    expected_variant_type=ua.VariantType.Int64,
+                    mocker=mock_mocker, timeout=1.0, interval=0.1,
+                )
+
+    def test_stable_two_samples_success(self, mock_api, mock_mocker):
+        trio_data = self._make_trio_no_float(100, ua.VariantType.Int64, 100, 100)
+        with patch("tests.support.ua2_write_assertions._sample_trio", return_value=trio_data):
+            result = wait_accepted_integer_decimal_outcome(
+                mock_api, endpoint="x", node_name="y", namespace_index=1,
+                ds_id=1, tag_name="t", data_type=8,
+                expected_variant_type=ua.VariantType.Int64,
+                mocker=mock_mocker, timeout=5.0, interval=0.1,
+            )
+        assert result["source_decimal"] == "100"
+        assert result["rt_decimal"] == "100"
+        assert result["qwq_decimal"] == "100"
+
+    def test_mocker_exit_raises(self, mock_api):
+        dead = Mock()
+        dead.process.poll.return_value = 1
+        with pytest.raises(AssertionError, match="mocker exited"):
+            wait_accepted_integer_decimal_outcome(
+                mock_api, endpoint="x", node_name="y", namespace_index=1,
+                ds_id=1, tag_name="t", data_type=8,
+                expected_variant_type=ua.VariantType.Int64,
+                mocker=dead, timeout=1.0, interval=0.1,
+            )
+
+    def test_datasource_offline_then_timeout(self, mock_api, mock_mocker):
+        trio_data = self._make_trio_no_float(100, ua.VariantType.Int64, 100, 100, ds_alive=False)
+        with patch("tests.support.ua2_write_assertions._sample_trio", return_value=trio_data):
+            with pytest.raises(AssertionError, match="timeout"):
+                wait_accepted_integer_decimal_outcome(
+                    mock_api, endpoint="x", node_name="y", namespace_index=1,
+                    ds_id=1, tag_name="t", data_type=8,
+                    expected_variant_type=ua.VariantType.Int64,
+                    mocker=mock_mocker, timeout=1.0, interval=0.1,
+                )
+
+    def test_not_enough_stable_samples(self, mock_api, mock_mocker):
+        data = [
+            self._make_trio_no_float(10, ua.VariantType.Int64, 10, 10),
+            self._make_trio_no_float(20, ua.VariantType.Int64, 20, 20),
+        ]
+        idx = [0]
+        def _alt(*_a, **_kw):
+            r = data[idx[0] % 2]
+            idx[0] += 1
+            return r
+        with patch("tests.support.ua2_write_assertions._sample_trio", side_effect=_alt):
+            with pytest.raises(AssertionError, match="timeout"):
+                wait_accepted_integer_decimal_outcome(
+                    mock_api, endpoint="x", node_name="y", namespace_index=1,
+                    ds_id=1, tag_name="t", data_type=8,
+                    expected_variant_type=ua.VariantType.Int64,
+                    mocker=mock_mocker, timeout=1.0, interval=0.1,
+                )
+
+
+class TestObserveIntegerDecimalRejection:
+    @pytest.fixture
+    def mock_mocker(self):
+        m = Mock()
+        m.process.poll.return_value = None
+        return m
+
+    @pytest.fixture
+    def mock_api(self):
+        api = Mock()
+        api.get_rt_value = Mock(return_value=[])
+        return api
+
+    def test_float_in_source_raises(self, mock_api, mock_mocker):
+        from tests.support.ua2_write_assertions import (
+            opcua_read_sync, opcua_read_variant_type_sync,
+        )
+        with patch("tests.support.ua2_write_assertions.opcua_read_sync", return_value=1.5):
+            with patch("tests.support.ua2_write_assertions.opcua_read_variant_type_sync",
+                       return_value=(1.5, ua.VariantType.Int64)):
+                with pytest.raises(AssertionError, match="float"):
+                    observe_integer_decimal_rejection(
+                        mock_api, endpoint="x", node_name="y", namespace_index=1,
+                        ds_id=1, tag_name="t", data_type=8,
+                        baseline_decimal="123456",
+                        expected_variant_type=ua.VariantType.Int64,
+                        mocker=mock_mocker, timeout=1.0, interval=0.1,
+                    )
+
+    def test_source_changed_raises(self, mock_api, mock_mocker):
+        with patch("tests.support.ua2_write_assertions.opcua_read_sync", return_value=999):
+            with patch("tests.support.ua2_write_assertions.opcua_read_variant_type_sync",
+                       return_value=(999, ua.VariantType.Int64)):
+                with pytest.raises(AssertionError, match="source changed"):
+                    observe_integer_decimal_rejection(
+                        mock_api, endpoint="x", node_name="y", namespace_index=1,
+                        ds_id=1, tag_name="t", data_type=8,
+                        baseline_decimal="123456",
+                        expected_variant_type=ua.VariantType.Int64,
+                        mocker=mock_mocker, timeout=1.0, interval=0.1,
+                    )
+
+    def test_vt_changed_raises(self, mock_api, mock_mocker):
+        with patch("tests.support.ua2_write_assertions.opcua_read_sync", return_value=123456):
+            with patch("tests.support.ua2_write_assertions.opcua_read_variant_type_sync",
+                       return_value=(123456, ua.VariantType.Int32)):
+                with pytest.raises(AssertionError, match="VariantType"):
+                    observe_integer_decimal_rejection(
+                        mock_api, endpoint="x", node_name="y", namespace_index=1,
+                        ds_id=1, tag_name="t", data_type=8,
+                        baseline_decimal="123456",
+                        expected_variant_type=ua.VariantType.Int64,
+                        mocker=mock_mocker, timeout=1.0, interval=0.1,
+                    )
+
+    def test_bool_source_raises(self, mock_api, mock_mocker):
+        with patch("tests.support.ua2_write_assertions.opcua_read_sync", return_value=True):
+            with patch("tests.support.ua2_write_assertions.opcua_read_variant_type_sync",
+                       return_value=(True, ua.VariantType.Boolean)):
+                with pytest.raises(AssertionError, match="bool"):
+                    observe_integer_decimal_rejection(
+                        mock_api, endpoint="x", node_name="y", namespace_index=1,
+                        ds_id=1, tag_name="t", data_type=8,
+                        baseline_decimal="123456",
+                        expected_variant_type=ua.VariantType.Int64,
+                        mocker=mock_mocker, timeout=1.0, interval=0.1,
+                    )
+
+
+class TestStrictRestoreSourceAndCleanup:
+    def test_restore_failure_still_cleans_up(self):
+        """恢复失败后仍执行资源清理，聚合两个错误。"""
+        from tests.support.ua2_write_assertions import strict_restore_source_and_cleanup
+        api = Mock()
+        m = Mock()
+        m.process.poll.return_value = None
+        with patch("asyncua.Client", side_effect=RuntimeError("mock server down")):
+            with patch("tests.support.ua2_cleanup.strict_cleanup_ua2_context",
+                       side_effect=AssertionError("cleanup error")):
+                with pytest.raises(AssertionError) as excinfo:
+                    strict_restore_source_and_cleanup(
+                        api, endpoint="x", node_name="y", namespace_index=1,
+                        original_value=123456, original_variant_type=ua.VariantType.Int64,
+                        tag_id=1, tag_name="t", ds_id=1, ds_name="d",
+                        mocker=m, host="127.0.0.1", port=9999,
+                    )
+                msg = str(excinfo.value)
+                assert "restore" in msg
+                assert "cleanup" in msg
+
+    def test_cleanup_only_failure(self):
+        """恢复成功，仅清理失败。"""
+        from tests.support.ua2_write_assertions import strict_restore_source_and_cleanup
+        api = Mock()
+        m = Mock()
+        m.process.poll.return_value = None
+        client_instance = AsyncMock()
+        client_instance.__aenter__.return_value = client_instance
+        client_instance.get_node.return_value = AsyncMock()
+        with patch("asyncua.Client", return_value=client_instance):
+            with patch("tests.support.ua2_write_assertions.opcua_read_variant_type_sync",
+                       return_value=(123456, ua.VariantType.Int64)):
+                with patch("tests.support.ua2_cleanup.strict_cleanup_ua2_context",
+                           side_effect=AssertionError("cleanup error")):
+                    with pytest.raises(AssertionError) as excinfo:
+                        strict_restore_source_and_cleanup(
+                            api, endpoint="x", node_name="y", namespace_index=1,
+                            original_value=123456, original_variant_type=ua.VariantType.Int64,
+                            tag_id=1, tag_name="t", ds_id=1, ds_name="d",
+                            mocker=m, host="127.0.0.1", port=9999,
+                        )
+                    assert "cleanup" in str(excinfo.value)

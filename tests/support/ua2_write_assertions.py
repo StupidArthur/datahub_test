@@ -278,6 +278,350 @@ def wait_three_way_integer_decimal_sync(
     )
 
 
+def _assert_not_float(raw: object, label: str, tag_name: str) -> None:
+    if isinstance(raw, float):
+        raise AssertionError(f"{label} is float for {tag_name}: {raw!r}")
+
+
+def _assert_no_float_in_trio(trio: dict, tag_name: str) -> None:
+    _assert_not_float(trio["source"], "source", tag_name)
+    rt_v = trio["rt"].get("tagValue")
+    qwq_v = trio["qwq"].get("tagValue")
+    if rt_v is not None:
+        _assert_not_float(rt_v, "RT tagValue", tag_name)
+    if qwq_v is not None:
+        _assert_not_float(qwq_v, "QwQ tagValue", tag_name)
+
+
+def wait_accepted_integer_decimal_outcome(
+    api,
+    *,
+    endpoint: str,
+    node_name: str,
+    namespace_index: int,
+    ds_id: int,
+    tag_name: str,
+    data_type: int,
+    expected_variant_type,
+    mocker,
+    timeout: float = 30.0,
+    interval: float = 0.5,
+    stable_samples: int = 2,
+) -> dict:
+    name, lo, hi = INTEGER_RANGES[data_type]
+    baseline_vt_name = expected_variant_type.name
+    deadline = time.monotonic() + timeout
+    all_samples: list[dict] = []
+
+    while time.monotonic() < deadline:
+        _assert_mocker_alive(mocker, tag_name, "wait_accepted_integer_decimal_outcome")
+
+        trio = _sample_trio(api, endpoint, node_name, namespace_index, ds_id, tag_name)
+        src = trio["source"]
+        vt = trio["variant_type"]
+        rt = trio["rt"]
+        qwq = trio["qwq"]
+
+        if isinstance(src, bool):
+            raise AssertionError(f"source is bool for {tag_name}: {src!r}")
+        if not isinstance(src, int):
+            raise AssertionError(f"source Python type is not int for {tag_name}: {type(src).__name__} {src!r}")
+        _assert_no_float_in_trio(trio, tag_name)
+        if vt != expected_variant_type:
+            raise AssertionError(
+                f"VariantType mismatch for {tag_name}: "
+                f"{vt} != {expected_variant_type} (expected {baseline_vt_name})"
+            )
+
+        try:
+            sv_str = normalize_integer_decimal(src, data_type)
+        except (TypeError, ValueError) as exc:
+            raise AssertionError(f"source decimal normalization failed for {tag_name}: {exc}")
+
+        sv = int(sv_str)
+        if not (lo <= sv <= hi):
+            time.sleep(interval)
+            continue
+
+        if "tagValue" not in rt or rt["tagValue"] is None:
+            time.sleep(interval)
+            continue
+        if "tagValue" not in qwq or qwq["tagValue"] is None:
+            time.sleep(interval)
+            continue
+        if rt.get("quality") in (None, 0) or qwq.get("quality") in (None, 0):
+            time.sleep(interval)
+            continue
+        if not rt.get("tagTime") or not qwq.get("tagTime"):
+            time.sleep(interval)
+            continue
+        try:
+            parse_required_timestamp(rt["tagTime"])
+            parse_required_timestamp(qwq["tagTime"])
+        except AssertionError:
+            time.sleep(interval)
+            continue
+
+        try:
+            rv_str = normalize_integer_decimal(rt["tagValue"], data_type)
+            qv_str = normalize_integer_decimal(qwq["tagValue"], data_type)
+        except (TypeError, ValueError):
+            time.sleep(interval)
+            continue
+        if rv_str != sv_str or qv_str != sv_str:
+            time.sleep(interval)
+            continue
+        if not trio.get("datasource_alive"):
+            time.sleep(interval)
+            continue
+
+        sample = {
+            "source": src,
+            "source_decimal": sv_str,
+            "variant_type": vt,
+            "rt": rt,
+            "rt_decimal": rv_str,
+            "qwq": qwq,
+            "qwq_decimal": qv_str,
+            "datasource_alive": True,
+            "mocker_alive": mocker is not None and mocker.process.poll() is None,
+        }
+        all_samples.append(sample)
+
+        if len(all_samples) >= stable_samples:
+            recent = all_samples[-stable_samples:]
+            if len(set(s["source_decimal"] for s in recent)) == 1:
+                last = recent[-1]
+                return {
+                    "source": last["source"],
+                    "source_decimal": last["source_decimal"],
+                    "variant_type": last["variant_type"],
+                    "rt": last["rt"],
+                    "rt_decimal": last["rt_decimal"],
+                    "qwq": last["qwq"],
+                    "qwq_decimal": last["qwq_decimal"],
+                    "datasource_alive": last["datasource_alive"],
+                    "mocker_alive": last["mocker_alive"],
+                    "samples": all_samples,
+                }
+
+        time.sleep(interval)
+
+    last = all_samples[-1] if all_samples else {}
+    raise AssertionError(
+        f"wait_accepted_integer_decimal_outcome timeout for {tag_name} "
+        f"(data_type={data_type}, stable_samples={stable_samples})\n"
+        f"last sample: {json.dumps(_serialize_trio(last) if last else {}, ensure_ascii=False, default=str)}"
+    )
+
+
+def observe_integer_decimal_rejection(
+    api,
+    *,
+    endpoint: str,
+    node_name: str,
+    namespace_index: int,
+    ds_id: int,
+    tag_name: str,
+    data_type: int,
+    baseline_decimal: str,
+    expected_variant_type,
+    mocker,
+    timeout: float = 30.0,
+    interval: float = 0.5,
+    min_observation_period: float = 4.0,
+) -> dict:
+    samples: list[dict] = []
+    baseline_vt_name = expected_variant_type.name
+    deadline = time.monotonic() + timeout
+    sampling_deadline = time.monotonic() + min_observation_period
+
+    while time.monotonic() < deadline:
+        _assert_mocker_alive(mocker, tag_name, "observe_integer_decimal_rejection")
+        try:
+            source = opcua_read_sync(endpoint, node_name, namespace_index=namespace_index)
+        except Exception as exc:
+            raise AssertionError(f"OPC UA source read failed during observation: {exc}")
+        try:
+            sf_val, sf_vt = opcua_read_variant_type_sync(endpoint, node_name, namespace_index=namespace_index)
+            vt_name = sf_vt.name
+        except Exception as exc:
+            raise AssertionError(f"OPC UA variant type read failed during observation: {exc}")
+
+        if isinstance(source, bool):
+            raise AssertionError(f"source is bool during rejection observation for {tag_name}: {source!r}")
+        if not isinstance(source, int):
+            raise AssertionError(
+                f"source Python type is not int during rejection observation for {tag_name}: "
+                f"{type(source).__name__} {source!r}"
+            )
+        if isinstance(source, float):
+            raise AssertionError(f"source is float during rejection observation for {tag_name}: {source!r}")
+
+        try:
+            src_str = normalize_integer_decimal(source, data_type)
+        except (TypeError, ValueError) as exc:
+            raise AssertionError(f"source decimal normalization failed during rejection observation: {exc}")
+
+        if src_str != baseline_decimal:
+            raise AssertionError(
+                f"source changed during rejection observation for {tag_name}: "
+                f"{src_str} != {baseline_decimal}"
+            )
+        if vt_name != baseline_vt_name:
+            raise AssertionError(
+                f"VariantType changed during rejection observation for {tag_name}: "
+                f"{vt_name} != {baseline_vt_name}"
+            )
+
+        try:
+            rt_list = get_rt_value(api, tag_names=[tag_name])
+        except TptAPIError:
+            rt = {}
+        except Exception as exc:
+            raise AssertionError(f"getRTValue failed during observation: {exc}")
+        else:
+            rt = rt_list[0] if isinstance(rt_list, list) and rt_list else {}
+
+        try:
+            qwq_all = query_tags_with_quality(api, ds_id=ds_id, tag_name=tag_name)
+        except TptAPIError:
+            qwq_all = {}
+        except Exception as exc:
+            raise AssertionError(f"queryWithQuality failed during observation: {exc}")
+        qrecs = (qwq_all.get("tagInfoList") or {}).get("records") or []
+        qmatch = [r for r in qrecs if r.get("tagName") == tag_name]
+        qwq = qmatch[0] if qmatch else {}
+
+        rt_v = rt.get("tagValue")
+        qwq_v = qwq.get("tagValue")
+        if rt_v is not None and isinstance(rt_v, float):
+            raise AssertionError(f"RT tagValue is float during rejection observation for {tag_name}: {rt_v!r}")
+        if qwq_v is not None and isinstance(qwq_v, float):
+            raise AssertionError(f"QwQ tagValue is float during rejection observation for {tag_name}: {qwq_v!r}")
+
+        da = is_ds_alive(api, ds_id)
+        mocker_alive = mocker is not None and mocker.process.poll() is None
+
+        sample = {
+            "source": source,
+            "source_decimal": src_str,
+            "variant_type": vt_name,
+            "rt": rt,
+            "qwq": qwq,
+            "datasource_alive": da,
+            "mocker_alive": mocker_alive,
+        }
+        samples.append(sample)
+
+        if time.monotonic() >= sampling_deadline and len(samples) >= 2:
+            break
+        time.sleep(interval)
+
+    if not samples:
+        raise AssertionError("observe_integer_decimal_rejection collected zero samples")
+
+    issues: list[str] = []
+    all_stable = True
+    for i, s in enumerate(samples):
+        if s["source_decimal"] != baseline_decimal:
+            all_stable = False
+            issues.append(f"sample[{i}] source {s['source_decimal']} != baseline {baseline_decimal}")
+        if s["variant_type"] != baseline_vt_name:
+            all_stable = False
+            issues.append(f"sample[{i}] VT {s['variant_type']} != {baseline_vt_name}")
+        if not s["datasource_alive"]:
+            all_stable = False
+            issues.append(f"sample[{i}] datasource not alive")
+        if not s["mocker_alive"]:
+            all_stable = False
+            issues.append(f"sample[{i}] mocker not alive")
+        rt_q = s["rt"].get("quality")
+        qwq_q = s["qwq"].get("quality")
+        if rt_q in (None, 0) or qwq_q in (None, 0):
+            all_stable = False
+            issues.append(f"sample[{i}] quality RT={rt_q} QwQ={qwq_q}")
+        if not s["rt"].get("tagTime") or not s["qwq"].get("tagTime"):
+            all_stable = False
+            issues.append(f"sample[{i}] tagTime missing")
+
+    return {
+        "samples": samples,
+        "stable": all_stable,
+        "issues": issues,
+    }
+
+
+def strict_restore_source_and_cleanup(
+    api,
+    *,
+    endpoint: str,
+    node_name: str,
+    namespace_index: int,
+    original_value: int,
+    original_variant_type,
+    tag_id: int | None,
+    tag_name: str | None,
+    ds_id: int | None,
+    ds_name: str | None,
+    mocker,
+    host: str | None,
+    port: int | None,
+) -> None:
+    errors: list[str] = []
+
+    if mocker is not None and mocker.process.poll() is None:
+        try:
+            from asyncua import ua as ua_module
+            dv = ua_module.DataValue(ua_module.Variant(original_value, original_variant_type))
+            import asyncio
+            from asyncua import Client
+            async def _restore():
+                async with Client(endpoint) as client:
+                    nid = f"ns={namespace_index};s={node_name}"
+                    node = client.get_node(nid)
+                    await node.write_value(dv)
+            asyncio.run(_restore())
+        except Exception as exc:
+            errors.append(f"restore_source: {exc}")
+        else:
+            try:
+                check_val, check_vt = opcua_read_variant_type_sync(
+                    endpoint, node_name, namespace_index=namespace_index
+                )
+                if check_vt != original_variant_type:
+                    errors.append(
+                        f"restore_vt_mismatch: got {check_vt.name} != {original_variant_type.name}"
+                    )
+                if check_val != original_value:
+                    errors.append(
+                        f"restore_value_mismatch: got {check_val} != {original_value}"
+                    )
+            except Exception as exc:
+                errors.append(f"restore_verify: {exc}")
+
+    cleanup_errors: list[str] = []
+    try:
+        from tests.support.ua2_cleanup import strict_cleanup_ua2_context
+        strict_cleanup_ua2_context(
+            api,
+            tag_id=tag_id, tag_name=tag_name,
+            ds_id=ds_id, ds_name=ds_name,
+            mocker=mocker,
+            host=host, port=port,
+        )
+    except AssertionError as exc:
+        cleanup_errors.append(str(exc))
+    except Exception as exc:
+        cleanup_errors.append(f"cleanup_unexpected: {exc}")
+
+    if cleanup_errors:
+        errors.extend(cleanup_errors)
+
+    if errors:
+        raise AssertionError("strict_restore_source_and_cleanup errors: " + "; ".join(errors))
+
+
 def wait_accepted_integer_outcome(
     api,
     *,

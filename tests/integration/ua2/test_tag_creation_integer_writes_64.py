@@ -10,12 +10,11 @@ from tpt_api.types import TagTypes
 
 from tests.support.polling import wait_until
 from tests.support.rt_helpers import get_rt_point
-from tests.support.ua2_cleanup import strict_cleanup_ua2_context
 from tests.support.ua2_helpers import (
+    assert_write_accepted,
     find_unique_tag,
     opcua_read_sync,
     opcua_read_variant_type_sync,
-    opcua_write_sync,
     setup_ds_and_tag,
 )
 from tests.support.ua2_rt_assertions import parse_required_timestamp
@@ -26,8 +25,9 @@ from tests.support.ua2_write_assertions import (
     expected_wrap_value,
     is_wrap_behaviour,
     normalize_integer_decimal,
-    observe_integer_write_outcome,
-    wait_accepted_integer_outcome,
+    observe_integer_decimal_rejection,
+    strict_restore_source_and_cleanup,
+    wait_accepted_integer_decimal_outcome,
     wait_three_way_integer_decimal_sync,
     wait_three_way_sync,
 )
@@ -79,15 +79,6 @@ def _verify_variant_type(endpoint: str, node_name: str, expected_vt) -> None:
         f"source value is bool, expected int: {val!r}"
 
 
-def _restore_source(endpoint: str, node_name: str, value: int, variant_type) -> None:
-    opcua_write_sync(endpoint, node_name, value, namespace_index=1, variant_type=variant_type)
-    check_val, check_vt = opcua_read_variant_type_sync(endpoint, node_name, namespace_index=1)
-    assert check_vt == variant_type, \
-        f"restore VT mismatch: {check_vt} != {variant_type}"
-    assert check_val == value, \
-        f"restore value mismatch: {check_val} != {value}"
-
-
 @pytest.mark.case(
     id="UA-2-1-054", chapter="UA-2-1",
     title="Int64 JS 安全范围值",
@@ -126,7 +117,6 @@ def test_int64_js_safe_value(api, settings, tmp_path_factory, mocker_endpoint):
 
         value = 9999999999
         resp = write_tag_values(api, {tag_name: value})
-        from tests.support.ua2_helpers import assert_write_accepted
         assert_write_accepted(resp, tag_name)
 
         expected_decimal = "9999999999"
@@ -152,11 +142,11 @@ def test_int64_js_safe_value(api, settings, tmp_path_factory, mocker_endpoint):
         parse_required_timestamp(trio["rt"]["tagTime"])
         parse_required_timestamp(trio["qwq"]["tagTime"])
 
-        _restore_source(endpoint, node_name, default_val, variant_type)
-
     finally:
-        strict_cleanup_ua2_context(
+        strict_restore_source_and_cleanup(
             api,
+            endpoint=endpoint, node_name=node_name, namespace_index=1,
+            original_value=default_val, original_variant_type=variant_type,
             tag_id=ctx["tag_id"], tag_name=tag_name,
             ds_id=ctx["ds_id"], ds_name=ctx["ds_name"],
             mocker=ctx.get("mocker"),
@@ -204,7 +194,6 @@ def test_int64_min_max(api, settings, tmp_path_factory, mocker_endpoint):
 
         for input_string in boundary_values:
             resp = write_tag_values(api, {tag_name: input_string})
-            from tests.support.ua2_helpers import assert_write_accepted
             assert_write_accepted(resp, tag_name)
 
             trio = wait_three_way_integer_decimal_sync(
@@ -232,11 +221,11 @@ def test_int64_min_max(api, settings, tmp_path_factory, mocker_endpoint):
             parse_required_timestamp(trio["rt"]["tagTime"])
             parse_required_timestamp(trio["qwq"]["tagTime"])
 
-            _restore_source(endpoint, node_name, default_val, variant_type)
-
     finally:
-        strict_cleanup_ua2_context(
+        strict_restore_source_and_cleanup(
             api,
+            endpoint=endpoint, node_name=node_name, namespace_index=1,
+            original_value=default_val, original_variant_type=variant_type,
             tag_id=ctx["tag_id"], tag_name=tag_name,
             ds_id=ctx["ds_id"], ds_name=ctx["ds_name"],
             mocker=ctx.get("mocker"),
@@ -285,8 +274,6 @@ def test_int64_out_of_range(api, settings, tmp_path_factory, mocker_endpoint, re
         oor_values = ["-9223372036854775809", "9223372036854775808"]
 
         for input_string in oor_values:
-            _restore_source(endpoint, node_name, default_val, variant_type)
-
             wait_three_way_integer_decimal_sync(
                 api, endpoint=endpoint, node_name=node_name, namespace_index=1,
                 ds_id=ctx["ds_id"], tag_name=tag_name,
@@ -295,9 +282,12 @@ def test_int64_out_of_range(api, settings, tmp_path_factory, mocker_endpoint, re
                 mocker=ctx.get("mocker"),
             )
 
+            input_int = int(input_string)
+
             obs: dict = {
                 "input_value": input_string,
-                "input_python_type": str,
+                "input_python_type": type(input_string).__name__,
+                "input_int": input_int,
             }
 
             try:
@@ -313,18 +303,17 @@ def test_int64_out_of_range(api, settings, tmp_path_factory, mocker_endpoint, re
             obs["verdict"] = verdict
 
             if verdict == "rejected":
-                outcome = observe_integer_write_outcome(
+                outcome = observe_integer_decimal_rejection(
                     api, endpoint=endpoint, node_name=node_name, namespace_index=1,
                     ds_id=ctx["ds_id"], tag_name=tag_name,
-                    data_type=data_type, input_value=0, baseline_value=default_val,
+                    data_type=data_type, baseline_decimal=str(default_val),
                     expected_variant_type=variant_type, mocker=ctx.get("mocker"),
                     min_observation_period=4.0,
                 )
                 obs["observation"] = outcome
 
-                stable = outcome["stable"]
-                assert stable["stable"], \
-                    f"rejected but observation not stable: {stable['issues']}"
+                assert outcome["stable"], \
+                    f"rejected but observation not stable: {outcome['issues']}"
 
                 final_source = opcua_read_sync(endpoint, node_name, namespace_index=1)
                 _, final_vt = opcua_read_variant_type_sync(endpoint, node_name, namespace_index=1)
@@ -343,27 +332,22 @@ def test_int64_out_of_range(api, settings, tmp_path_factory, mocker_endpoint, re
                     f"source changed after rejection: {final_source} != {default_val}"
                 assert rt_final.get("tagValue") is not None, "RT missing after rejection"
                 assert rt_final.get("quality") not in (None, 0), "RT quality invalid after rejection"
-
-                osv = normalize_integer_decimal(final_source, data_type)
-                assert osv == str(default_val), \
-                    f"rejected source changed: {osv} != {default_val}"
-
                 assert final_vt == variant_type, \
                     f"VariantType changed after rejection: {final_vt} != {variant_type}"
 
             else:
-                outcome = wait_accepted_integer_outcome(
+                outcome = wait_accepted_integer_decimal_outcome(
                     api, endpoint=endpoint, node_name=node_name, namespace_index=1,
                     ds_id=ctx["ds_id"], tag_name=tag_name,
                     data_type=data_type, expected_variant_type=variant_type,
                     mocker=ctx.get("mocker"),
                 )
 
-                final_value = outcome["source"]
+                final_decimal = outcome["source_decimal"]
+                final_int = int(final_decimal)
                 vt_name = outcome["variant_type"].name
-                final_decimal = str(final_value)
                 obs["source_final"] = final_decimal
-                obs["source_python_type"] = type(final_value).__name__
+                obs["source_python_type"] = type(outcome["source"]).__name__
                 obs["source_variant_type"] = vt_name
                 obs["rt_final"] = outcome["rt"].get("tagValue")
                 obs["rt_quality"] = outcome["rt"].get("quality")
@@ -374,20 +358,19 @@ def test_int64_out_of_range(api, settings, tmp_path_factory, mocker_endpoint, re
                 obs["datasource_alive"] = outcome["datasource_alive"]
                 obs["mocker_alive"] = outcome["mocker_alive"]
 
-                ooc = classify_outcome_value(data_type, final_value, default_val)
+                ooc = classify_outcome_value(data_type, final_int, default_val)
                 obs["outcome_classification"] = ooc
                 assert ooc != "out_of_range", \
-                    f"accepted write produced out-of-range final value: {final_value} (input={input_string})"
+                    f"accepted write produced out-of-range final value: {final_int} (input={input_string})"
 
                 silent_wrap = False
-                wrap_key = (data_type, int(float(input_string)))
-                if is_wrap_behaviour(data_type, wrap_key[1]):
-                    wrap = expected_wrap_value(data_type, wrap_key[1])
-                    if final_value == wrap:
+                if is_wrap_behaviour(data_type, input_int):
+                    wrap = expected_wrap_value(data_type, input_int)
+                    if final_int == wrap:
                         silent_wrap = True
                         pytest.fail(
                             f"silent wrap detected: input={input_string}, "
-                            f"final={final_value}, dataType={data_type}"
+                            f"final={final_int}, dataType={data_type}"
                         )
                 obs["silent_wrap_detected"] = silent_wrap
 
@@ -398,8 +381,10 @@ def test_int64_out_of_range(api, settings, tmp_path_factory, mocker_endpoint, re
             )
 
     finally:
-        strict_cleanup_ua2_context(
+        strict_restore_source_and_cleanup(
             api,
+            endpoint=endpoint, node_name=node_name, namespace_index=1,
+            original_value=default_val, original_variant_type=variant_type,
             tag_id=ctx["tag_id"], tag_name=tag_name,
             ds_id=ctx["ds_id"], ds_name=ctx["ds_name"],
             mocker=ctx.get("mocker"),
