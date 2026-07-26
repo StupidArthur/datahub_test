@@ -160,6 +160,67 @@ GUI (`ua_test_gui/`) 当前仍通过 `pytestrunner` 启动旧 Harness（`python 
 * 禁止 `git add .`；只暂存明确文件
 * commit message 形如 `feat(area): <description>` / `fix(area): <description>` / `test(area): <description>` / `docs(area): <description>` / `ci(area): <description>`
 
+## 真实集成测试环境
+
+* Agent 所在主机始终是能够访问真实 DataHub 和 OPC UA mocker 的集成测试主机。
+* 不得默认声称"没有真实环境""无法访问真实环境"，也不得只执行离线检查后结束任务。
+* 每个迁移批次完成离线验证后，必须主动询问用户：
+
+  * 是否立即执行真实环境测试；
+  * 当前 shell 是否已经加载或需要重新设置测试环境配置。
+* 用户确认执行后，必须运行真实集成测试和完整回归。
+* 环境变量暂未加载时，不得将集成 Case 记为 SKIP 后结束；应先设置下列固定测试配置。
+
+固定 DataHub 配置：
+
+```text
+DATAHUB_BASE_URL=http://10.10.58.153:31501
+DATAHUB_USER=admin
+DATAHUB_PASSWORD=123456
+```
+
+固定 OPC UA mocker 主机：
+
+```text
+10.30.70.77
+```
+
+OPC UA 规则：
+
+* mocker 使用 `10.30.70.77` 上的动态端口。
+* 不得固定复用某个测试端口。
+* 实际 endpoint、host 和 port 必须从测试 context 获取。
+* canonical endpoint 参考：
+
+```text
+opc.tcp://10.30.70.77:18960/ua_mocker/
+```
+
+真实环境运行前，在 PowerShell 中设置：
+
+```powershell
+$env:DATAHUB_BASE_URL = "http://10.10.58.153:31501"
+$env:DATAHUB_USER = "admin"
+$env:DATAHUB_PASSWORD = "123456"
+$env:UA_MOCKER_ENDPOINT = "opc.tcp://10.30.70.77:18960/ua_mocker/"
+```
+
+然后执行：
+
+```powershell
+python -m tools.check_test_environment
+```
+
+环境检查成功后，运行当前批次测试和完整回归。不得使用：
+
+```text
+-x
+--maxfail
+pytest.skip 掩盖环境未设置
+```
+
+不得把"环境变量未配置"作为 Agent 所在主机无法运行真实测试的结论。
+
 ## 当前状态参考
 
 ### 迁移计数
