@@ -33,7 +33,12 @@ from tests.support.mocker_process import find_free_port, start_mocker, stop_mock
 from tests.support.naming import unique_name
 from tests.support.polling import wait_until
 from tests.support.rt_helpers import get_rt_point
-from tests.support.ua2_helpers import is_ds_alive, wait_ds_alive, wait_ds_offline
+from tests.support.ua2_helpers import (
+    is_ds_alive,
+    tag_base_name,
+    wait_ds_alive,
+    wait_ds_offline,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -51,23 +56,21 @@ def ua22_env(api, settings, tmp_path_factory, mocker_endpoint):
     tmp_dir = tmp_path_factory.mktemp("ua22")
 
     nodes_a = [
-        {"name": "1_static_1", "type": "Double", "count": 1, "change": False, "writable": True, "default": 12.5},
-        {"name": "1_change_1", "type": "Int32", "count": 1, "change": True, "writable": False},
-        {"name": "1_static_N", "type": "Double", "count": 22, "change": False, "writable": True, "default": 0.0},
+        {"name": "static_", "type": "Double", "count": 13, "change": False, "writable": True, "default": 12.5},
+        {"name": "change_", "type": "Int32", "count": 1, "change": True, "writable": False},
     ]
     cfg_dir_a = tmp_dir / "a"
     cfg_dir_a.mkdir(exist_ok=True)
-    cfg_a = write_mocker_config(cfg_dir_a, port_a, nodes=nodes_a)
+    cfg_a = write_mocker_config(cfg_dir_a, port_a, nodes=nodes_a, namespace_index=1)
     mocker_a = start_mocker(cfg_a, port_a, host=parsed.host)
 
     nodes_b = [
-        {"name": "1_static_1", "type": "Double", "count": 1, "change": False, "writable": True, "default": 42.0},
-        {"name": "1_change_1", "type": "Int32", "count": 1, "change": True, "writable": False},
-        {"name": "1_static_2", "type": "Double", "count": 1, "change": False, "writable": True, "default": 99.0},
+        {"name": "static_", "type": "Double", "count": 3, "change": False, "writable": True, "default": 42.0},
+        {"name": "change_", "type": "Int32", "count": 1, "change": True, "writable": False},
     ]
     cfg_dir_b = tmp_dir / "b"
     cfg_dir_b.mkdir(exist_ok=True)
-    cfg_b = write_mocker_config(cfg_dir_b, port_b, nodes=nodes_b)
+    cfg_b = write_mocker_config(cfg_dir_b, port_b, nodes=nodes_b, namespace_index=1)
     mocker_b = start_mocker(cfg_b, port_b, host=parsed.host)
 
     ds_name_a = unique_name(settings.test_prefix, "UA-2-2-dsA")
@@ -95,33 +98,42 @@ def ua22_env(api, settings, tmp_path_factory, mocker_endpoint):
 
     tags_a_ids: list[int] = []
     tags_a_names: list[str] = []
+    tags_a_base_names: list[str] = []
     for i in range(12):
         tn = unique_name(settings.test_prefix, f"UA-2-2-tagA{i:02d}")
-        base = "1_static_1" if i < 2 else f"1_static_{i + 2}"
+        if i < 2:
+            sn = "static_1"
+        else:
+            sn = f"static_{i + 2}"
+        tbn = tag_base_name(sn, namespace_index=1)
         gid = str(group_id_1) if i < 8 else "0"
-        td = add_tag(api, tag_name=tn, data_type=10, ds_id=ds_id_a, tag_base_name=base, group_id=gid)
+        td = add_tag(api, tag_name=tn, data_type=10, ds_id=ds_id_a, tag_base_name=tbn, group_id=gid)
         tags_a_ids.append(int(td.get("id") or td.get("tagId")))
         tags_a_names.append(tn)
+        tags_a_base_names.append(tbn)
 
     tags_b_ids: list[int] = []
     tags_b_names: list[str] = []
+    tags_b_base_names: list[str] = []
     for i in range(3):
         tn = unique_name(settings.test_prefix, f"UA-2-2-tagB{i:02d}")
-        base = "1_static_1" if i == 0 else f"1_static_{i + 1}"
-        td = add_tag(api, tag_name=tn, data_type=10, ds_id=ds_id_b, tag_base_name=base, group_id="0")
+        sn = "static_1" if i == 0 else f"static_{i + 1}"
+        tbn = tag_base_name(sn, namespace_index=1)
+        td = add_tag(api, tag_name=tn, data_type=10, ds_id=ds_id_b, tag_base_name=tbn, group_id="0")
         tags_b_ids.append(int(td.get("id") or td.get("tagId")))
         tags_b_names.append(tn)
+        tags_b_base_names.append(tbn)
 
     change_tn = unique_name(settings.test_prefix, "UA-2-2-chgA")
-    td = add_tag(api, tag_name=change_tn, data_type=6, ds_id=ds_id_a, tag_base_name="1_change_1", group_id="0")
+    td = add_tag(api, tag_name=change_tn, data_type=6, ds_id=ds_id_a, tag_base_name=tag_base_name("change_1", 1), group_id="0")
     change_id_a = int(td.get("id") or td.get("tagId"))
 
     change_tn_b = unique_name(settings.test_prefix, "UA-2-2-chgB")
-    td = add_tag(api, tag_name=change_tn_b, data_type=6, ds_id=ds_id_b, tag_base_name="1_change_1", group_id="0")
+    td = add_tag(api, tag_name=change_tn_b, data_type=6, ds_id=ds_id_b, tag_base_name=tag_base_name("change_1", 1), group_id="0")
     change_id_b = int(td.get("id") or td.get("tagId"))
 
     del_tn = unique_name(settings.test_prefix, "UA-2-2-del")
-    td = add_tag(api, tag_name=del_tn, data_type=10, ds_id=ds_id_a, tag_base_name="1_static_3", group_id="0")
+    td = add_tag(api, tag_name=del_tn, data_type=10, ds_id=ds_id_a, tag_base_name=tag_base_name("static_3", 1), group_id="0")
     del_id = int(td.get("id") or td.get("tagId"))
     delete_tags(api, del_id)
 
@@ -153,8 +165,8 @@ def ua22_env(api, settings, tmp_path_factory, mocker_endpoint):
     ctx = {
         "ds_id_a": ds_id_a, "ds_name_a": ds_name_a,
         "ds_id_b": ds_id_b, "ds_name_b": ds_name_b,
-        "tags_a_ids": tags_a_ids, "tags_a_names": tags_a_names,
-        "tags_b_ids": tags_b_ids, "tags_b_names": tags_b_names,
+        "tags_a_ids": tags_a_ids, "tags_a_names": tags_a_names, "tags_a_base_names": tags_a_base_names,
+        "tags_b_ids": tags_b_ids, "tags_b_names": tags_b_names, "tags_b_base_names": tags_b_base_names,
         "change_tag_name_a": change_tn, "change_tag_id_a": change_id_a,
         "change_tag_name_b": change_tn_b, "change_tag_id_b": change_id_b,
         "del_tag_name": del_tn, "del_tag_id": del_id,
@@ -163,6 +175,7 @@ def ua22_env(api, settings, tmp_path_factory, mocker_endpoint):
         "mocker_a": mocker_a, "mocker_b": mocker_b,
         "port_a": port_a, "port_b": port_b,
         "endpoint_a": endpoint_a, "endpoint_b": endpoint_b,
+        "namespace_index": 1,
     }
     yield ctx
 
@@ -414,7 +427,8 @@ def test_sysname_case(ua22_env, api, record_property):
 def test_sysname_unicode(api, settings, ua22_env, record_property):
     ctx = ua22_env
     tn = unique_name(settings.test_prefix, "UA-2-2-unicode_测试")
-    td = add_tag(api, tag_name=tn, data_type=12, ds_id=ctx["ds_id_a"], tag_base_name="1_static_4", group_id="0")
+    td = add_tag(api, tag_name=tn, data_type=12, ds_id=ctx["ds_id_a"],
+                 tag_base_name=tag_base_name("static_4", namespace_index=ctx["namespace_index"]), group_id="0")
     tag_id = int(td.get("id") or td.get("tagId"))
     try:
         qwq = query_tags_with_quality(api, tag_name=tn, page_size=10)
@@ -457,14 +471,14 @@ def test_sysname_empty_condition(ua22_env, api):
 def test_basename_exact(ua22_env, api):
     ctx = ua22_env
     tn = ctx["tags_a_names"][0]
-    base = "1_static_1"
-    qwq = query_tags_with_quality(api, ds_id=ctx["ds_id_a"], tag_base_name=base, page_size=200)
+    tbn = tag_base_name("static_1", namespace_index=ctx["namespace_index"])
+    qwq = query_tags_with_quality(api, ds_id=ctx["ds_id_a"], tag_base_name=tbn, page_size=200)
     recs = _qwq_records(qwq)
     tag_names_found = [r["tagName"] for r in recs]
     assert tn in tag_names_found, f"expected {tn} in results"
     for r in recs:
         assert r["dsId"] == ctx["ds_id_a"], f"unexpected dsId for {r['tagName']}"
-        assert base in r["tagBaseName"], f"baseName {r['tagBaseName']} does not contain {base}"
+        assert tbn in r["tagBaseName"], f"baseName {r['tagBaseName']} does not contain {tbn}"
 
 
 @pytest.mark.case(id="UA-2-2-013", chapter="UA-2-2", title="底层名_部分名称",
@@ -488,18 +502,18 @@ def test_basename_partial(ua22_env, api, record_property):
 @pytest.mark.integration
 def test_basename_cross_ds(ua22_env, api):
     ctx = ua22_env
-    base = "1_static_1"
-    qwq_all = query_tags_with_quality(api, tag_base_name=base, page_size=200)
+    tbn = tag_base_name("static_1", namespace_index=ctx["namespace_index"])
+    qwq_all = query_tags_with_quality(api, tag_base_name=tbn, page_size=200)
     recs_all = _qwq_records(qwq_all)
     ds_ids = {r["dsId"] for r in recs_all}
     assert ctx["ds_id_a"] in ds_ids
     assert ctx["ds_id_b"] in ds_ids
 
-    qwq_a = query_tags_with_quality(api, ds_id=ctx["ds_id_a"], tag_base_name=base, page_size=50)
+    qwq_a = query_tags_with_quality(api, ds_id=ctx["ds_id_a"], tag_base_name=tbn, page_size=50)
     for r in _qwq_records(qwq_a):
         assert r["dsId"] == ctx["ds_id_a"]
 
-    qwq_b = query_tags_with_quality(api, ds_id=ctx["ds_id_b"], tag_base_name=base, page_size=50)
+    qwq_b = query_tags_with_quality(api, ds_id=ctx["ds_id_b"], tag_base_name=tbn, page_size=50)
     for r in _qwq_records(qwq_b):
         assert r["dsId"] == ctx["ds_id_b"]
 
@@ -510,12 +524,12 @@ def test_basename_cross_ds(ua22_env, api):
     expected=["完整匹配目标；下划线和 namespace 部分未被截断"])
 @pytest.mark.integration
 def test_basename_namespace(ua22_env, api):
-    base = "1_change_1"
-    qwq = query_tags_with_quality(api, tag_base_name=base, page_size=100)
+    tbn = tag_base_name("change_1", namespace_index=ua22_env["namespace_index"])
+    qwq = query_tags_with_quality(api, tag_base_name=tbn, page_size=100)
     recs = _qwq_records(qwq)
     assert len(recs) >= 1
     for r in recs:
-        assert r["tagBaseName"] == base, f"expected {base}, got {r['tagBaseName']}"
+        assert r["tagBaseName"] == tbn, f"expected {tbn}, got {r['tagBaseName']}"
 
 
 @pytest.mark.case(id="UA-2-2-016", chapter="UA-2-2", title="底层名_不存在",
@@ -732,13 +746,13 @@ def test_combined_ds_and_name(ua22_env, api):
 @pytest.mark.integration
 def test_combined_ds_and_base(ua22_env, api):
     ctx = ua22_env
-    base = "1_static_1"
-    qwq = query_tags_with_quality(api, ds_id=ctx["ds_id_a"], tag_base_name=base, page_size=200)
+    tbn = tag_base_name("static_1", namespace_index=ctx["namespace_index"])
+    qwq = query_tags_with_quality(api, ds_id=ctx["ds_id_a"], tag_base_name=tbn, page_size=200)
     recs = _qwq_records(qwq)
-    assert len(recs) >= 1, "expected at least 1 tag in A with base 1_static_1"
+    assert len(recs) >= 1, f"expected at least 1 tag in A with base {tbn}"
     for r in recs:
         assert r["dsId"] == ctx["ds_id_a"], f"dsId mismatch: {r['dsId']}"
-        assert base in r.get("tagBaseName", ""), f"base mismatch: {r.get('tagBaseName')}"
+        assert tbn in r.get("tagBaseName", ""), f"base mismatch: {r.get('tagBaseName')}"
 
 
 @pytest.mark.case(id="UA-2-2-028", chapter="UA-2-2", title="组合_分组与系统名",

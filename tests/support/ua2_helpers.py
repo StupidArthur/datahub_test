@@ -29,6 +29,21 @@ from tests.support.polling import wait_until
 from tests.support.rt_helpers import get_rt_point
 
 
+def tag_base_name(node_name: str, namespace_index: int = 1) -> str:
+    if not node_name:
+        raise ValueError("node_name must not be empty")
+    if namespace_index < 0:
+        raise ValueError("namespace_index must be non-negative")
+    return f"{namespace_index}_{node_name}"
+
+
+def parse_tag_base_name(value: str) -> tuple[int, str]:
+    ns_text, sep, node_name = value.partition("_")
+    if not sep or not ns_text.isdigit() or not node_name:
+        raise ValueError(f"invalid tagBaseName: {value!r}")
+    return int(ns_text), node_name
+
+
 def is_ds_alive(api, ds_id: int) -> bool:
     page = list_ds_info(api, page=1, page_size=50, data={"id": ds_id})
     for row in page.get("records") or []:
