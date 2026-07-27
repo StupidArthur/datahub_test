@@ -3808,7 +3808,7 @@
         "不传 dsId 查询"
       ],
       "expected": [
-        "返回接口默认范围；结果等于已确认范围内各数据源合集"
+        "返回接口默认范围；A、B 作子集包含在结果中"
       ],
       "markers": [
         "integration"
@@ -3845,7 +3845,7 @@
         "查询 groupId=G1"
       ],
       "expected": [
-        "仅返回 G1 范围记录"
+        "仅返回 G1 范围记录；返回记录均属该分组"
       ],
       "markers": [
         "integration"
@@ -3950,7 +3950,7 @@
         "多个分组有相近名称"
       ],
       "steps": [
-        "传 groupId=G1 + tagName"
+        "传 groupId=G1 + 通过 dsId+tagName 验证"
       ],
       "expected": [
         "只返回 G1 中匹配记录"
@@ -4026,6 +4026,150 @@
       ],
       "expected": [
         "恢复接口默认范围；不残留上次请求条件"
+      ],
+      "markers": [
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-2-033",
+      "chapter": "UA-2-2",
+      "title": "详情_配置字段正确",
+      "nodeid": "tests/integration/ua2/test_tag_query_runtime.py::test_detail_config_fields",
+      "preconditions": [
+        "已知完整配置位号"
+      ],
+      "steps": [
+        "查询并逐字段比对"
+      ],
+      "expected": [
+        "配置字段与新增或更新请求一致"
+      ],
+      "markers": [
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-2-034",
+      "chapter": "UA-2-2",
+      "title": "详情_数据源归属",
+      "nodeid": "tests/integration/ua2/test_tag_query_runtime.py::test_detail_datasource_ownership",
+      "preconditions": [
+        "A、B 均有位号"
+      ],
+      "steps": [
+        "查询两条记录及数据源列表"
+      ],
+      "expected": [
+        "dsId 与 dsName 对应正确，不串源"
+      ],
+      "markers": [
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-2-035",
+      "chapter": "UA-2-2",
+      "title": "运行状态_实时值正确",
+      "nodeid": "tests/integration/ua2/test_tag_query_runtime.py::test_runtime_rt_correct",
+      "preconditions": [
+        "变化节点正常采集"
+      ],
+      "steps": [
+        "同时查询运行态、RT 和源端"
+      ],
+      "expected": [
+        "TPT 值处于允许刷新窗口；最新值与源端一致"
+      ],
+      "markers": [
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-2-036",
+      "chapter": "UA-2-2",
+      "title": "运行状态_质量正常",
+      "nodeid": "tests/integration/ua2/test_tag_query_runtime.py::test_runtime_quality_normal",
+      "preconditions": [
+        "数据源在线"
+      ],
+      "steps": [
+        "查询质量字段"
+      ],
+      "expected": [
+        "质量为有效状态，并与 RT 可用性一致"
+      ],
+      "markers": [
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-2-037",
+      "chapter": "UA-2-2",
+      "title": "运行状态_数据源断线",
+      "nodeid": "tests/integration/ua2/test_tag_query_runtime.py::test_runtime_disconnect",
+      "preconditions": [
+        "位号已正常采集"
+      ],
+      "steps": [
+        "停止 Mock，等待断线后查询"
+      ],
+      "expected": [
+        "位号配置仍可查；质量转为无效；旧值不被判为新鲜有效值"
+      ],
+      "markers": [
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-2-038",
+      "chapter": "UA-2-2",
+      "title": "运行状态_断线恢复",
+      "nodeid": "tests/integration/ua2/test_tag_query_runtime.py::test_runtime_reconnect",
+      "preconditions": [
+        "已完成断线用例"
+      ],
+      "steps": [
+        "重启 Mock，等待恢复后查询"
+      ],
+      "expected": [
+        "无需重建位号；质量恢复；实时值继续更新"
+      ],
+      "markers": [
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-2-039",
+      "chapter": "UA-2-2",
+      "title": "运行状态_时间戳更新",
+      "nodeid": "tests/integration/ua2/test_tag_query_runtime.py::test_runtime_timestamp_update",
+      "preconditions": [
+        "变化节点持续采集"
+      ],
+      "steps": [
+        "间隔两个周期查询两次"
+      ],
+      "expected": [
+        "tagTime 可解析且不倒退；值变化时采集时间推进"
+      ],
+      "markers": [
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-2-040",
+      "chapter": "UA-2-2",
+      "title": "运行状态_静态值质量",
+      "nodeid": "tests/integration/ua2/test_tag_query_runtime.py::test_runtime_static_quality",
+      "preconditions": [
+        "静态节点值不变化"
+      ],
+      "steps": [
+        "连续查询值和质量"
+      ],
+      "expected": [
+        "值不变时质量仍有效，不误判断线"
       ],
       "markers": [
         "integration"

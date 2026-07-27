@@ -71,7 +71,7 @@
     }
   ],
   "duplicates_in_source": [],
-  "pytest_total": 172,
+  "pytest_total": 180,
   "migrated": [
     "UA-1-1-01",
     "UA-1-1-02",
@@ -244,7 +244,15 @@
     "UA-2-2-029",
     "UA-2-2-030",
     "UA-2-2-031",
-    "UA-2-2-032"
+    "UA-2-2-032",
+    "UA-2-2-033",
+    "UA-2-2-034",
+    "UA-2-2-035",
+    "UA-2-2-036",
+    "UA-2-2-037",
+    "UA-2-2-038",
+    "UA-2-2-039",
+    "UA-2-2-040"
   ],
   "missing": [
     "UA-1-4-01",
@@ -275,14 +283,6 @@
     "UA-1-6-11",
     "UA-1-6-12",
     "UA-1-6-13",
-    "UA-2-2-033",
-    "UA-2-2-034",
-    "UA-2-2-035",
-    "UA-2-2-036",
-    "UA-2-2-037",
-    "UA-2-2-038",
-    "UA-2-2-039",
-    "UA-2-2-040",
     "UA-2-2-041",
     "UA-2-2-042",
     "UA-2-2-043",
@@ -1012,6 +1012,30 @@
     ],
     "UA-2-2-032": [
       "tests/integration/ua2/test_tag_queries.py::test_combined_all_empty"
+    ],
+    "UA-2-2-033": [
+      "tests/integration/ua2/test_tag_query_runtime.py::test_detail_config_fields"
+    ],
+    "UA-2-2-034": [
+      "tests/integration/ua2/test_tag_query_runtime.py::test_detail_datasource_ownership"
+    ],
+    "UA-2-2-035": [
+      "tests/integration/ua2/test_tag_query_runtime.py::test_runtime_rt_correct"
+    ],
+    "UA-2-2-036": [
+      "tests/integration/ua2/test_tag_query_runtime.py::test_runtime_quality_normal"
+    ],
+    "UA-2-2-037": [
+      "tests/integration/ua2/test_tag_query_runtime.py::test_runtime_disconnect"
+    ],
+    "UA-2-2-038": [
+      "tests/integration/ua2/test_tag_query_runtime.py::test_runtime_reconnect"
+    ],
+    "UA-2-2-039": [
+      "tests/integration/ua2/test_tag_query_runtime.py::test_runtime_timestamp_update"
+    ],
+    "UA-2-2-040": [
+      "tests/integration/ua2/test_tag_query_runtime.py::test_runtime_static_quality"
     ]
   },
   "nodeid_to_case": {
@@ -1186,7 +1210,15 @@
     "tests/integration/ua2/test_tag_queries.py::test_combined_three_conditions": "UA-2-2-029",
     "tests/integration/ua2/test_tag_queries.py::test_combined_contradiction": "UA-2-2-030",
     "tests/integration/ua2/test_tag_queries.py::test_combined_change_one": "UA-2-2-031",
-    "tests/integration/ua2/test_tag_queries.py::test_combined_all_empty": "UA-2-2-032"
+    "tests/integration/ua2/test_tag_queries.py::test_combined_all_empty": "UA-2-2-032",
+    "tests/integration/ua2/test_tag_query_runtime.py::test_detail_config_fields": "UA-2-2-033",
+    "tests/integration/ua2/test_tag_query_runtime.py::test_detail_datasource_ownership": "UA-2-2-034",
+    "tests/integration/ua2/test_tag_query_runtime.py::test_runtime_rt_correct": "UA-2-2-035",
+    "tests/integration/ua2/test_tag_query_runtime.py::test_runtime_quality_normal": "UA-2-2-036",
+    "tests/integration/ua2/test_tag_query_runtime.py::test_runtime_disconnect": "UA-2-2-037",
+    "tests/integration/ua2/test_tag_query_runtime.py::test_runtime_reconnect": "UA-2-2-038",
+    "tests/integration/ua2/test_tag_query_runtime.py::test_runtime_timestamp_update": "UA-2-2-039",
+    "tests/integration/ua2/test_tag_query_runtime.py::test_runtime_static_quality": "UA-2-2-040"
   },
   "by_chapter": [
     {
@@ -1259,9 +1291,9 @@
     {
       "chapter": "UA-2",
       "source": 265,
-      "pytest": 144,
-      "migrated_count": 144,
-      "missing_count": 121,
+      "pytest": 152,
+      "migrated_count": 152,
+      "missing_count": 113,
       "migrated": [
         "UA-2-1-001",
         "UA-2-1-002",
@@ -1406,9 +1438,7 @@
         "UA-2-2-029",
         "UA-2-2-030",
         "UA-2-2-031",
-        "UA-2-2-032"
-      ],
-      "missing": [
+        "UA-2-2-032",
         "UA-2-2-033",
         "UA-2-2-034",
         "UA-2-2-035",
@@ -1416,7 +1446,9 @@
         "UA-2-2-037",
         "UA-2-2-038",
         "UA-2-2-039",
-        "UA-2-2-040",
+        "UA-2-2-040"
+      ],
+      "missing": [
         "UA-2-2-041",
         "UA-2-2-042",
         "UA-2-2-043",
