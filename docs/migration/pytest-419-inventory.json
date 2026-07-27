@@ -71,7 +71,7 @@
     }
   ],
   "duplicates_in_source": [],
-  "pytest_total": 180,
+  "pytest_total": 207,
   "migrated": [
     "UA-1-1-01",
     "UA-1-1-02",
@@ -252,7 +252,34 @@
     "UA-2-2-037",
     "UA-2-2-038",
     "UA-2-2-039",
-    "UA-2-2-040"
+    "UA-2-2-040",
+    "UA-2-2-041",
+    "UA-2-2-042",
+    "UA-2-2-043",
+    "UA-2-2-044",
+    "UA-2-2-045",
+    "UA-2-2-046",
+    "UA-2-2-047",
+    "UA-2-2-048",
+    "UA-2-2-049",
+    "UA-2-2-050",
+    "UA-2-2-051",
+    "UA-2-2-052",
+    "UA-2-2-053",
+    "UA-2-2-054",
+    "UA-2-2-055",
+    "UA-2-2-056",
+    "UA-2-2-057",
+    "UA-2-2-058",
+    "UA-2-2-059",
+    "UA-2-2-060",
+    "UA-2-2-061",
+    "UA-2-2-062",
+    "UA-2-2-063",
+    "UA-2-2-064",
+    "UA-2-2-065",
+    "UA-2-2-066",
+    "UA-2-2-067"
   ],
   "missing": [
     "UA-1-4-01",
@@ -283,33 +310,6 @@
     "UA-1-6-11",
     "UA-1-6-12",
     "UA-1-6-13",
-    "UA-2-2-041",
-    "UA-2-2-042",
-    "UA-2-2-043",
-    "UA-2-2-044",
-    "UA-2-2-045",
-    "UA-2-2-046",
-    "UA-2-2-047",
-    "UA-2-2-048",
-    "UA-2-2-049",
-    "UA-2-2-050",
-    "UA-2-2-051",
-    "UA-2-2-052",
-    "UA-2-2-053",
-    "UA-2-2-054",
-    "UA-2-2-055",
-    "UA-2-2-056",
-    "UA-2-2-057",
-    "UA-2-2-058",
-    "UA-2-2-059",
-    "UA-2-2-060",
-    "UA-2-2-061",
-    "UA-2-2-062",
-    "UA-2-2-063",
-    "UA-2-2-064",
-    "UA-2-2-065",
-    "UA-2-2-066",
-    "UA-2-2-067",
     "UA-2-3-001",
     "UA-2-3-002",
     "UA-2-3-003",
@@ -1013,6 +1013,51 @@
     "UA-2-2-032": [
       "tests/integration/ua2/test_tag_queries.py::test_combined_all_empty"
     ],
+    "UA-2-2-041": [
+      "tests/integration/ua2/test_tag_query_browse.py::test_browse_ds_isolation"
+    ],
+    "UA-2-2-042": [
+      "tests/integration/ua2/test_tag_query_browse.py::test_browse_node_info"
+    ],
+    "UA-2-2-043": [
+      "tests/integration/ua2/test_tag_query_browse.py::test_browse_name_filter"
+    ],
+    "UA-2-2-044": [
+      "tests/integration/ua2/test_tag_query_browse.py::test_browse_registered_filter"
+    ],
+    "UA-2-2-045": [
+      "tests/integration/ua2/test_tag_query_browse.py::test_browse_cross_ds_same_name"
+    ],
+    "UA-2-2-046": [
+      "tests/integration/ua2/test_tag_query_browse.py::test_browse_offline"
+    ],
+    "UA-2-2-047": [
+      "tests/integration/ua2/test_tag_query_browse.py::test_browse_recovery"
+    ],
+    "UA-2-2-048": [
+      "tests/integration/ua2/test_tag_query_browse.py::test_browse_to_add"
+    ],
+    "UA-2-2-049": [
+      "tests/integration/ua2/test_tag_query_pagination.py::test_pagination_first_page"
+    ],
+    "UA-2-2-050": [
+      "tests/integration/ua2/test_tag_query_pagination.py::test_pagination_complete_walk"
+    ],
+    "UA-2-2-051": [
+      "tests/integration/ua2/test_tag_query_pagination.py::test_pagination_last_page"
+    ],
+    "UA-2-2-052": [
+      "tests/integration/ua2/test_tag_query_pagination.py::test_pagination_different_sizes"
+    ],
+    "UA-2-2-053": [
+      "tests/integration/ua2/test_tag_query_pagination.py::test_pagination_condition_change"
+    ],
+    "UA-2-2-054": [
+      "tests/integration/ua2/test_tag_query_pagination.py::test_sort_stable"
+    ],
+    "UA-2-2-055": [
+      "tests/integration/ua2/test_tag_query_pagination.py::test_browse_cursor_complete"
+    ],
     "UA-2-2-033": [
       "tests/integration/ua2/test_tag_query_runtime.py::test_detail_config_fields"
     ],
@@ -1036,6 +1081,42 @@
     ],
     "UA-2-2-040": [
       "tests/integration/ua2/test_tag_query_runtime.py::test_runtime_static_quality"
+    ],
+    "UA-2-2-065": [
+      "tests/integration/ua2/test_tag_query_stability.py::test_stability_repeat_query"
+    ],
+    "UA-2-2-066": [
+      "tests/integration/ua2/test_tag_query_stability.py::test_stability_concurrent_query"
+    ],
+    "UA-2-2-067": [
+      "tests/integration/ua2/test_tag_query_stability.py::test_stability_query_no_mutation"
+    ],
+    "UA-2-2-056": [
+      "tests/integration/ua2/test_tag_query_updates.py::test_result_update_add"
+    ],
+    "UA-2-2-057": [
+      "tests/integration/ua2/test_tag_query_updates.py::test_result_update_rename"
+    ],
+    "UA-2-2-058": [
+      "tests/integration/ua2/test_tag_query_updates.py::test_result_update_change_base"
+    ],
+    "UA-2-2-059": [
+      "tests/integration/ua2/test_tag_query_updates.py::test_result_update_move_group"
+    ],
+    "UA-2-2-060": [
+      "tests/integration/ua2/test_tag_query_updates.py::test_result_update_favorite"
+    ],
+    "UA-2-2-061": [
+      "tests/integration/ua2/test_tag_query_updates.py::test_result_update_soft_delete"
+    ],
+    "UA-2-2-062": [
+      "tests/integration/ua2/test_tag_query_updates.py::test_result_update_physical_delete"
+    ],
+    "UA-2-2-063": [
+      "tests/integration/ua2/test_tag_query_updates.py::test_result_update_available_after_add"
+    ],
+    "UA-2-2-064": [
+      "tests/integration/ua2/test_tag_query_updates.py::test_result_update_available_after_delete"
     ]
   },
   "nodeid_to_case": {
@@ -1211,6 +1292,21 @@
     "tests/integration/ua2/test_tag_queries.py::test_combined_contradiction": "UA-2-2-030",
     "tests/integration/ua2/test_tag_queries.py::test_combined_change_one": "UA-2-2-031",
     "tests/integration/ua2/test_tag_queries.py::test_combined_all_empty": "UA-2-2-032",
+    "tests/integration/ua2/test_tag_query_browse.py::test_browse_ds_isolation": "UA-2-2-041",
+    "tests/integration/ua2/test_tag_query_browse.py::test_browse_node_info": "UA-2-2-042",
+    "tests/integration/ua2/test_tag_query_browse.py::test_browse_name_filter": "UA-2-2-043",
+    "tests/integration/ua2/test_tag_query_browse.py::test_browse_registered_filter": "UA-2-2-044",
+    "tests/integration/ua2/test_tag_query_browse.py::test_browse_cross_ds_same_name": "UA-2-2-045",
+    "tests/integration/ua2/test_tag_query_browse.py::test_browse_offline": "UA-2-2-046",
+    "tests/integration/ua2/test_tag_query_browse.py::test_browse_recovery": "UA-2-2-047",
+    "tests/integration/ua2/test_tag_query_browse.py::test_browse_to_add": "UA-2-2-048",
+    "tests/integration/ua2/test_tag_query_pagination.py::test_pagination_first_page": "UA-2-2-049",
+    "tests/integration/ua2/test_tag_query_pagination.py::test_pagination_complete_walk": "UA-2-2-050",
+    "tests/integration/ua2/test_tag_query_pagination.py::test_pagination_last_page": "UA-2-2-051",
+    "tests/integration/ua2/test_tag_query_pagination.py::test_pagination_different_sizes": "UA-2-2-052",
+    "tests/integration/ua2/test_tag_query_pagination.py::test_pagination_condition_change": "UA-2-2-053",
+    "tests/integration/ua2/test_tag_query_pagination.py::test_sort_stable": "UA-2-2-054",
+    "tests/integration/ua2/test_tag_query_pagination.py::test_browse_cursor_complete": "UA-2-2-055",
     "tests/integration/ua2/test_tag_query_runtime.py::test_detail_config_fields": "UA-2-2-033",
     "tests/integration/ua2/test_tag_query_runtime.py::test_detail_datasource_ownership": "UA-2-2-034",
     "tests/integration/ua2/test_tag_query_runtime.py::test_runtime_rt_correct": "UA-2-2-035",
@@ -1218,7 +1314,19 @@
     "tests/integration/ua2/test_tag_query_runtime.py::test_runtime_disconnect": "UA-2-2-037",
     "tests/integration/ua2/test_tag_query_runtime.py::test_runtime_reconnect": "UA-2-2-038",
     "tests/integration/ua2/test_tag_query_runtime.py::test_runtime_timestamp_update": "UA-2-2-039",
-    "tests/integration/ua2/test_tag_query_runtime.py::test_runtime_static_quality": "UA-2-2-040"
+    "tests/integration/ua2/test_tag_query_runtime.py::test_runtime_static_quality": "UA-2-2-040",
+    "tests/integration/ua2/test_tag_query_stability.py::test_stability_repeat_query": "UA-2-2-065",
+    "tests/integration/ua2/test_tag_query_stability.py::test_stability_concurrent_query": "UA-2-2-066",
+    "tests/integration/ua2/test_tag_query_stability.py::test_stability_query_no_mutation": "UA-2-2-067",
+    "tests/integration/ua2/test_tag_query_updates.py::test_result_update_add": "UA-2-2-056",
+    "tests/integration/ua2/test_tag_query_updates.py::test_result_update_rename": "UA-2-2-057",
+    "tests/integration/ua2/test_tag_query_updates.py::test_result_update_change_base": "UA-2-2-058",
+    "tests/integration/ua2/test_tag_query_updates.py::test_result_update_move_group": "UA-2-2-059",
+    "tests/integration/ua2/test_tag_query_updates.py::test_result_update_favorite": "UA-2-2-060",
+    "tests/integration/ua2/test_tag_query_updates.py::test_result_update_soft_delete": "UA-2-2-061",
+    "tests/integration/ua2/test_tag_query_updates.py::test_result_update_physical_delete": "UA-2-2-062",
+    "tests/integration/ua2/test_tag_query_updates.py::test_result_update_available_after_add": "UA-2-2-063",
+    "tests/integration/ua2/test_tag_query_updates.py::test_result_update_available_after_delete": "UA-2-2-064"
   },
   "by_chapter": [
     {
@@ -1291,9 +1399,9 @@
     {
       "chapter": "UA-2",
       "source": 265,
-      "pytest": 152,
-      "migrated_count": 152,
-      "missing_count": 113,
+      "pytest": 179,
+      "migrated_count": 179,
+      "missing_count": 86,
       "migrated": [
         "UA-2-1-001",
         "UA-2-1-002",
@@ -1446,9 +1554,7 @@
         "UA-2-2-037",
         "UA-2-2-038",
         "UA-2-2-039",
-        "UA-2-2-040"
-      ],
-      "missing": [
+        "UA-2-2-040",
         "UA-2-2-041",
         "UA-2-2-042",
         "UA-2-2-043",
@@ -1475,7 +1581,9 @@
         "UA-2-2-064",
         "UA-2-2-065",
         "UA-2-2-066",
-        "UA-2-2-067",
+        "UA-2-2-067"
+      ],
+      "missing": [
         "UA-2-3-001",
         "UA-2-3-002",
         "UA-2-3-003",
