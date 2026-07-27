@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-import time
+import socket
 import uuid
 
 import pytest
@@ -129,7 +129,26 @@ def ua22_env(api, settings, tmp_path_factory, mocker_endpoint):
     fav_id = tags_a_ids[0]
     add_tag_group_relation(api, 2, [fav_id])
 
-    time.sleep(5)
+    # Wait for all infrastructure to stabilize — replace fixed sleep with state checks
+    wait_until(
+        f"tags_in_list",
+        lambda: len((list_tags(api, page=1, page_size=200).get("records") or [])) >= 15,
+        timeout=30.0,
+    )
+    wait_until(
+        f"rt_static:{tags_a_names[0]}",
+        lambda: (get_rt_point(api, tags_a_names[0]).get("tagValue") is not None
+                 and (get_rt_point(api, tags_a_names[0]).get("quality", 0) != 0)),
+        timeout=30.0,
+    )
+    wait_until(
+        f"chg_quality:{change_tn}",
+        lambda: any(
+            r.get("tagName") == change_tn and r.get("quality") not in (None, 0) and r.get("tagTime")
+            for r in _qwq_records(query_tags_with_quality(api, tag_name=change_tn, page_size=10))
+        ),
+        timeout=60.0,
+    )
 
     ctx = {
         "ds_id_a": ds_id_a, "ds_name_a": ds_name_a,
@@ -147,27 +166,46 @@ def ua22_env(api, settings, tmp_path_factory, mocker_endpoint):
     }
     yield ctx
 
-    all_ids = tags_a_ids + tags_b_ids + [change_id_a, change_id_b]
-    for tid in all_ids:
+    cleanup_errors: list[str] = []
+    all_tag_ids = tags_a_ids + tags_b_ids + [change_id_a, change_id_b, del_id]
+    for tid in all_tag_ids:
         try:
             delete_tags_physical(api, [tid])
-        except TptAPIError:
-            pass
+        except TptAPIError as exc:
+            if "not exist" not in exc.msg.lower() and "不存在" not in exc.msg:
+                cleanup_errors.append(f"delete tag id={tid}: {exc.msg}")
     try:
-        delete_tags_physical(api, [del_id])
-    except TptAPIError:
-        pass
+        r_page = list_recycle_tags(api, page=1, page_size=999)
+        for t in (r_page.get("tagInfoList") or {}).get("records") or []:
+            if t.get("tagName") in [del_tn]:
+                try:
+                    delete_tags_physical(api, [int(t["id"])])
+                except TptAPIError as exc:
+                    cleanup_errors.append(f"delete recycle tag {t.get('tagName')}: {exc.msg}")
+    except Exception as exc:
+        cleanup_errors.append(f"list_recycle_tags: {exc}")
     for ds_id, ds_name in [(ds_id_a, ds_name_a), (ds_id_b, ds_name_b)]:
         try:
             change_ds_state(api, ds_id, False)
-        except TptAPIError:
-            pass
+        except TptAPIError as exc:
+            cleanup_errors.append(f"disable ds id={ds_id}: {exc.msg}")
         delete_datasource_if_exists(api, ds_id, ds_name)
     for m in [mocker_a, mocker_b]:
         try:
             stop_mocker(m)
-        except Exception:
+        except Exception as exc:
+            cleanup_errors.append(f"stop_mocker: {exc}")
+    for host, port in [(parsed.host, port_a), (parsed.host, port_b)]:
+        try:
+            sock = socket.create_connection((host, port), timeout=3.0)
+            sock.close()
+            cleanup_errors.append(f"port {host}:{port} still listening after cleanup")
+        except (OSError, socket.error):
             pass
+        except Exception as exc:
+            cleanup_errors.append(f"port check {host}:{port}: {exc}")
+    if cleanup_errors:
+        raise AssertionError("Cleanup errors: " + "; ".join(cleanup_errors))
 
 
 # ---------------------------------------------------------------------------
@@ -387,8 +425,9 @@ def test_sysname_unicode(api, settings, ua22_env, record_property):
     finally:
         try:
             delete_tags_physical(api, [tag_id])
-        except TptAPIError:
-            pass
+        except TptAPIError as exc:
+            if "not exist" not in exc.msg.lower() and "不存在" not in exc.msg:
+                raise
 
 
 @pytest.mark.case(id="UA-2-2-011", chapter="UA-2-2", title="系统名_空条件",
