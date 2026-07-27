@@ -4179,7 +4179,7 @@
       "id": "UA-2-2-041",
       "chapter": "UA-2-2",
       "title": "底层浏览_数据源隔离",
-      "nodeid": "tests/integration/ua2/test_tag_browse.py::test_browse_ds_isolation",
+      "nodeid": "tests/integration/ua2/test_tag_query_browse.py::test_browse_ds_isolation",
       "preconditions": [
         "两数据源 A（含未注册节点）、B（含未注册节点）"
       ],
@@ -4197,7 +4197,7 @@
       "id": "UA-2-2-042",
       "chapter": "UA-2-2",
       "title": "底层浏览_节点信息",
-      "nodeid": "tests/integration/ua2/test_tag_browse.py::test_browse_node_info",
+      "nodeid": "tests/integration/ua2/test_tag_query_browse.py::test_browse_node_info",
       "preconditions": [
         "数据源有未注册节点"
       ],
@@ -4215,7 +4215,7 @@
       "id": "UA-2-2-043",
       "chapter": "UA-2-2",
       "title": "底层浏览_名称过滤",
-      "nodeid": "tests/integration/ua2/test_tag_browse.py::test_browse_name_filter",
+      "nodeid": "tests/integration/ua2/test_tag_query_browse.py::test_browse_name_filter",
       "preconditions": [
         "存在多种名称模式的未注册节点"
       ],
@@ -4234,7 +4234,7 @@
       "id": "UA-2-2-044",
       "chapter": "UA-2-2",
       "title": "底层浏览_已注册过滤",
-      "nodeid": "tests/integration/ua2/test_tag_browse.py::test_browse_registered_filter",
+      "nodeid": "tests/integration/ua2/test_tag_query_browse.py::test_browse_registered_filter",
       "preconditions": [
         "DS A 有已注册和未注册节点"
       ],
@@ -4253,7 +4253,7 @@
       "id": "UA-2-2-045",
       "chapter": "UA-2-2",
       "title": "底层浏览_跨源同名过滤",
-      "nodeid": "tests/integration/ua2/test_tag_browse.py::test_browse_cross_ds_same_name",
+      "nodeid": "tests/integration/ua2/test_tag_query_browse.py::test_browse_cross_ds_same_name",
       "preconditions": [
         "A、B 存在相同底层名节点；A 已注册该节点"
       ],
@@ -4271,7 +4271,7 @@
       "id": "UA-2-2-046",
       "chapter": "UA-2-2",
       "title": "底层浏览_数据源断线",
-      "nodeid": "tests/integration/ua2/test_tag_browse.py::test_browse_offline",
+      "nodeid": "tests/integration/ua2/test_tag_query_browse.py::test_browse_offline",
       "preconditions": [
         "DS A 在线"
       ],
@@ -4289,7 +4289,7 @@
       "id": "UA-2-2-047",
       "chapter": "UA-2-2",
       "title": "底层浏览_恢复后可用",
-      "nodeid": "tests/integration/ua2/test_tag_browse.py::test_browse_recovery",
+      "nodeid": "tests/integration/ua2/test_tag_query_browse.py::test_browse_recovery",
       "preconditions": [
         "DS A 已从断线恢复"
       ],
@@ -4307,7 +4307,7 @@
       "id": "UA-2-2-048",
       "chapter": "UA-2-2",
       "title": "底层浏览_结果可用于新增",
-      "nodeid": "tests/integration/ua2/test_tag_browse.py::test_browse_to_add",
+      "nodeid": "tests/integration/ua2/test_tag_query_browse.py::test_browse_to_add",
       "preconditions": [
         "DS A 有未注册节点"
       ],
@@ -4325,7 +4325,7 @@
       "id": "UA-2-2-049",
       "chapter": "UA-2-2",
       "title": "分页_首页",
-      "nodeid": "tests/integration/ua2/test_tag_pagination.py::test_pagination_first_page",
+      "nodeid": "tests/integration/ua2/test_tag_query_pagination.py::test_pagination_first_page",
       "preconditions": [
         "数据源有 ≥10 个位号"
       ],
@@ -4343,7 +4343,7 @@
       "id": "UA-2-2-050",
       "chapter": "UA-2-2",
       "title": "分页_连续翻页完整性",
-      "nodeid": "tests/integration/ua2/test_tag_pagination.py::test_pagination_complete_walk",
+      "nodeid": "tests/integration/ua2/test_tag_query_pagination.py::test_pagination_complete_walk",
       "preconditions": [
         "数据源有足够位号"
       ],
@@ -4361,7 +4361,7 @@
       "id": "UA-2-2-051",
       "chapter": "UA-2-2",
       "title": "分页_尾页",
-      "nodeid": "tests/integration/ua2/test_tag_pagination.py::test_pagination_last_page",
+      "nodeid": "tests/integration/ua2/test_tag_query_pagination.py::test_pagination_last_page",
       "preconditions": [
         "total 已知"
       ],
@@ -4379,7 +4379,7 @@
       "id": "UA-2-2-052",
       "chapter": "UA-2-2",
       "title": "分页_不同页大小",
-      "nodeid": "tests/integration/ua2/test_tag_pagination.py::test_pagination_different_sizes",
+      "nodeid": "tests/integration/ua2/test_tag_query_pagination.py::test_pagination_different_sizes",
       "preconditions": [
         "数据源已注册位号"
       ],
@@ -4397,7 +4397,7 @@
       "id": "UA-2-2-053",
       "chapter": "UA-2-2",
       "title": "分页_条件变化客户端页码",
-      "nodeid": "tests/integration/ua2/test_tag_pagination.py::test_pagination_condition_change",
+      "nodeid": "tests/integration/ua2/test_tag_query_pagination.py::test_pagination_condition_change",
       "preconditions": [
         "（GUI-DEFERRED）"
       ],
@@ -4416,7 +4416,7 @@
       "id": "UA-2-2-054",
       "chapter": "UA-2-2",
       "title": "排序_稳定顺序",
-      "nodeid": "tests/integration/ua2/test_tag_pagination.py::test_sort_stable",
+      "nodeid": "tests/integration/ua2/test_tag_query_pagination.py::test_sort_stable",
       "preconditions": [
         "数据源有 ≥10 个位号"
       ],
@@ -4434,7 +4434,7 @@
       "id": "UA-2-2-055",
       "chapter": "UA-2-2",
       "title": "底层浏览_游标完整性",
-      "nodeid": "tests/integration/ua2/test_tag_pagination.py::test_browse_cursor_complete",
+      "nodeid": "tests/integration/ua2/test_tag_query_pagination.py::test_browse_cursor_complete",
       "preconditions": [
         "DS 有多个未注册节点"
       ],
@@ -4452,7 +4452,7 @@
       "id": "UA-2-2-056",
       "chapter": "UA-2-2",
       "title": "结果更新_新增位号",
-      "nodeid": "tests/integration/ua2/test_tag_updates.py::test_result_update_add",
+      "nodeid": "tests/integration/ua2/test_tag_query_updates.py::test_result_update_add",
       "preconditions": [
         "DS 有未注册节点"
       ],
@@ -4470,7 +4470,7 @@
       "id": "UA-2-2-057",
       "chapter": "UA-2-2",
       "title": "结果更新_重命名",
-      "nodeid": "tests/integration/ua2/test_tag_updates.py::test_result_update_rename",
+      "nodeid": "tests/integration/ua2/test_tag_query_updates.py::test_result_update_rename",
       "preconditions": [
         "存在位号"
       ],
@@ -4488,7 +4488,7 @@
       "id": "UA-2-2-058",
       "chapter": "UA-2-2",
       "title": "结果更新_修改底层节点",
-      "nodeid": "tests/integration/ua2/test_tag_updates.py::test_result_update_change_base",
+      "nodeid": "tests/integration/ua2/test_tag_query_updates.py::test_result_update_change_base",
       "preconditions": [
         "DS 有至少 2 个未注册节点"
       ],
@@ -4506,7 +4506,7 @@
       "id": "UA-2-2-059",
       "chapter": "UA-2-2",
       "title": "结果更新_移动分组",
-      "nodeid": "tests/integration/ua2/test_tag_updates.py::test_result_update_move_group",
+      "nodeid": "tests/integration/ua2/test_tag_query_updates.py::test_result_update_move_group",
       "preconditions": [
         "G1 有位号；G2 为空"
       ],
@@ -4524,7 +4524,7 @@
       "id": "UA-2-2-060",
       "chapter": "UA-2-2",
       "title": "结果更新_收藏关系",
-      "nodeid": "tests/integration/ua2/test_tag_updates.py::test_result_update_favorite",
+      "nodeid": "tests/integration/ua2/test_tag_query_updates.py::test_result_update_favorite",
       "preconditions": [
         "存在未收藏位号"
       ],
@@ -4542,7 +4542,7 @@
       "id": "UA-2-2-061",
       "chapter": "UA-2-2",
       "title": "结果更新_软删除",
-      "nodeid": "tests/integration/ua2/test_tag_updates.py::test_result_update_soft_delete",
+      "nodeid": "tests/integration/ua2/test_tag_query_updates.py::test_result_update_soft_delete",
       "preconditions": [
         "存在位号"
       ],
@@ -4560,7 +4560,7 @@
       "id": "UA-2-2-062",
       "chapter": "UA-2-2",
       "title": "结果更新_物理删除",
-      "nodeid": "tests/integration/ua2/test_tag_updates.py::test_result_update_physical_delete",
+      "nodeid": "tests/integration/ua2/test_tag_query_updates.py::test_result_update_physical_delete",
       "preconditions": [
         "存在位号"
       ],
@@ -4578,7 +4578,7 @@
       "id": "UA-2-2-063",
       "chapter": "UA-2-2",
       "title": "结果更新_新增后可选集合",
-      "nodeid": "tests/integration/ua2/test_tag_updates.py::test_result_update_available_after_add",
+      "nodeid": "tests/integration/ua2/test_tag_query_updates.py::test_result_update_available_after_add",
       "preconditions": [
         "DS 有未注册节点"
       ],
@@ -4597,7 +4597,7 @@
       "id": "UA-2-2-064",
       "chapter": "UA-2-2",
       "title": "结果更新_删除后可选集合",
-      "nodeid": "tests/integration/ua2/test_tag_updates.py::test_result_update_available_after_delete",
+      "nodeid": "tests/integration/ua2/test_tag_query_updates.py::test_result_update_available_after_delete",
       "preconditions": [
         "DS 有已注册位号"
       ],
@@ -4616,7 +4616,7 @@
       "id": "UA-2-2-065",
       "chapter": "UA-2-2",
       "title": "稳定性_连续查询",
-      "nodeid": "tests/integration/ua2/test_tag_stability.py::test_stability_repeat_query",
+      "nodeid": "tests/integration/ua2/test_tag_query_stability.py::test_stability_repeat_query",
       "preconditions": [
         "查询期间不修改配置"
       ],
@@ -4634,7 +4634,7 @@
       "id": "UA-2-2-066",
       "chapter": "UA-2-2",
       "title": "稳定性_并发只读查询",
-      "nodeid": "tests/integration/ua2/test_tag_stability.py::test_stability_concurrent_query",
+      "nodeid": "tests/integration/ua2/test_tag_query_stability.py::test_stability_concurrent_query",
       "preconditions": [
         "存在 DS 有数据；且创建空 DS"
       ],
@@ -4652,7 +4652,7 @@
       "id": "UA-2-2-067",
       "chapter": "UA-2-2",
       "title": "隔离性_查询不修改配置",
-      "nodeid": "tests/integration/ua2/test_tag_stability.py::test_stability_query_no_mutation",
+      "nodeid": "tests/integration/ua2/test_tag_query_stability.py::test_stability_query_no_mutation",
       "preconditions": [
         "存在完整位号"
       ],

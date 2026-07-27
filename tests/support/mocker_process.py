@@ -21,9 +21,21 @@ class MockerHandle:
 
 
 def find_free_port() -> int:
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind(("0.0.0.0", 0))
-        return s.getsockname()[1]
+    """Find a free port with retry to reduce race-condition probability."""
+    deadline = time.monotonic() + 15.0
+    while time.monotonic() < deadline:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.bind(("0.0.0.0", 0))
+            port = s.getsockname()[1]
+        time.sleep(0.15)
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.settimeout(1.0)
+                s.bind(("0.0.0.0", port))
+            return port
+        except OSError:
+            continue
+    raise RuntimeError("Could not find a stable free port after retries")
 
 
 def write_mocker_config(

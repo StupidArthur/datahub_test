@@ -347,6 +347,9 @@ def browse_all_unused_candidates(
 
 def node_base_name(entry: dict, namespace_index: int = 1) -> str:
     raw = entry.get("name") or entry.get("browseName") or ""
+    expected_prefix = f"{namespace_index}_"
+    if str(raw).startswith(expected_prefix):
+        return str(raw)
     return tag_base_name(str(raw), namespace_index=namespace_index)
 
 

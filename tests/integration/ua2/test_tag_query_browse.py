@@ -424,8 +424,11 @@ def test_browse_recovery(api, settings, tmp_path_factory, mocker_endpoint):
     mocker = start_mocker(cfg, port, host=parsed.host)
     wait_ds_alive(api, ds_id, timeout=90.0)
 
-    nodes = browse_all_unused_candidates(api, ds_id)
-    assert len(nodes) > 0, "browse returned empty after recovery"
+    wait_until(
+        "browse_after_recovery",
+        lambda: len(browse_all_unused_candidates(api, ds_id)) > 0,
+        timeout=60.0,
+    )
 
     cleanup_errors: list[str] = []
     try:
@@ -472,8 +475,12 @@ def test_browse_to_add(browse_env, api):
         )
         tag_id = int(match[0]["id"])
 
+        wait_until(
+            f"rt_value:{tname}",
+            lambda: get_rt_point(api, tname).get("tagValue") is not None,
+            timeout=30.0,
+        )
         rt = get_rt_point(api, tname)
-        assert rt.get("tagValue") is not None, f"RT value is None for {tname}"
         assert rt.get("quality", 0) not in (None, 0), f"quality is invalid for {tname}"
     finally:
         if tag_id:
