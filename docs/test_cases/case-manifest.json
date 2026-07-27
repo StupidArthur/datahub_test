@@ -3290,6 +3290,7 @@
         "每个位号均可读取有效 RT"
       ],
       "markers": [
+        "spec_pending",
         "destructive",
         "integration"
       ]

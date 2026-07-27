@@ -228,16 +228,21 @@ pytest.skip 掩盖环境未设置
 |----|------|------|--------------|----------------|--------|
 | UA-1-1 | 12 | 12 | 0 | 0 | 0 |
 | UA-1-2 | 6 | 4 | 0 | 2 | 0 |
-| UA-2-1 | 59 | 39 | 5 | 15 | 0 |
+| UA-2-1 | 112 | 62 | 10 | 40 | 0 |
 
-FAIL 五道确认产品能力限制：
+FAIL 十道确认产品能力限制：
+- **UA-2-1-019** 空 tagName → 产品接受空 tagName，回落为节点名
 - **UA-2-1-044** Byte 255 → DataHub signed-byte 映射限制（`Write tag value type convert failed`）
 - **UA-2-1-048** UInt16 65535 → DataHub U_SHORT 映射限制
 - **UA-2-1-052** UInt32 4294967295 → DataHub U_INT 映射限制
 - **UA-2-1-058** UInt64 18446744073709551615 → DataHub U_LONG 映射限制
-- **UA-2-1-019** 空 tagName → 产品接受空 tagName，回落为节点名
+- **UA-2-1-066** 空字符串值被拒绝（`writing tag value can not be null`）
+- **UA-2-1-071** DateTime UTC ISO 被拒绝（`tag data type error`）
+- **UA-2-1-072** DateTime 带时区被拒绝（`tag data type error`）
+- **UA-2-1-074** DateTime epoch 边界被拒绝（`tag data type error`）
+- **UA-2-1-027** SByte 默认读取偶发时序竞争（change node 值漂移：期望 3 实际 2）
 
-XFAIL 15 道为行为未约定（overflow / coercion / whitespace / length 129 / special chars / unicode / Int64 out-of-range / UInt64 negative and overflow）。
+XFAIL 40 道为行为未约定（overflow / coercion / whitespace / length 129 / special chars / unicode / Int64 out-of-range / UInt64 negative and overflow / NaN/Inf / length boundaries / frequency effect / alarm limits / history / batchAdd）。
 
 ### 清理基础设施
 - **`tests/support/ua2_cleanup.py`**: `strict_cleanup_ua2_context()` — 六步严格清理（物理删 tag → 清回收站 → 禁 DS → 删 DS → 停 mocker → 验端口），所有错误聚合不吞
