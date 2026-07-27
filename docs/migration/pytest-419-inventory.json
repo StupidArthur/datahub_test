@@ -71,7 +71,7 @@
     }
   ],
   "duplicates_in_source": [],
-  "pytest_total": 207,
+  "pytest_total": 219,
   "migrated": [
     "UA-1-1-01",
     "UA-1-1-02",
@@ -279,7 +279,19 @@
     "UA-2-2-064",
     "UA-2-2-065",
     "UA-2-2-066",
-    "UA-2-2-067"
+    "UA-2-2-067",
+    "UA-2-3-001",
+    "UA-2-3-002",
+    "UA-2-3-003",
+    "UA-2-3-004",
+    "UA-2-3-005",
+    "UA-2-3-006",
+    "UA-2-3-007",
+    "UA-2-3-008",
+    "UA-2-3-009",
+    "UA-2-3-010",
+    "UA-2-3-011",
+    "UA-2-3-012"
   ],
   "missing": [
     "UA-1-4-01",
@@ -310,18 +322,6 @@
     "UA-1-6-11",
     "UA-1-6-12",
     "UA-1-6-13",
-    "UA-2-3-001",
-    "UA-2-3-002",
-    "UA-2-3-003",
-    "UA-2-3-004",
-    "UA-2-3-005",
-    "UA-2-3-006",
-    "UA-2-3-007",
-    "UA-2-3-008",
-    "UA-2-3-009",
-    "UA-2-3-010",
-    "UA-2-3-011",
-    "UA-2-3-012",
     "UA-2-3-013",
     "UA-2-3-014",
     "UA-2-3-015",
@@ -917,6 +917,42 @@
     "UA-2-1-081": [
       "tests/integration/ua2/test_tag_creation_unit_desc.py::test_desc_unicode_and_length"
     ],
+    "UA-2-3-001": [
+      "tests/integration/ua2/test_tag_export.py::test_export_single_tag"
+    ],
+    "UA-2-3-002": [
+      "tests/integration/ua2/test_tag_export.py::test_export_multiple_tags"
+    ],
+    "UA-2-3-003": [
+      "tests/integration/ua2/test_tag_export.py::test_export_cross_ds_group"
+    ],
+    "UA-2-3-004": [
+      "tests/integration/ua2/test_tag_export.py::test_export_empty_ids"
+    ],
+    "UA-2-3-005": [
+      "tests/integration/ua2/test_tag_export.py::test_export_duplicate_request"
+    ],
+    "UA-2-3-006": [
+      "tests/integration/ua2/test_tag_export.py::test_file_21_column_header"
+    ],
+    "UA-2-3-007": [
+      "tests/integration/ua2/test_tag_export.py::test_file_name_ownership"
+    ],
+    "UA-2-3-008": [
+      "tests/integration/ua2/test_tag_export.py::test_file_config_fields"
+    ],
+    "UA-2-3-009": [
+      "tests/integration/ua2/test_tag_export.py::test_file_range_alarm_limits"
+    ],
+    "UA-2-3-010": [
+      "tests/integration/ua2/test_tag_export.py::test_file_13_data_types"
+    ],
+    "UA-2-3-011": [
+      "tests/integration/ua2/test_tag_export.py::test_file_large_int_datetime"
+    ],
+    "UA-2-3-012": [
+      "tests/integration/ua2/test_tag_export.py::test_file_rt_value_and_no_value"
+    ],
     "UA-2-2-001": [
       "tests/integration/ua2/test_tag_queries.py::test_list_default_scope"
     ],
@@ -1260,6 +1296,18 @@
     "tests/integration/ua2/test_tag_creation_unit_desc.py::test_desc_normal": "UA-2-1-079",
     "tests/integration/ua2/test_tag_creation_unit_desc.py::test_desc_default": "UA-2-1-080",
     "tests/integration/ua2/test_tag_creation_unit_desc.py::test_desc_unicode_and_length": "UA-2-1-081",
+    "tests/integration/ua2/test_tag_export.py::test_export_single_tag": "UA-2-3-001",
+    "tests/integration/ua2/test_tag_export.py::test_export_multiple_tags": "UA-2-3-002",
+    "tests/integration/ua2/test_tag_export.py::test_export_cross_ds_group": "UA-2-3-003",
+    "tests/integration/ua2/test_tag_export.py::test_export_empty_ids": "UA-2-3-004",
+    "tests/integration/ua2/test_tag_export.py::test_export_duplicate_request": "UA-2-3-005",
+    "tests/integration/ua2/test_tag_export.py::test_file_21_column_header": "UA-2-3-006",
+    "tests/integration/ua2/test_tag_export.py::test_file_name_ownership": "UA-2-3-007",
+    "tests/integration/ua2/test_tag_export.py::test_file_config_fields": "UA-2-3-008",
+    "tests/integration/ua2/test_tag_export.py::test_file_range_alarm_limits": "UA-2-3-009",
+    "tests/integration/ua2/test_tag_export.py::test_file_13_data_types": "UA-2-3-010",
+    "tests/integration/ua2/test_tag_export.py::test_file_large_int_datetime": "UA-2-3-011",
+    "tests/integration/ua2/test_tag_export.py::test_file_rt_value_and_no_value": "UA-2-3-012",
     "tests/integration/ua2/test_tag_queries.py::test_list_default_scope": "UA-2-2-001",
     "tests/integration/ua2/test_tag_queries.py::test_list_empty_scope": "UA-2-2-002",
     "tests/integration/ua2/test_tag_queries.py::test_list_multi_ds": "UA-2-2-003",
@@ -1399,9 +1447,9 @@
     {
       "chapter": "UA-2",
       "source": 265,
-      "pytest": 179,
-      "migrated_count": 179,
-      "missing_count": 86,
+      "pytest": 191,
+      "migrated_count": 191,
+      "missing_count": 74,
       "migrated": [
         "UA-2-1-001",
         "UA-2-1-002",
@@ -1581,9 +1629,7 @@
         "UA-2-2-064",
         "UA-2-2-065",
         "UA-2-2-066",
-        "UA-2-2-067"
-      ],
-      "missing": [
+        "UA-2-2-067",
         "UA-2-3-001",
         "UA-2-3-002",
         "UA-2-3-003",
@@ -1595,7 +1641,9 @@
         "UA-2-3-009",
         "UA-2-3-010",
         "UA-2-3-011",
-        "UA-2-3-012",
+        "UA-2-3-012"
+      ],
+      "missing": [
         "UA-2-3-013",
         "UA-2-3-014",
         "UA-2-3-015",

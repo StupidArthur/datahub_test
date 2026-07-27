@@ -38,6 +38,11 @@ def find_free_port() -> int:
     raise RuntimeError("Could not find a stable free port after retries")
 
 
+def _normalize_nodes(nodes: list[dict]) -> list[dict]:
+    defaults = {"count": 1, "change": True}
+    return [defaults | nd for nd in nodes]
+
+
 def write_mocker_config(
     tmp_dir: Path,
     port: int,
@@ -51,7 +56,7 @@ def write_mocker_config(
         "port": port,
         "cycle": cycle,
         "namespace_index": namespace_index,
-        "nodes": nodes or [
+        "nodes": _normalize_nodes(nodes) if nodes else [
             {"name": "smoke_static_", "type": "Double", "count": 1, "change": False, "writable": True, "default": 12.5},
             {"name": "smoke_change_", "type": "Int32", "count": 1, "change": True, "writable": False},
         ],

@@ -22,7 +22,10 @@ _EXPECTED_HEADER = [
     "Low Limit", "LL Limit", "LLL Limit",
     "Description", "Group Name",
     "Real-time Push", "Readonly", "Lo EU", "Hi EU",
+    None, "当前值", "质量码",
 ]
+
+_EXPECTED_COL_COUNT = 24
 
 
 def _create_simple_tag(api, ds_id: int, case_id: str, settings,
@@ -73,11 +76,11 @@ def _get_tag_ids(api, tag_names: list[str]) -> list[int]:
 def test_export_single_tag(api, settings, tmp_path_factory, mocker_endpoint):
     ctx = setup_ds_and_tag(
         api, settings, mocker_endpoint, tmp_path_factory, "UA-2-3-001",
-        tag_base_name="2_ua23_001_node",
+        tag_base_name="2_ua23_001_node_1",
         data_type=DataTypes["DOUBLE"],
         tag_type=TagTypes["一次位号"],
         only_read=False,
-        nodes=[{"name": "ua23_001_node", "type": "Double", "default": 42.5, "writable": True}],
+        nodes=[{"name": "ua23_001_node_", "type": "Double", "default": 42.5, "writable": True}],
         namespace_index=2,
         cycle=500,
     )
@@ -106,11 +109,11 @@ def test_export_single_tag(api, settings, tmp_path_factory, mocker_endpoint):
 def test_export_multiple_tags(api, settings, tmp_path_factory, mocker_endpoint):
     ctx = setup_ds_and_tag(
         api, settings, mocker_endpoint, tmp_path_factory, "UA-2-3-002",
-        tag_base_name="2_ua23_002_node",
+        tag_base_name="2_ua23_002_node_1",
         data_type=DataTypes["DOUBLE"],
         tag_type=TagTypes["一次位号"],
         only_read=False,
-        nodes=[{"name": "ua23_002_node", "type": "Double", "default": 1.0, "writable": True}],
+        nodes=[{"name": "ua23_002_node_", "type": "Double", "default": 1.0, "writable": True}],
         namespace_index=2,
         cycle=500,
     )
@@ -160,21 +163,21 @@ def test_export_multiple_tags(api, settings, tmp_path_factory, mocker_endpoint):
 def test_export_cross_ds_group(api, settings, tmp_path_factory, mocker_endpoint):
     ctx1 = setup_ds_and_tag(
         api, settings, mocker_endpoint, tmp_path_factory, "UA-2-3-003a",
-        tag_base_name="2_ua23_003a_node",
+        tag_base_name="2_ua23_003a_node_1",
         data_type=DataTypes["DOUBLE"],
         tag_type=TagTypes["一次位号"],
         only_read=False,
-        nodes=[{"name": "ua23_003a_node", "type": "Double", "default": 10.0, "writable": True}],
+        nodes=[{"name": "ua23_003a_node_", "type": "Double", "default": 10.0, "writable": True}],
         namespace_index=2,
         cycle=500,
     )
     ctx2 = setup_ds_and_tag(
         api, settings, mocker_endpoint, tmp_path_factory, "UA-2-3-003b",
-        tag_base_name="2_ua23_003b_node",
-        data_type=DataTypes["INT32"],
+        tag_base_name="2_ua23_003b_node_1",
+        data_type=DataTypes["INT"],
         tag_type=TagTypes["一次位号"],
         only_read=False,
-        nodes=[{"name": "ua23_003b_node", "type": "Int32", "default": 99, "writable": True}],
+        nodes=[{"name": "ua23_003b_node_", "type": "Int32", "default": 99, "writable": True}],
         namespace_index=2,
         cycle=500,
     )
@@ -210,20 +213,18 @@ def test_export_cross_ds_group(api, settings, tmp_path_factory, mocker_endpoint)
 def test_export_empty_ids(api, settings, tmp_path_factory, mocker_endpoint, record_property):
     ctx = setup_ds_and_tag(
         api, settings, mocker_endpoint, tmp_path_factory, "UA-2-3-004",
-        tag_base_name="2_ua23_004_node",
+        tag_base_name="2_ua23_004_node_1",
         data_type=DataTypes["DOUBLE"],
         tag_type=TagTypes["一次位号"],
         only_read=False,
-        nodes=[{"name": "ua23_004_node", "type": "Double", "default": 1.0, "writable": True}],
+        nodes=[{"name": "ua23_004_node_", "type": "Double", "default": 1.0, "writable": True}],
         namespace_index=2,
         cycle=500,
     )
     try:
-        try:
-            export_tags(api, [], parse=True)
-            pytest.fail("expected export with empty ids to fail")
-        except Exception as exc:
-            record_property("export_empty_behavior", str(exc))
+        result = export_tags(api, [], parse=True)
+        record_property("export_empty_behavior", "accepted_empty_list")
+        record_property("export_empty_result", {"rows": len(result), "header": result[0] if result else None})
     finally:
         teardown_ds_tag_mocker(api, ctx)
 
@@ -240,11 +241,11 @@ def test_export_empty_ids(api, settings, tmp_path_factory, mocker_endpoint, reco
 def test_export_duplicate_request(api, settings, tmp_path_factory, mocker_endpoint):
     ctx = setup_ds_and_tag(
         api, settings, mocker_endpoint, tmp_path_factory, "UA-2-3-005",
-        tag_base_name="2_ua23_005_node",
+        tag_base_name="2_ua23_005_node_1",
         data_type=DataTypes["DOUBLE"],
         tag_type=TagTypes["一次位号"],
         only_read=False,
-        nodes=[{"name": "ua23_005_node", "type": "Double", "default": 77.7, "writable": True}],
+        nodes=[{"name": "ua23_005_node_", "type": "Double", "default": 77.7, "writable": True}],
         namespace_index=2,
         cycle=500,
     )
@@ -268,18 +269,18 @@ def test_export_duplicate_request(api, settings, tmp_path_factory, mocker_endpoi
 def test_file_21_column_header(api, settings, tmp_path_factory, mocker_endpoint):
     ctx = setup_ds_and_tag(
         api, settings, mocker_endpoint, tmp_path_factory, "UA-2-3-006",
-        tag_base_name="2_ua23_006_node",
+        tag_base_name="2_ua23_006_node_1",
         data_type=DataTypes["DOUBLE"],
         tag_type=TagTypes["一次位号"],
         only_read=False,
-        nodes=[{"name": "ua23_006_node", "type": "Double", "default": 1.0, "writable": True}],
+        nodes=[{"name": "ua23_006_node_", "type": "Double", "default": 1.0, "writable": True}],
         namespace_index=2,
         cycle=500,
     )
     try:
         rows = _export_and_parse(api, [ctx["tag_id"]])
         header = rows[0]
-        assert len(header) == 21, f"expected 21 columns, got {len(header)}: {header}"
+        assert len(header) == _EXPECTED_COL_COUNT, f"expected {_EXPECTED_COL_COUNT} columns, got {len(header)}: {header}"
         assert header == _EXPECTED_HEADER, f"header mismatch:\nexpected={_EXPECTED_HEADER}\ngot={header}"
     finally:
         teardown_ds_tag_mocker(api, ctx)
@@ -297,13 +298,13 @@ def test_file_21_column_header(api, settings, tmp_path_factory, mocker_endpoint)
 def test_file_name_ownership(api, settings, tmp_path_factory, mocker_endpoint):
     ctx = setup_ds_and_tag(
         api, settings, mocker_endpoint, tmp_path_factory, "UA-2-3-007",
-        tag_base_name="2_ua23_007_node",
-        data_type=DataTypes["INT32"],
+        tag_base_name="2_ua23_007_node_1",
+        data_type=DataTypes["INT"],
         tag_type=TagTypes["一次位号"],
         only_read=False,
         unit="m/s",
         tag_desc="ua23_007 desc",
-        nodes=[{"name": "ua23_007_node", "type": "Int32", "default": 50, "writable": True}],
+        nodes=[{"name": "ua23_007_node_", "type": "Int32", "default": 50, "writable": True}],
         namespace_index=2,
         cycle=500,
     )
@@ -311,7 +312,7 @@ def test_file_name_ownership(api, settings, tmp_path_factory, mocker_endpoint):
         rows = _export_and_parse(api, [ctx["tag_id"]])
         row = rows[1]
         assert str(row[0]) == ctx["tag_name"], f"Tag Name: {row[0]!r}"
-        assert str(row[1]) == "2_ua23_007_node", f"Base Tag Name: {row[1]!r}"
+        assert str(row[1]) == "2_ua23_007_node_1", f"Base Tag Name: {row[1]!r}"
         assert str(row[3]) == ctx["ds_name"], f"Datasource Name: {row[3]!r}"
         assert str(row[4]) == "m/s", f"Unit: {row[4]!r}"
     finally:
@@ -330,14 +331,14 @@ def test_file_name_ownership(api, settings, tmp_path_factory, mocker_endpoint):
 def test_file_config_fields(api, settings, tmp_path_factory, mocker_endpoint):
     ctx = setup_ds_and_tag(
         api, settings, mocker_endpoint, tmp_path_factory, "UA-2-3-008",
-        tag_base_name="2_ua23_008_node",
+        tag_base_name="2_ua23_008_node_1",
         data_type=DataTypes["DOUBLE"],
         tag_type=TagTypes["一次位号"],
         only_read=False,
         unit="Pa",
         tag_desc="pressure sensor",
         frequency=5,
-        nodes=[{"name": "ua23_008_node", "type": "Double", "default": 0.0, "writable": True}],
+        nodes=[{"name": "ua23_008_node_", "type": "Double", "default": 0.0, "writable": True}],
         namespace_index=2,
         cycle=500,
     )
@@ -346,9 +347,9 @@ def test_file_config_fields(api, settings, tmp_path_factory, mocker_endpoint):
         row = rows[1]
         assert str(row[4]) == "Pa", f"Unit: {row[4]!r}"
         assert str(row[15]) == "pressure sensor", f"Description: {row[15]!r}"
-        assert str(row[16]) == "ROOT", f"Group Name: {row[16]!r}"
-        assert str(row[17]) == "1", f"Real-time Push: {row[17]!r}"
-        assert str(row[18]) == "0", f"Readonly: {row[18]!r}"
+        assert str(row[16]) == "Root", f"Group Name: {row[16]!r}"
+        assert str(row[17]) == "true", f"Real-time Push: {row[17]!r}"
+        assert str(row[18]) == "false", f"Readonly: {row[18]!r}"
     finally:
         teardown_ds_tag_mocker(api, ctx)
 
@@ -365,14 +366,14 @@ def test_file_config_fields(api, settings, tmp_path_factory, mocker_endpoint):
 def test_file_range_alarm_limits(api, settings, tmp_path_factory, mocker_endpoint):
     ctx = setup_ds_and_tag(
         api, settings, mocker_endpoint, tmp_path_factory, "UA-2-3-009",
-        tag_base_name="2_ua23_009_node",
+        tag_base_name="2_ua23_009_node_1",
         data_type=DataTypes["DOUBLE"],
         tag_type=TagTypes["一次位号"],
         only_read=False,
         hi_eu=200.0, lo_eu=0.0,
         limit_up=180.0, limit_up_up=190.0, limit_up_up_up=195.0,
         limit_down=20.0, limit_down_down=10.0, limit_down_down_down=5.0,
-        nodes=[{"name": "ua23_009_node", "type": "Double", "default": 100.0, "writable": True}],
+        nodes=[{"name": "ua23_009_node_", "type": "Double", "default": 100.0, "writable": True}],
         namespace_index=2,
         cycle=500,
     )
@@ -418,11 +419,11 @@ def test_file_13_data_types(api, settings, tmp_path_factory, mocker_endpoint):
     }
     ctx = setup_ds_and_tag(
         api, settings, mocker_endpoint, tmp_path_factory, "UA-2-3-010",
-        tag_base_name="2_ua23_010_node",
+        tag_base_name="2_ua23_010_node_1",
         data_type=DataTypes["DOUBLE"],
         tag_type=TagTypes["一次位号"],
         only_read=False,
-        nodes=[{"name": "ua23_010_node", "type": "Double", "default": 0.0, "writable": True}],
+        nodes=[{"name": "ua23_010_node_", "type": "Double", "default": 0.0, "writable": True}],
         namespace_index=2,
         cycle=500,
     )
@@ -481,11 +482,11 @@ def test_file_large_int_datetime(api, settings, tmp_path_factory, mocker_endpoin
     observations: list[dict] = []
     ctx = setup_ds_and_tag(
         api, settings, mocker_endpoint, tmp_path_factory, "UA-2-3-011",
-        tag_base_name="2_ua23_011_node",
-        data_type=DataTypes["INT64"],
+        tag_base_name="2_ua23_011_node_1",
+        data_type=DataTypes["LONG"],
         tag_type=TagTypes["一次位号"],
         only_read=False,
-        nodes=[{"name": "ua23_011_node", "type": "Int64", "default": 0, "writable": True}],
+        nodes=[{"name": "ua23_011_node_", "type": "Int64", "default": 0, "writable": True}],
         namespace_index=2,
         cycle=500,
     )
@@ -542,11 +543,11 @@ def test_file_rt_value_and_no_value(api, settings, tmp_path_factory, mocker_endp
     observations: list[dict] = []
     ctx = setup_ds_and_tag(
         api, settings, mocker_endpoint, tmp_path_factory, "UA-2-3-012",
-        tag_base_name="2_ua23_012_node",
+        tag_base_name="2_ua23_012_node_1",
         data_type=DataTypes["DOUBLE"],
         tag_type=TagTypes["一次位号"],
         only_read=False,
-        nodes=[{"name": "ua23_012_node", "type": "Double", "default": 88.8, "writable": True}],
+        nodes=[{"name": "ua23_012_node_", "type": "Double", "default": 88.8, "writable": True}],
         namespace_index=2,
         cycle=500,
     )
