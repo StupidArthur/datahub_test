@@ -307,3 +307,156 @@ def delete_tags_safe(api, tag_ids: list[int]) -> None:
         if "not exist" in exc.msg.lower() or "不存在" in exc.msg:
             return
         raise
+
+
+def browse_page(
+    api, ds_id: int,
+    *,
+    tag_name: str = "",
+    continue_id: str = "",
+    page_size: int = 500,
+) -> dict:
+    """Single page of getNotUsed browse results."""
+    from tpt_api.datahub import get_not_used_tags
+    return get_not_used_tags(
+        api, ds_id=ds_id, tag_name=tag_name,
+        continue_id=continue_id, page_size=page_size,
+    )
+
+
+def browse_all_unused_candidates(
+    api, ds_id: int,
+    *,
+    tag_name_filter: str = "",
+    page_size: int = 500,
+    max_pages: int = 50,
+) -> list[dict]:
+    """Aggregate browse results across continueID cursor pages."""
+    nodes: list[dict] = []
+    continue_id = ""
+    for _ in range(max_pages):
+        page = browse_page(api, ds_id, tag_name=tag_name_filter,
+                           continue_id=continue_id, page_size=page_size)
+        batch = list(page.get("successes") or [])
+        nodes.extend(batch)
+        continue_id = str(page.get("continueID") or "")
+        if not continue_id or not batch:
+            break
+    return nodes
+
+
+def node_base_name(entry: dict, namespace_index: int = 1) -> str:
+    raw = entry.get("name") or entry.get("browseName") or ""
+    return tag_base_name(str(raw), namespace_index=namespace_index)
+
+
+def registered_base_names(api, ds_id: int) -> set[str]:
+    pages = []
+    page_num = 1
+    while page_num <= 20:
+        page = list_tags(api, page=page_num, page_size=200, data={"dsId": ds_id})
+        recs = page.get("records") or []
+        pages.extend(recs)
+        if len(recs) < 200:
+            break
+        page_num += 1
+    return {str(r.get("tagBaseName")) for r in pages if r.get("tagBaseName")}
+
+
+def filter_unregistered(api, ds_id: int, nodes: list[dict], *, namespace_index: int = 1) -> list[dict]:
+    reg = registered_base_names(api, ds_id)
+    out: list[dict] = []
+    seen: set[str] = set()
+    for entry in nodes:
+        base = node_base_name(entry, namespace_index=namespace_index)
+        if base in reg or base in seen:
+            continue
+        seen.add(base)
+        enriched = dict(entry)
+        enriched["tagBaseName"] = base
+        out.append(enriched)
+    return out
+
+
+def pick_unused_nodes(
+    api, ds_id: int, count: int,
+    *,
+    tag_name_filter: str = "",
+    namespace_index: int = 1,
+) -> list[dict]:
+    """Browse + filter, pick *count* unregistered nodes."""
+    raw = browse_all_unused_candidates(api, ds_id, tag_name_filter=tag_name_filter)
+    avail = filter_unregistered(api, ds_id, raw, namespace_index=namespace_index)
+    if len(avail) < count:
+        raise AssertionError(
+            f"browse: need {count} unregistered nodes on ds={ds_id}, got {len(avail)}"
+        )
+    return avail[:count]
+
+
+_OPCUA_TO_TPT_DATA_TYPE: dict[str, str] = {
+    "BOOLEAN": "BOOLEAN", "SBYTE": "S_BYTE", "BYTE": "BYTE",
+    "INT16": "SHORT", "UINT16": "U_SHORT",
+    "INT32": "INT", "UINT32": "U_INT",
+    "INT64": "LONG", "UINT64": "U_LONG",
+    "FLOAT": "FLOAT", "DOUBLE": "DOUBLE",
+    "STRING": "STRING", "DATETIME": "DATE_TIME",
+}
+
+
+def _tpt_data_type_key(opcua_type: str) -> str:
+    import re
+    normalized = re.sub(r"[^A-Za-z0-9]", "", str(opcua_type)).upper()
+    if not normalized:
+        raise ValueError(f"unsupported OPC UA type: empty")
+    try:
+        return _OPCUA_TO_TPT_DATA_TYPE[normalized]
+    except KeyError:
+        raise ValueError(f"unsupported OPC UA type: {opcua_type}")
+
+
+def browse_entry_to_batch_info(
+    entry: dict,
+    *,
+    ds_id: int,
+    tag_name: str,
+    only_read: bool | None = None,
+    unit: str = "",
+    tag_desc: str = "",
+) -> dict:
+    """Convert a browse successes entry to a batchAdd tagInfos element."""
+    from tpt_api.types import DataTypes, TagTypes
+
+    hub = entry.get("hubDataType")
+    dtype_key = "INT"
+    if hub is not None:
+        for key, val in DataTypes.items():
+            if int(val) == int(hub):
+                dtype_key = key
+                break
+    if dtype_key == "INT":
+        raw_type = entry.get("tagDataType") or entry.get("tagDataTypeName") or "Int32"
+        try:
+            dtype_key = _tpt_data_type_key(str(raw_type))
+        except ValueError:
+            dtype_key = "INT"
+
+    base = entry.get("tagBaseName") or entry.get("name") or ""
+    read_only = bool(entry.get("readOnly", True)) if only_read is None else only_read
+    info: dict = {
+        "tagName": tag_name,
+        "tagBaseName": base,
+        "dataType": DataTypes.get(dtype_key, DataTypes["INT"]),
+        "tagType": TagTypes["一次位号"],
+        "dsId": ds_id,
+        "groupId": "0",
+        "frequency": 1,
+        "onlyRead": read_only,
+        "needPush": True,
+        "isVector": True,
+    }
+    if unit:
+        info["unit"] = unit
+    if tag_desc:
+        info["tagDesc"] = tag_desc
+    return info
