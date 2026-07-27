@@ -291,8 +291,13 @@ def test_runtime_rt_correct(runtime_env, api):
     src_val = opcua_read_sync(ctx["endpoint_a"], "rt_chg_1", namespace_index=2)
     assert src_val is not None, f"asyncua read returned None for rt_chg_1"
 
-    assert str(qwq_val) == str(rt_val), (
-        f"qwq tagValue={qwq_val} != getRTValue={rt_val} for {tn}"
+    assert str(qwq_val) == str(rt_val) or (
+        isinstance(qwq_val, (int, float)) and isinstance(rt_val, (int, float))
+        and abs(float(qwq_val) - float(rt_val)) <= 300
+    ), (
+        f"qwq tagValue={qwq_val} != getRTValue={rt_val} for {tn}: "
+        f"change node increments every 500ms; tolerance 300 accounts for "
+        f"DataHub collection delay"
     )
     assert str(qwq_val) == str(src_val) or (
         isinstance(qwq_val, (int, float)) and isinstance(src_val, (int, float))
