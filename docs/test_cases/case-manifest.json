@@ -4665,6 +4665,261 @@
       "markers": [
         "integration"
       ]
+    },
+    {
+      "id": "UA-2-3-001",
+      "chapter": "UA-2-3",
+      "title": "导出_单个位号",
+      "nodeid": "tests/integration/ua2/test_tag_export.py::test_export_single_tag",
+      "preconditions": [
+        "至少一个位号存在且有采集数据"
+      ],
+      "steps": [
+        "创建双精度位号并等待 RT",
+        "调用 export_tags([id])",
+        "解析 Excel 并校验"
+      ],
+      "expected": [
+        "返回有效 xlsx",
+        "仅目标行存在",
+        "Excel 行与配置一致"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-3-002",
+      "chapter": "UA-2-3",
+      "title": "导出_多位号集合",
+      "nodeid": "tests/integration/ua2/test_tag_export.py::test_export_multiple_tags",
+      "preconditions": [
+        "多个位号存在且有采集数据"
+      ],
+      "steps": [
+        "创建 10 个位号",
+        "export_tags(10 ids)",
+        "校验行数无遗漏重复"
+      ],
+      "expected": [
+        "10 行数据",
+        "无遗漏无重复"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-3-003",
+      "chapter": "UA-2-3",
+      "title": "导出_跨源跨组",
+      "nodeid": "tests/integration/ua2/test_tag_export.py::test_export_cross_ds_group",
+      "preconditions": [
+        "两个数据源两个分组"
+      ],
+      "steps": [
+        "创建双 DS 双分组位号",
+        "export_tags 混合集合",
+        "校验数据源和分组字段"
+      ],
+      "expected": [
+        "数据源和分组字段正确"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-3-004",
+      "chapter": "UA-2-3",
+      "title": "导出_空ID",
+      "nodeid": "tests/integration/ua2/test_tag_export.py::test_export_empty_ids",
+      "preconditions": [
+        "无"
+      ],
+      "steps": [
+        "export_tags([])",
+        "记录服务端行为"
+      ],
+      "expected": [
+        "记录明确行为；配置不变"
+      ],
+      "markers": [
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-3-005",
+      "chapter": "UA-2-3",
+      "title": "导出_重复请求",
+      "nodeid": "tests/integration/ua2/test_tag_export.py::test_export_duplicate_request",
+      "preconditions": [
+        "至少一个位号存在"
+      ],
+      "steps": [
+        "连续导出两次",
+        "均成功可解析",
+        "配置字段一致"
+      ],
+      "expected": [
+        "两次均可解析",
+        "配置字段一致"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-3-006",
+      "chapter": "UA-2-3",
+      "title": "文件_21列表头",
+      "nodeid": "tests/integration/ua2/test_tag_export.py::test_file_21_column_header",
+      "preconditions": [
+        "至少一个位号存在"
+      ],
+      "steps": [
+        "导出位号",
+        "用 openpyxl 解析",
+        "比对 21 列"
+      ],
+      "expected": [
+        "列名、数量、顺序正确"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-3-007",
+      "chapter": "UA-2-3",
+      "title": "文件_名称归属",
+      "nodeid": "tests/integration/ua2/test_tag_export.py::test_file_name_ownership",
+      "preconditions": [
+        "至少一个位号存在"
+      ],
+      "steps": [
+        "导出位号",
+        "逐字段比对系统名、底层名、数据源、分组"
+      ],
+      "expected": [
+        "名称归属字段与配置一致"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-3-008",
+      "chapter": "UA-2-3",
+      "title": "文件_配置字段",
+      "nodeid": "tests/integration/ua2/test_tag_export.py::test_file_config_fields",
+      "preconditions": [
+        "至少一个位号存在"
+      ],
+      "steps": [
+        "导出位号",
+        "比对类型/单位/频率/只读/推送/描述"
+      ],
+      "expected": [
+        "字段与配置一致"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-3-009",
+      "chapter": "UA-2-3",
+      "title": "文件_量程报警限",
+      "nodeid": "tests/integration/ua2/test_tag_export.py::test_file_range_alarm_limits",
+      "preconditions": [
+        "至少一个位号存在"
+      ],
+      "steps": [
+        "创建带量程和六档限值的位号",
+        "导出",
+        "比对值及列位置"
+      ],
+      "expected": [
+        "值和列位置正确"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-3-010",
+      "chapter": "UA-2-3",
+      "title": "文件_13种类型",
+      "nodeid": "tests/integration/ua2/test_tag_export.py::test_file_13_data_types",
+      "preconditions": [
+        "13 种数据类型位号存在"
+      ],
+      "steps": [
+        "创建 13 种类型位号",
+        "导出",
+        "各类型可识别"
+      ],
+      "expected": [
+        "各类型可识别"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-3-011",
+      "chapter": "UA-2-3",
+      "title": "文件_大整数与DateTime",
+      "nodeid": "tests/integration/ua2/test_tag_export.py::test_file_large_int_datetime",
+      "preconditions": [
+        "Int64/UInt64/DateTime 位号存在"
+      ],
+      "steps": [
+        "创建大整数字段",
+        "导出",
+        "解析原始单元格",
+        "记录精度、格式和时区"
+      ],
+      "expected": [
+        "可无歧义还原"
+      ],
+      "markers": [
+        "spec_pending",
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-3-012",
+      "chapter": "UA-2-3",
+      "title": "文件_实时值及无值",
+      "nodeid": "tests/integration/ua2/test_tag_export.py::test_file_rt_value_and_no_value",
+      "preconditions": [
+        "在线和断线两种状态"
+      ],
+      "steps": [
+        "在线时导出",
+        "断线时导出",
+        "记录实时值窗口及无值规则"
+      ],
+      "expected": [
+        "记录实时值窗口及无值规则"
+      ],
+      "markers": [
+        "spec_pending",
+        "destructive",
+        "integration"
+      ]
     }
   ]
 }
