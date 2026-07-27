@@ -3448,6 +3448,588 @@
         "destructive",
         "integration"
       ]
+    },
+    {
+      "id": "UA-2-2-001",
+      "chapter": "UA-2-2",
+      "title": "列表_默认范围",
+      "nodeid": "tests/integration/ua2/test_tag_queries.py::test_list_default_scope",
+      "preconditions": [
+        "系统存在已注册位号"
+      ],
+      "steps": [
+        "调用 tag-info/page(page=1,size=10,data={})",
+        "调用 queryWithQuality(groupId='0')"
+      ],
+      "expected": [
+        "请求成功；分页结构可解析；记录 ID 唯一；数量不超过页大小"
+      ],
+      "markers": [
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-2-002",
+      "chapter": "UA-2-2",
+      "title": "列表_空范围",
+      "nodeid": "tests/integration/ua2/test_tag_queries.py::test_list_empty_scope",
+      "preconditions": [
+        "存在无位号分组 G0"
+      ],
+      "steps": [
+        "调用 queryWithQuality(groupId=G2)"
+      ],
+      "expected": [
+        "成功返回空记录且 total=0；不混入其他分组"
+      ],
+      "markers": [
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-2-003",
+      "chapter": "UA-2-2",
+      "title": "列表_多数据源集合",
+      "nodeid": "tests/integration/ua2/test_tag_queries.py::test_list_multi_ds",
+      "preconditions": [
+        "A、B 均有位号"
+      ],
+      "steps": [
+        "分别查询 A、B，并查询不限定数据源的范围"
+      ],
+      "expected": [
+        "各数据源集合归属正确；相同底层名按 dsId 区分；无重复 ID"
+      ],
+      "markers": [
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-2-004",
+      "chapter": "UA-2-2",
+      "title": "列表_配置字段",
+      "nodeid": "tests/integration/ua2/test_tag_queries.py::test_list_config_fields",
+      "preconditions": [
+        "已知完整配置位号"
+      ],
+      "steps": [
+        "按 tagName 定位记录"
+      ],
+      "expected": [
+        "tagName/tagBaseName/tagType/dsId/dataType/unit/frequency/onlyRead/needPush/tagDesc 与创建请求一致"
+      ],
+      "markers": [
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-2-005",
+      "chapter": "UA-2-2",
+      "title": "列表_重复查询稳定性",
+      "nodeid": "tests/integration/ua2/test_tag_queries.py::test_list_stability",
+      "preconditions": [
+        "查询期间不修改配置"
+      ],
+      "steps": [
+        "相同请求连续执行 3 次"
+      ],
+      "expected": [
+        "total 和 ID 顺序稳定；配置字段不漂移"
+      ],
+      "markers": [
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-2-006",
+      "chapter": "UA-2-2",
+      "title": "系统名_完整名称",
+      "nodeid": "tests/integration/ua2/test_tag_queries.py::test_sysname_exact",
+      "preconditions": [
+        "存在唯一目标位号"
+      ],
+      "steps": [
+        "使用完整 tagName 查询"
+      ],
+      "expected": [
+        "返回目标记录且不返回无关记录"
+      ],
+      "markers": [
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-2-007",
+      "chapter": "UA-2-2",
+      "title": "系统名_部分名称",
+      "nodeid": "tests/integration/ua2/test_tag_queries.py::test_sysname_partial",
+      "preconditions": [
+        "存在 tagA00/tagA01/tagA02"
+      ],
+      "steps": [
+        "使用公共前缀查询"
+      ],
+      "expected": [
+        "记录包含、前缀或精确匹配规则；不得返回明显无关项"
+      ],
+      "markers": [
+        "spec_pending",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-2-008",
+      "chapter": "UA-2-2",
+      "title": "系统名_不存在",
+      "nodeid": "tests/integration/ua2/test_tag_queries.py::test_sysname_not_found",
+      "preconditions": [
+        "目标名称不存在"
+      ],
+      "steps": [
+        "使用不存在名称查询"
+      ],
+      "expected": [
+        "成功返回空集合，不产生服务器错误"
+      ],
+      "markers": [
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-2-009",
+      "chapter": "UA-2-2",
+      "title": "系统名_大小写",
+      "nodeid": "tests/integration/ua2/test_tag_queries.py::test_sysname_case",
+      "preconditions": [
+        "存在大小写可区分名称"
+      ],
+      "steps": [
+        "分别使用原大小写和变体查询"
+      ],
+      "expected": [
+        "记录大小写规则，结果稳定可复现"
+      ],
+      "markers": [
+        "spec_pending",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-2-010",
+      "chapter": "UA-2-2",
+      "title": "系统名_Unicode与特殊字符",
+      "nodeid": "tests/integration/ua2/test_tag_queries.py::test_sysname_unicode",
+      "preconditions": [
+        "存在中文或允许特殊字符名称"
+      ],
+      "steps": [
+        "使用完整名和片段查询"
+      ],
+      "expected": [
+        "参数传输正确；无转义错误；记录匹配规则"
+      ],
+      "markers": [
+        "spec_pending",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-2-011",
+      "chapter": "UA-2-2",
+      "title": "系统名_空条件",
+      "nodeid": "tests/integration/ua2/test_tag_queries.py::test_sysname_empty_condition",
+      "preconditions": [
+        "已完成一次名称过滤"
+      ],
+      "steps": [
+        "改用空字符串或不传 tagName 查询"
+      ],
+      "expected": [
+        "名称过滤不再生效，恢复同一 dsId/groupId 范围集合"
+      ],
+      "markers": [
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-2-012",
+      "chapter": "UA-2-2",
+      "title": "底层名_完整名称",
+      "nodeid": "tests/integration/ua2/test_tag_queries.py::test_basename_exact",
+      "preconditions": [
+        "系统名与底层名不同"
+      ],
+      "steps": [
+        "使用完整 tagBaseName 查询"
+      ],
+      "expected": [
+        "定位绑定该节点的位号；系统名与底层名映射正确"
+      ],
+      "markers": [
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-2-013",
+      "chapter": "UA-2-2",
+      "title": "底层名_部分名称",
+      "nodeid": "tests/integration/ua2/test_tag_queries.py::test_basename_partial",
+      "preconditions": [
+        "多个底层名共享前缀"
+      ],
+      "steps": [
+        "使用公共片段查询"
+      ],
+      "expected": [
+        "记录匹配规则；结果仅含符合规则的节点"
+      ],
+      "markers": [
+        "spec_pending",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-2-014",
+      "chapter": "UA-2-2",
+      "title": "底层名_跨数据源同名",
+      "nodeid": "tests/integration/ua2/test_tag_queries.py::test_basename_cross_ds",
+      "preconditions": [
+        "A、B 有相同 tagBaseName"
+      ],
+      "steps": [
+        "不限定 dsId 查询，再分别限定 A、B"
+      ],
+      "expected": [
+        "记录按 dsId 区分；限定数据源后只返回对应记录"
+      ],
+      "markers": [
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-2-015",
+      "chapter": "UA-2-2",
+      "title": "底层名_namespace格式",
+      "nodeid": "tests/integration/ua2/test_tag_queries.py::test_basename_namespace",
+      "preconditions": [
+        "存在 \"1_static_1\""
+      ],
+      "steps": [
+        "使用完整值查询"
+      ],
+      "expected": [
+        "完整匹配目标；下划线和 namespace 部分未被截断"
+      ],
+      "markers": [
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-2-016",
+      "chapter": "UA-2-2",
+      "title": "底层名_不存在",
+      "nodeid": "tests/integration/ua2/test_tag_queries.py::test_basename_not_found",
+      "preconditions": [
+        "目标不存在"
+      ],
+      "steps": [
+        "查询不存在 tagBaseName"
+      ],
+      "expected": [
+        "成功返回空集合"
+      ],
+      "markers": [
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-2-017",
+      "chapter": "UA-2-2",
+      "title": "数据源_单个数据源",
+      "nodeid": "tests/integration/ua2/test_tag_queries.py::test_ds_filter_single",
+      "preconditions": [
+        "A、B 均有位号"
+      ],
+      "steps": [
+        "传 dsId=A 查询"
+      ],
+      "expected": [
+        "所有记录 dsId=A，集合与已知记录一致"
+      ],
+      "markers": [
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-2-018",
+      "chapter": "UA-2-2",
+      "title": "数据源_切换条件",
+      "nodeid": "tests/integration/ua2/test_tag_queries.py::test_ds_filter_switch",
+      "preconditions": [
+        "A、B 均有位号"
+      ],
+      "steps": [
+        "先传 A，再传 B 执行两次请求"
+      ],
+      "expected": [
+        "第二次只返回 B；请求之间不串条件"
+      ],
+      "markers": [
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-2-019",
+      "chapter": "UA-2-2",
+      "title": "数据源_无位号",
+      "nodeid": "tests/integration/ua2/test_tag_queries.py::test_ds_filter_empty",
+      "preconditions": [
+        "C 已创建但无位号"
+      ],
+      "steps": [
+        "传 dsId=C 查询"
+      ],
+      "expected": [
+        "成功返回空集合"
+      ],
+      "markers": [
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-2-020",
+      "chapter": "UA-2-2",
+      "title": "数据源_不传条件",
+      "nodeid": "tests/integration/ua2/test_tag_queries.py::test_ds_filter_no_param",
+      "preconditions": [
+        "已知 A、B 集合"
+      ],
+      "steps": [
+        "不传 dsId 查询"
+      ],
+      "expected": [
+        "返回接口默认范围；结果等于已确认范围内各数据源合集"
+      ],
+      "markers": [
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-2-021",
+      "chapter": "UA-2-2",
+      "title": "分组_Root范围",
+      "nodeid": "tests/integration/ua2/test_tag_queries.py::test_group_root_scope",
+      "preconditions": [
+        "Root 和普通分组均有位号"
+      ],
+      "steps": [
+        "查询 groupId=0"
+      ],
+      "expected": [
+        "记录 Root 是直属范围还是包含子组；结果可复现"
+      ],
+      "markers": [
+        "spec_pending",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-2-022",
+      "chapter": "UA-2-2",
+      "title": "分组_普通分组",
+      "nodeid": "tests/integration/ua2/test_tag_queries.py::test_group_normal",
+      "preconditions": [
+        "G1 有已知位号"
+      ],
+      "steps": [
+        "查询 groupId=G1"
+      ],
+      "expected": [
+        "仅返回 G1 范围记录"
+      ],
+      "markers": [
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-2-023",
+      "chapter": "UA-2-2",
+      "title": "分组_空分组",
+      "nodeid": "tests/integration/ua2/test_tag_queries.py::test_group_empty",
+      "preconditions": [
+        "G2 无位号"
+      ],
+      "steps": [
+        "查询 groupId=G2"
+      ],
+      "expected": [
+        "成功返回空集合"
+      ],
+      "markers": [
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-2-024",
+      "chapter": "UA-2-2",
+      "title": "分组_收藏夹",
+      "nodeid": "tests/integration/ua2/test_tag_queries.py::test_group_favorites",
+      "preconditions": [
+        "存在收藏和未收藏位号"
+      ],
+      "steps": [
+        "调用 tag-group/get(groupId='2')"
+      ],
+      "expected": [
+        "仅返回收藏关系中的位号；isCollect 与关系一致"
+      ],
+      "markers": [
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-2-025",
+      "chapter": "UA-2-2",
+      "title": "分组_回收站隔离",
+      "nodeid": "tests/integration/ua2/test_tag_queries.py::test_group_recycle_isolation",
+      "preconditions": [
+        "存在正常位号和软删除位号"
+      ],
+      "steps": [
+        "分别查询 Root 与 groupId=1"
+      ],
+      "expected": [
+        "软删除记录只在回收站；正常记录不被误隐藏"
+      ],
+      "markers": [
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-2-026",
+      "chapter": "UA-2-2",
+      "title": "组合_数据源与系统名",
+      "nodeid": "tests/integration/ua2/test_tag_queries.py::test_combined_ds_and_name",
+      "preconditions": [
+        "A、B 有相近名称"
+      ],
+      "steps": [
+        "传 dsId=A + tagName"
+      ],
+      "expected": [
+        "每条记录同时满足两个条件"
+      ],
+      "markers": [
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-2-027",
+      "chapter": "UA-2-2",
+      "title": "组合_数据源与底层名",
+      "nodeid": "tests/integration/ua2/test_tag_queries.py::test_combined_ds_and_base",
+      "preconditions": [
+        "A、B 有相同底层名"
+      ],
+      "steps": [
+        "传 dsId=A + tagBaseName"
+      ],
+      "expected": [
+        "只返回 A 中匹配记录"
+      ],
+      "markers": [
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-2-028",
+      "chapter": "UA-2-2",
+      "title": "组合_分组与系统名",
+      "nodeid": "tests/integration/ua2/test_tag_queries.py::test_combined_group_and_name",
+      "preconditions": [
+        "多个分组有相近名称"
+      ],
+      "steps": [
+        "传 groupId=G1 + tagName"
+      ],
+      "expected": [
+        "只返回 G1 中匹配记录"
+      ],
+      "markers": [
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-2-029",
+      "chapter": "UA-2-2",
+      "title": "组合_三条件",
+      "nodeid": "tests/integration/ua2/test_tag_queries.py::test_combined_three_conditions",
+      "preconditions": [
+        "存在唯一满足条件的目标"
+      ],
+      "steps": [
+        "传 dsId + groupId + tagName"
+      ],
+      "expected": [
+        "仅目标返回；条件为 AND 语义"
+      ],
+      "markers": [
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-2-030",
+      "chapter": "UA-2-2",
+      "title": "组合_条件矛盾",
+      "nodeid": "tests/integration/ua2/test_tag_queries.py::test_combined_contradiction",
+      "preconditions": [
+        "A 无目标名，B 有"
+      ],
+      "steps": [
+        "传 dsId=A + 目标名"
+      ],
+      "expected": [
+        "返回空集合，不退化为 OR 或单条件"
+      ],
+      "markers": [
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-2-031",
+      "chapter": "UA-2-2",
+      "title": "组合_修改单个条件",
+      "nodeid": "tests/integration/ua2/test_tag_queries.py::test_combined_change_one",
+      "preconditions": [
+        "准备两组可区分条件"
+      ],
+      "steps": [
+        "仅改变一次请求中的一个过滤字段"
+      ],
+      "expected": [
+        "第二次结果按新条件计算，其他参数保持生效"
+      ],
+      "markers": [
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-2-032",
+      "chapter": "UA-2-2",
+      "title": "组合_全部空条件",
+      "nodeid": "tests/integration/ua2/test_tag_queries.py::test_combined_all_empty",
+      "preconditions": [
+        "已执行组合过滤"
+      ],
+      "steps": [
+        "使用空过滤对象或各字段空值请求"
+      ],
+      "expected": [
+        "恢复接口默认范围；不残留上次请求条件"
+      ],
+      "markers": [
+        "integration"
+      ]
     }
   ]
 }
