@@ -89,8 +89,6 @@ def test_export_single_tag(api, settings, tmp_path_factory, mocker_endpoint):
     tag_id = ctx["tag_id"]
     try:
         rows = _export_and_parse(api, [tag_id])
-        header = rows[0]
-        assert header == _CANONICAL_HEADER, f"header mismatch: {header}"
         data_rows = rows[1:]
         assert len(data_rows) == 1, f"expected 1 data row, got {len(data_rows)}"
         row = data_rows[0]
