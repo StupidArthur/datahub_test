@@ -5985,6 +5985,117 @@
         "destructive",
         "integration"
       ]
+    },
+    {
+      "id": "UA-2-5-001",
+      "chapter": "UA-2-5",
+      "title": "分组树_基础结构",
+      "nodeid": "tests/integration/ua2/test_tag_group_management.py::TestGroupTree::test_tree_basic_structure",
+      "preconditions": [],
+      "steps": "调用 groupTree",
+      "expected": "Root 存在；节点 ID 唯一；父子关系可解析",
+      "markers": [
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-5-002",
+      "chapter": "UA-2-5",
+      "title": "分组树_重复查询稳定性",
+      "nodeid": "tests/integration/ua2/test_tag_group_management.py::TestGroupTree::test_tree_stability",
+      "preconditions": [],
+      "steps": "连续查询 3 次",
+      "expected": "节点集合和父子关系稳定",
+      "markers": [
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-5-003",
+      "chapter": "UA-2-5",
+      "title": "分组树_多级结构",
+      "nodeid": "tests/integration/ua2/test_tag_group_management.py::TestGroupCreate::test_multi_level_tree",
+      "preconditions": [],
+      "steps": "创建三级节点后查询",
+      "expected": "parentId 和递归结构正确",
+      "markers": [
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-5-004",
+      "chapter": "UA-2-5",
+      "title": "创建_根下节点",
+      "nodeid": "tests/integration/ua2/test_tag_group_management.py::TestGroupCreate::test_create_under_root",
+      "preconditions": [],
+      "steps": "add(name, '0')",
+      "expected": "节点出现在 Root 下，名称和 ID 正确",
+      "markers": [
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-5-005",
+      "chapter": "UA-2-5",
+      "title": "创建_子节点",
+      "nodeid": "tests/integration/ua2/test_tag_group_management.py::TestGroupCreate::test_create_child",
+      "preconditions": [],
+      "steps": "在 G1 下创建 G2",
+      "expected": "G2.parentId=G1",
+      "markers": [
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-5-006",
+      "chapter": "UA-2-5",
+      "title": "创建_重复名称",
+      "nodeid": "tests/integration/ua2/test_tag_group_management.py::TestGroupCreate::test_create_duplicate_name",
+      "preconditions": [],
+      "steps": "同一父节点创建同名节点",
+      "expected": "记录允许或拒绝规则；身份不混乱",
+      "markers": [
+        "spec_pending",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-5-007",
+      "chapter": "UA-2-5",
+      "title": "创建_空名称",
+      "nodeid": "tests/integration/ua2/test_tag_group_management.py::TestGroupCreate::test_create_empty_name",
+      "preconditions": [],
+      "steps": "groupName=''",
+      "expected": "记录校验规则；失败时不产生节点",
+      "markers": [
+        "spec_pending",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-5-008",
+      "chapter": "UA-2-5",
+      "title": "创建_不存在父节点",
+      "nodeid": "tests/integration/ua2/test_tag_group_management.py::TestGroupCreate::test_create_nonexistent_parent",
+      "preconditions": [],
+      "steps": "使用无效 parentId",
+      "expected": "拒绝或按明确规则处理；不得挂错位置",
+      "markers": [
+        "spec_pending",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-5-009",
+      "chapter": "UA-2-5",
+      "title": "编辑_重命名",
+      "nodeid": "tests/integration/ua2/test_tag_group_management.py::TestGroupEdit::test_rename",
+      "preconditions": [],
+      "steps": "update(id, newName, parentId)",
+      "expected": "树中显示新名称；ID 和父节点不变",
+      "markers": [
+        "integration"
+      ]
     }
   ]
 }

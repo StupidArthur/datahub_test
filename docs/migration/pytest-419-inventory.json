@@ -71,7 +71,7 @@
     }
   ],
   "duplicates_in_source": [],
-  "pytest_total": 266,
+  "pytest_total": 275,
   "migrated": [
     "UA-1-1-01",
     "UA-1-1-02",
@@ -338,7 +338,16 @@
     "UA-2-4-024",
     "UA-2-4-025",
     "UA-2-4-026",
-    "UA-2-4-027"
+    "UA-2-4-027",
+    "UA-2-5-001",
+    "UA-2-5-002",
+    "UA-2-5-003",
+    "UA-2-5-004",
+    "UA-2-5-005",
+    "UA-2-5-006",
+    "UA-2-5-007",
+    "UA-2-5-008",
+    "UA-2-5-009"
   ],
   "missing": [
     "UA-1-4-01",
@@ -369,15 +378,6 @@
     "UA-1-6-11",
     "UA-1-6-12",
     "UA-1-6-13",
-    "UA-2-5-001",
-    "UA-2-5-002",
-    "UA-2-5-003",
-    "UA-2-5-004",
-    "UA-2-5-005",
-    "UA-2-5-006",
-    "UA-2-5-007",
-    "UA-2-5-008",
-    "UA-2-5-009",
     "UA-2-5-010",
     "UA-2-5-011",
     "UA-2-5-012",
@@ -1034,6 +1034,33 @@
     "UA-2-3-012": [
       "tests/integration/ua2/test_tag_export.py::test_file_rt_value_and_no_value"
     ],
+    "UA-2-5-001": [
+      "tests/integration/ua2/test_tag_group_management.py::TestGroupTree::test_tree_basic_structure"
+    ],
+    "UA-2-5-002": [
+      "tests/integration/ua2/test_tag_group_management.py::TestGroupTree::test_tree_stability"
+    ],
+    "UA-2-5-003": [
+      "tests/integration/ua2/test_tag_group_management.py::TestGroupCreate::test_multi_level_tree"
+    ],
+    "UA-2-5-004": [
+      "tests/integration/ua2/test_tag_group_management.py::TestGroupCreate::test_create_under_root"
+    ],
+    "UA-2-5-005": [
+      "tests/integration/ua2/test_tag_group_management.py::TestGroupCreate::test_create_child"
+    ],
+    "UA-2-5-006": [
+      "tests/integration/ua2/test_tag_group_management.py::TestGroupCreate::test_create_duplicate_name"
+    ],
+    "UA-2-5-007": [
+      "tests/integration/ua2/test_tag_group_management.py::TestGroupCreate::test_create_empty_name"
+    ],
+    "UA-2-5-008": [
+      "tests/integration/ua2/test_tag_group_management.py::TestGroupCreate::test_create_nonexistent_parent"
+    ],
+    "UA-2-5-009": [
+      "tests/integration/ua2/test_tag_group_management.py::TestGroupEdit::test_rename"
+    ],
     "UA-2-3-013": [
       "tests/integration/ua2/test_tag_import_basic.py::test_import_single_tag"
     ],
@@ -1476,6 +1503,15 @@
     "tests/integration/ua2/test_tag_export.py::test_file_13_data_types": "UA-2-3-010",
     "tests/integration/ua2/test_tag_export.py::test_file_large_int_datetime": "UA-2-3-011",
     "tests/integration/ua2/test_tag_export.py::test_file_rt_value_and_no_value": "UA-2-3-012",
+    "tests/integration/ua2/test_tag_group_management.py::TestGroupTree::test_tree_basic_structure": "UA-2-5-001",
+    "tests/integration/ua2/test_tag_group_management.py::TestGroupTree::test_tree_stability": "UA-2-5-002",
+    "tests/integration/ua2/test_tag_group_management.py::TestGroupCreate::test_multi_level_tree": "UA-2-5-003",
+    "tests/integration/ua2/test_tag_group_management.py::TestGroupCreate::test_create_under_root": "UA-2-5-004",
+    "tests/integration/ua2/test_tag_group_management.py::TestGroupCreate::test_create_child": "UA-2-5-005",
+    "tests/integration/ua2/test_tag_group_management.py::TestGroupCreate::test_create_duplicate_name": "UA-2-5-006",
+    "tests/integration/ua2/test_tag_group_management.py::TestGroupCreate::test_create_empty_name": "UA-2-5-007",
+    "tests/integration/ua2/test_tag_group_management.py::TestGroupCreate::test_create_nonexistent_parent": "UA-2-5-008",
+    "tests/integration/ua2/test_tag_group_management.py::TestGroupEdit::test_rename": "UA-2-5-009",
     "tests/integration/ua2/test_tag_import_basic.py::test_import_single_tag": "UA-2-3-013",
     "tests/integration/ua2/test_tag_import_basic.py::test_import_multiple_tags": "UA-2-3-014",
     "tests/integration/ua2/test_tag_import_basic.py::test_import_cross_ds_group": "UA-2-3-015",
@@ -1635,9 +1671,9 @@
     {
       "chapter": "UA-2",
       "source": 265,
-      "pytest": 238,
-      "migrated_count": 238,
-      "missing_count": 27,
+      "pytest": 247,
+      "migrated_count": 247,
+      "missing_count": 18,
       "migrated": [
         "UA-2-1-001",
         "UA-2-1-002",
@@ -1876,9 +1912,7 @@
         "UA-2-4-024",
         "UA-2-4-025",
         "UA-2-4-026",
-        "UA-2-4-027"
-      ],
-      "missing": [
+        "UA-2-4-027",
         "UA-2-5-001",
         "UA-2-5-002",
         "UA-2-5-003",
@@ -1887,7 +1921,9 @@
         "UA-2-5-006",
         "UA-2-5-007",
         "UA-2-5-008",
-        "UA-2-5-009",
+        "UA-2-5-009"
+      ],
+      "missing": [
         "UA-2-5-010",
         "UA-2-5-011",
         "UA-2-5-012",
