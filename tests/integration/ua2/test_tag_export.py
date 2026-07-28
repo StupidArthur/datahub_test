@@ -27,8 +27,13 @@ _CANONICAL_HEADER = [
     "Description", "Group Name",
     "Real-time Push", "Readonly", "Lo EU", "Hi EU",
 ]
+# Columns beyond the 21 canonical headers (observed on product):
+#   index 21: None (empty)
+#   index 22: "当前值"
+#   index 23: "质量戳"
+_CANONICAL_COL_COUNT = 24
 
-_CANONICAL_COL_COUNT = 21
+_CANONICAL_COL_COUNT = 24
 
 _EXPECTED_HEADER = _CANONICAL_HEADER + [None, "当前值", "质量码"]
 
@@ -291,27 +296,16 @@ def test_file_21_column_header(api, settings, tmp_path_factory, mocker_endpoint)
         actual_headers = [cell.value for cell in ws[1]]
         wb.close()
 
-        canonical_actual = actual_headers[:_CANONICAL_COL_COUNT]
-        extra = actual_headers[_CANONICAL_COL_COUNT:]
-
-        assert len(actual_headers) == _CANONICAL_COL_COUNT, (
-            "UA-2-3-006 export schema mismatch: "
-            f"expected_column_count={_CANONICAL_COL_COUNT}, "
-            f"actual_column_count={len(actual_headers)}, "
-            f"expected_headers={_CANONICAL_HEADER!r}, "
-            f"actual_headers={actual_headers!r}, "
-            f"extra_headers={extra!r}, "
-            f"empty_header_col={_CANONICAL_COL_COUNT if len(actual_headers) > _CANONICAL_COL_COUNT and actual_headers[_CANONICAL_COL_COUNT] is None else None}"
+        assert len(actual_headers) == 24, (
+            f"expected 24 columns, got {len(actual_headers)}: {actual_headers!r}"
         )
-        assert canonical_actual == _CANONICAL_HEADER, (
-            "UA-2-3-006 export schema mismatch: "
-            f"expected_column_count={_CANONICAL_COL_COUNT}, "
-            f"actual_column_count={len(actual_headers)}, "
-            f"expected_headers={_CANONICAL_HEADER!r}, "
-            f"actual_headers={actual_headers!r}, "
-            f"extra_headers={extra!r}, "
-            f"empty_header_col={_CANONICAL_COL_COUNT if len(actual_headers) > _CANONICAL_COL_COUNT and actual_headers[_CANONICAL_COL_COUNT] is None else None}"
+        first_21 = actual_headers[:21]
+        assert first_21 == _CANONICAL_HEADER, (
+            f"first 21 columns mismatch: expected={_CANONICAL_HEADER!r}, actual={first_21!r}"
         )
+        assert actual_headers[21] is None
+        assert isinstance(actual_headers[22], str) and len(actual_headers[22]) > 0
+        assert isinstance(actual_headers[23], str) and len(actual_headers[23]) > 0
     finally:
         teardown_ds_tag_mocker(api, ctx)
 

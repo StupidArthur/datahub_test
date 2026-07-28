@@ -521,7 +521,10 @@ def import_tags_from_file(
       file_path:         Excel 文件路径
       conflict_strategy: 冲突策略（0=跳过已存在的，1=覆盖已存在的）
 
-    返回: {success: bool, code: str}（code="00000" 表示成功）
+    返回:
+      XLSX 响应: {response_type: "xlsx", http_status: int, content_type: str, content: {file: bytes}}
+      JSON 成功: JSON 的 content 字段（业务成功 code="00000"）
+      JSON 失败: 抛出 TptAPIError
     """
     with open(file_path, "rb") as f:
         file_bytes = f.read()
@@ -534,8 +537,10 @@ def import_tags_from_file(
     r = api.client.request("POST", url, files=files, data=data)
     r.raise_for_status()
     content = r.content
+    ct = r.headers.get("content-type", "")
     if content and content[:2] == b"PK":
-        return {"success": True, "code": "00000", "content": {"file": content}}
+        return {"response_type": "xlsx", "http_status": r.status_code,
+                "content_type": ct, "content": {"file": content}}
     result = r.json()
     if result.get("code") != SuccessCode:
         from .errors import TptAPIError

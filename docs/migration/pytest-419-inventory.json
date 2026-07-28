@@ -71,7 +71,7 @@
     }
   ],
   "duplicates_in_source": [],
-  "pytest_total": 219,
+  "pytest_total": 239,
   "migrated": [
     "UA-1-1-01",
     "UA-1-1-02",
@@ -291,7 +291,27 @@
     "UA-2-3-009",
     "UA-2-3-010",
     "UA-2-3-011",
-    "UA-2-3-012"
+    "UA-2-3-012",
+    "UA-2-3-013",
+    "UA-2-3-014",
+    "UA-2-3-015",
+    "UA-2-3-016",
+    "UA-2-3-017",
+    "UA-2-3-018",
+    "UA-2-3-019",
+    "UA-2-3-020",
+    "UA-2-3-021",
+    "UA-2-3-022",
+    "UA-2-3-023",
+    "UA-2-3-024",
+    "UA-2-3-025",
+    "UA-2-3-026",
+    "UA-2-3-027",
+    "UA-2-3-028",
+    "UA-2-3-029",
+    "UA-2-3-030",
+    "UA-2-3-031",
+    "UA-2-3-032"
   ],
   "missing": [
     "UA-1-4-01",
@@ -322,26 +342,6 @@
     "UA-1-6-11",
     "UA-1-6-12",
     "UA-1-6-13",
-    "UA-2-3-013",
-    "UA-2-3-014",
-    "UA-2-3-015",
-    "UA-2-3-016",
-    "UA-2-3-017",
-    "UA-2-3-018",
-    "UA-2-3-019",
-    "UA-2-3-020",
-    "UA-2-3-021",
-    "UA-2-3-022",
-    "UA-2-3-023",
-    "UA-2-3-024",
-    "UA-2-3-025",
-    "UA-2-3-026",
-    "UA-2-3-027",
-    "UA-2-3-028",
-    "UA-2-3-029",
-    "UA-2-3-030",
-    "UA-2-3-031",
-    "UA-2-3-032",
     "UA-2-4-001",
     "UA-2-4-002",
     "UA-2-4-003",
@@ -953,6 +953,66 @@
     "UA-2-3-012": [
       "tests/integration/ua2/test_tag_export.py::test_file_rt_value_and_no_value"
     ],
+    "UA-2-3-013": [
+      "tests/integration/ua2/test_tag_import_basic.py::test_import_single_tag"
+    ],
+    "UA-2-3-014": [
+      "tests/integration/ua2/test_tag_import_basic.py::test_import_multiple_tags"
+    ],
+    "UA-2-3-015": [
+      "tests/integration/ua2/test_tag_import_basic.py::test_import_cross_ds_group"
+    ],
+    "UA-2-3-016": [
+      "tests/integration/ua2/test_tag_import_basic.py::test_import_full_config"
+    ],
+    "UA-2-3-017": [
+      "tests/integration/ua2/test_tag_import_basic.py::test_import_13_data_types"
+    ],
+    "UA-2-3-018": [
+      "tests/integration/ua2/test_tag_import_basic.py::test_import_unicode_blank"
+    ],
+    "UA-2-3-019": [
+      "tests/integration/ua2/test_tag_import_basic.py::test_import_availability"
+    ],
+    "UA-2-3-024": [
+      "tests/integration/ua2/test_tag_import_basic.py::test_import_datasource_or_group_not_exist"
+    ],
+    "UA-2-3-025": [
+      "tests/integration/ua2/test_tag_import_basic.py::test_import_empty_corrupt_file"
+    ],
+    "UA-2-3-026": [
+      "tests/integration/ua2/test_tag_import_basic.py::test_import_structure_errors"
+    ],
+    "UA-2-3-027": [
+      "tests/integration/ua2/test_tag_import_basic.py::test_import_valid_invalid_mixed"
+    ],
+    "UA-2-3-020": [
+      "tests/integration/ua2/test_tag_import_conflicts.py::test_import_conflict_skip"
+    ],
+    "UA-2-3-021": [
+      "tests/integration/ua2/test_tag_import_conflicts.py::test_import_conflict_overwrite"
+    ],
+    "UA-2-3-022": [
+      "tests/integration/ua2/test_tag_import_conflicts.py::test_import_conflict_overwrite_identity"
+    ],
+    "UA-2-3-023": [
+      "tests/integration/ua2/test_tag_import_conflicts.py::test_import_conflict_duplicate_in_file"
+    ],
+    "UA-2-3-028": [
+      "tests/integration/ua2/test_tag_import_roundtrip_batch.py::test_tag_import_roundtrip_export_modify_import_export"
+    ],
+    "UA-2-3-029": [
+      "tests/integration/ua2/test_tag_import_roundtrip_batch.py::test_batch_add_single_and_multiple"
+    ],
+    "UA-2-3-030": [
+      "tests/integration/ua2/test_tag_import_roundtrip_batch.py::test_batch_add_mapping_isolation"
+    ],
+    "UA-2-3-031": [
+      "tests/integration/ua2/test_tag_import_roundtrip_batch.py::test_batch_add_conflict_strategy"
+    ],
+    "UA-2-3-032": [
+      "tests/integration/ua2/test_tag_import_roundtrip_batch.py::test_batch_add_100_integrity"
+    ],
     "UA-2-2-001": [
       "tests/integration/ua2/test_tag_queries.py::test_list_default_scope"
     ],
@@ -1308,6 +1368,26 @@
     "tests/integration/ua2/test_tag_export.py::test_file_13_data_types": "UA-2-3-010",
     "tests/integration/ua2/test_tag_export.py::test_file_large_int_datetime": "UA-2-3-011",
     "tests/integration/ua2/test_tag_export.py::test_file_rt_value_and_no_value": "UA-2-3-012",
+    "tests/integration/ua2/test_tag_import_basic.py::test_import_single_tag": "UA-2-3-013",
+    "tests/integration/ua2/test_tag_import_basic.py::test_import_multiple_tags": "UA-2-3-014",
+    "tests/integration/ua2/test_tag_import_basic.py::test_import_cross_ds_group": "UA-2-3-015",
+    "tests/integration/ua2/test_tag_import_basic.py::test_import_full_config": "UA-2-3-016",
+    "tests/integration/ua2/test_tag_import_basic.py::test_import_13_data_types": "UA-2-3-017",
+    "tests/integration/ua2/test_tag_import_basic.py::test_import_unicode_blank": "UA-2-3-018",
+    "tests/integration/ua2/test_tag_import_basic.py::test_import_availability": "UA-2-3-019",
+    "tests/integration/ua2/test_tag_import_basic.py::test_import_datasource_or_group_not_exist": "UA-2-3-024",
+    "tests/integration/ua2/test_tag_import_basic.py::test_import_empty_corrupt_file": "UA-2-3-025",
+    "tests/integration/ua2/test_tag_import_basic.py::test_import_structure_errors": "UA-2-3-026",
+    "tests/integration/ua2/test_tag_import_basic.py::test_import_valid_invalid_mixed": "UA-2-3-027",
+    "tests/integration/ua2/test_tag_import_conflicts.py::test_import_conflict_skip": "UA-2-3-020",
+    "tests/integration/ua2/test_tag_import_conflicts.py::test_import_conflict_overwrite": "UA-2-3-021",
+    "tests/integration/ua2/test_tag_import_conflicts.py::test_import_conflict_overwrite_identity": "UA-2-3-022",
+    "tests/integration/ua2/test_tag_import_conflicts.py::test_import_conflict_duplicate_in_file": "UA-2-3-023",
+    "tests/integration/ua2/test_tag_import_roundtrip_batch.py::test_tag_import_roundtrip_export_modify_import_export": "UA-2-3-028",
+    "tests/integration/ua2/test_tag_import_roundtrip_batch.py::test_batch_add_single_and_multiple": "UA-2-3-029",
+    "tests/integration/ua2/test_tag_import_roundtrip_batch.py::test_batch_add_mapping_isolation": "UA-2-3-030",
+    "tests/integration/ua2/test_tag_import_roundtrip_batch.py::test_batch_add_conflict_strategy": "UA-2-3-031",
+    "tests/integration/ua2/test_tag_import_roundtrip_batch.py::test_batch_add_100_integrity": "UA-2-3-032",
     "tests/integration/ua2/test_tag_queries.py::test_list_default_scope": "UA-2-2-001",
     "tests/integration/ua2/test_tag_queries.py::test_list_empty_scope": "UA-2-2-002",
     "tests/integration/ua2/test_tag_queries.py::test_list_multi_ds": "UA-2-2-003",
@@ -1447,9 +1527,9 @@
     {
       "chapter": "UA-2",
       "source": 265,
-      "pytest": 191,
-      "migrated_count": 191,
-      "missing_count": 74,
+      "pytest": 211,
+      "migrated_count": 211,
+      "missing_count": 54,
       "migrated": [
         "UA-2-1-001",
         "UA-2-1-002",
@@ -1641,9 +1721,7 @@
         "UA-2-3-009",
         "UA-2-3-010",
         "UA-2-3-011",
-        "UA-2-3-012"
-      ],
-      "missing": [
+        "UA-2-3-012",
         "UA-2-3-013",
         "UA-2-3-014",
         "UA-2-3-015",
@@ -1663,7 +1741,9 @@
         "UA-2-3-029",
         "UA-2-3-030",
         "UA-2-3-031",
-        "UA-2-3-032",
+        "UA-2-3-032"
+      ],
+      "missing": [
         "UA-2-4-001",
         "UA-2-4-002",
         "UA-2-4-003",

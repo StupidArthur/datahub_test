@@ -4920,6 +4920,439 @@
         "destructive",
         "integration"
       ]
+    },
+    {
+      "id": "UA-2-3-013",
+      "chapter": "UA-2-3",
+      "title": "Excel导入_单条",
+      "nodeid": "tests/integration/ua2/test_tag_import_basic.py::test_import_single_tag",
+      "preconditions": [
+        "目标 datasource 存在且 alive"
+      ],
+      "steps": [
+        "创建 DS + tag",
+        "export 得模板",
+        "构造 1 行工作簿",
+        "导入",
+        "查询验证"
+      ],
+      "expected": [
+        "只创建 1 条且字段正确"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-3-014",
+      "chapter": "UA-2-3",
+      "title": "Excel导入_多条",
+      "nodeid": "tests/integration/ua2/test_tag_import_basic.py::test_import_multiple_tags",
+      "preconditions": [
+        "目标 datasource 存在且 alive"
+      ],
+      "steps": [
+        "创建 DS + tag",
+        "export 得模板",
+        "构造 10 行工作簿",
+        "导入",
+        "验证 10 条"
+      ],
+      "expected": [
+        "恰好创建 10 条"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-3-015",
+      "chapter": "UA-2-3",
+      "title": "Excel导入_跨源跨组",
+      "nodeid": "tests/integration/ua2/test_tag_import_basic.py::test_import_cross_ds_group",
+      "preconditions": [
+        "两个 datasource 和两个普通 group 存在"
+      ],
+      "steps": [
+        "双 DS 双 Group 工作簿",
+        "导入",
+        "验证归属"
+      ],
+      "expected": [
+        "每条映射到正确 dsId/group"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-3-016",
+      "chapter": "UA-2-3",
+      "title": "Excel导入_完整配置",
+      "nodeid": "tests/integration/ua2/test_tag_import_basic.py::test_import_full_config",
+      "preconditions": [
+        "datasource 存在"
+      ],
+      "steps": [
+        "含全部支持字段的工作簿",
+        "导入",
+        "逐字段回查"
+      ],
+      "expected": [
+        "所有字段保存正确"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-3-017",
+      "chapter": "UA-2-3",
+      "title": "Excel导入_13种类型",
+      "nodeid": "tests/integration/ua2/test_tag_import_basic.py::test_import_13_data_types",
+      "preconditions": [
+        "datasource 存在"
+      ],
+      "steps": [
+        "13 种数据类型的工作簿",
+        "逐类型独立导入",
+        "验证 dataType"
+      ],
+      "expected": [
+        "各类型可导入且 dataType 正确；DateTime 若被拒绝记录为 FAIL"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-3-018",
+      "chapter": "UA-2-3",
+      "title": "Excel导入_Unicode与空白字段",
+      "nodeid": "tests/integration/ua2/test_tag_import_basic.py::test_import_unicode_blank",
+      "preconditions": [
+        "datasource 存在"
+      ],
+      "steps": [
+        "含中文、Unicode、空白的工作簿",
+        "导入",
+        "记录配置结果"
+      ],
+      "expected": [
+        "不出现乱码或错误映射"
+      ],
+      "markers": [
+        "spec_pending",
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-3-019",
+      "chapter": "UA-2-3",
+      "title": "Excel导入_可用性闭环",
+      "nodeid": "tests/integration/ua2/test_tag_import_basic.py::test_import_availability",
+      "preconditions": [
+        "datasource 存在且 mocker 运行"
+      ],
+      "steps": [
+        "导入位号",
+        "等待 RT",
+        "验证 QwQ",
+        "清理"
+      ],
+      "expected": [
+        "RT 出现",
+        "QwQ 有效"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-3-020",
+      "chapter": "UA-2-3",
+      "title": "冲突_跳过",
+      "nodeid": "tests/integration/ua2/test_tag_import_conflicts.py::test_import_conflict_skip",
+      "preconditions": [
+        "目标 tag 已存在"
+      ],
+      "steps": [
+        "首次导入 tagA",
+        "再次导入相同 tagA（conflict_strategy=0）",
+        "确认仍是首次值"
+      ],
+      "expected": [
+        "冲突时不覆盖，已有记录 ID 不变，新增记录创建"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-3-021",
+      "chapter": "UA-2-3",
+      "title": "冲突_覆盖",
+      "nodeid": "tests/integration/ua2/test_tag_import_conflicts.py::test_import_conflict_overwrite",
+      "preconditions": [
+        "目标 tag 已存在"
+      ],
+      "steps": [
+        "首次导入 tagA",
+        "再次导入相同 tagA（conflict_strategy=1）",
+        "确认配置更新、未修改字段保持、RT 继续可用"
+      ],
+      "expected": [
+        "目标配置更新，记录身份明确，RT 继续可用"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-3-022",
+      "chapter": "UA-2-3",
+      "title": "冲突_覆盖身份与空白字段",
+      "nodeid": "tests/integration/ua2/test_tag_import_conflicts.py::test_import_conflict_overwrite_identity",
+      "preconditions": [
+        "目标 tag 已存在"
+      ],
+      "steps": [
+        "创建 tagA",
+        "覆盖导入空白 Unit 和 Desc",
+        "记录 ID、空白字段行为、分组关系、RT"
+      ],
+      "expected": [
+        "记录产品覆盖行为"
+      ],
+      "markers": [
+        "spec_pending",
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-3-023",
+      "chapter": "UA-2-3",
+      "title": "冲突_文件内重名",
+      "nodeid": "tests/integration/ua2/test_tag_import_conflicts.py::test_import_conflict_duplicate_in_file",
+      "preconditions": [
+        "datasource 存在"
+      ],
+      "steps": [
+        "工作簿含两行相同 tagName",
+        "导入",
+        "记录冲突行为和最终配置"
+      ],
+      "expected": [
+        "最终不得有两个全局同名记录",
+        "结果可定位冲突行"
+      ],
+      "markers": [
+        "spec_pending",
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-3-024",
+      "chapter": "UA-2-3",
+      "title": "映射_数据源或分组不存在",
+      "nodeid": "tests/integration/ua2/test_tag_import_basic.py::test_import_datasource_or_group_not_exist",
+      "preconditions": [
+        "datasource 存在"
+      ],
+      "steps": [
+        "使用别名/不存在的 DS 名/不存在的 Group",
+        "记录产品行为"
+      ],
+      "expected": [
+        "记录产品行为"
+      ],
+      "markers": [
+        "spec_pending",
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-3-025",
+      "chapter": "UA-2-3",
+      "title": "文件校验_空损坏或错误类型",
+      "nodeid": "tests/integration/ua2/test_tag_import_basic.py::test_import_empty_corrupt_file",
+      "preconditions": [
+        "datasource 存在"
+      ],
+      "steps": [
+        "0 字节、只有表头、损坏 xlsx、txt、csv、错误扩展名",
+        "分别导入",
+        "要求明确拒绝"
+      ],
+      "expected": [
+        "明确失败且不创建位号"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-3-026",
+      "chapter": "UA-2-3",
+      "title": "文件校验_结构与行错误",
+      "nodeid": "tests/integration/ua2/test_tag_import_basic.py::test_import_structure_errors",
+      "preconditions": [
+        "datasource 存在"
+      ],
+      "steps": [
+        "缺必填列、重复必填列、乱序列、缺 tagName、缺 datasource、非法 Data Type、非法布尔值"
+      ],
+      "expected": [
+        "不发生静默错误转换，结果可定位失败文件或数据行"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-3-027",
+      "chapter": "UA-2-3",
+      "title": "文件校验_合法非法混合",
+      "nodeid": "tests/integration/ua2/test_tag_import_basic.py::test_import_valid_invalid_mixed",
+      "preconditions": [
+        "datasource 存在"
+      ],
+      "steps": [
+        "同一文件包含合法行和非法行",
+        "导入",
+        "记录整批回滚或部分成功"
+      ],
+      "expected": [
+        "记录产品事务规则"
+      ],
+      "markers": [
+        "spec_pending",
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-3-028",
+      "chapter": "UA-2-3",
+      "title": "往返_导出修改导入再导出",
+      "nodeid": "tests/integration/ua2/test_tag_import_roundtrip_batch.py::test_tag_import_roundtrip_export_modify_import_export",
+      "preconditions": [
+        "目标 datasource alive"
+      ],
+      "steps": [
+        "导出",
+        "修改 Unit、Frequency、Description",
+        "覆盖导入",
+        "再次导出并比较"
+      ],
+      "expected": [
+        "修改字段生效",
+        "未修改字段保留",
+        "RT 仍可用"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-3-029",
+      "chapter": "UA-2-3",
+      "title": "数据源批量_单个与多个",
+      "nodeid": "tests/integration/ua2/test_tag_import_roundtrip_batch.py::test_batch_add_single_and_multiple",
+      "preconditions": [
+        "目标 datasource alive 且有至少 10 个未注册节点"
+      ],
+      "steps": [
+        "选择 1 个节点 batchAdd",
+        "清理",
+        "选择 10 个节点 batchAdd",
+        "验证"
+      ],
+      "expected": [
+        "单个和 10 个批量创建均完整"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-3-030",
+      "chapter": "UA-2-3",
+      "title": "数据源批量_映射隔离",
+      "nodeid": "tests/integration/ua2/test_tag_import_roundtrip_batch.py::test_batch_add_mapping_isolation",
+      "preconditions": [
+        "两个不同底层节点的数据源 alive"
+      ],
+      "steps": [
+        "分别 browse 两个 datasource",
+        "分别 batchAdd",
+        "核对映射和 RT"
+      ],
+      "expected": [
+        "dataType、onlyRead、dsId 均按数据源隔离"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-3-031",
+      "chapter": "UA-2-3",
+      "title": "数据源批量_冲突策略",
+      "nodeid": "tests/integration/ua2/test_tag_import_roundtrip_batch.py::test_batch_add_conflict_strategy",
+      "preconditions": [
+        "目标 datasource alive"
+      ],
+      "steps": [
+        "首次 batchAdd",
+        "strategy=0 重复提交",
+        "strategy=1 修改后提交"
+      ],
+      "expected": [
+        "跳过不变，覆盖生效"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-3-032",
+      "chapter": "UA-2-3",
+      "title": "100条完整性",
+      "nodeid": "tests/integration/ua2/test_tag_import_roundtrip_batch.py::test_batch_add_100_integrity",
+      "preconditions": [
+        "目标 datasource alive 且有至少 100 个未注册节点"
+      ],
+      "steps": [
+        "browse 100 节点",
+        "一次 batchAdd",
+        "核对数量、唯一性、RT"
+      ],
+      "expected": [
+        "恰好 100 条，无重复无遗漏，抽样 RT 可用"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
     }
   ]
 }
