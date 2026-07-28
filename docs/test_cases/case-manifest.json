@@ -4858,18 +4858,19 @@
     {
       "id": "UA-2-3-010",
       "chapter": "UA-2-3",
-      "title": "文件_13种类型",
+      "title": "文件_13种数据类型",
       "nodeid": "tests/integration/ua2/test_tag_export.py::test_file_13_data_types",
       "preconditions": [
         "13 种数据类型位号存在"
       ],
       "steps": [
-        "创建 13 种类型位号",
-        "导出",
-        "各类型可识别"
+        "创建包含 13 个真实节点的 mocker",
+        "逐类型创建位号",
+        "导出全部",
+        "比对 Data Type"
       ],
       "expected": [
-        "各类型可识别"
+        "13 种类型均正确识别"
       ],
       "markers": [
         "destructive",

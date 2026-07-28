@@ -335,20 +335,10 @@ def test_import_13_data_types(api, settings, tmp_path_factory, mocker_endpoint):
             else:
                 failures.append({"type": dt_key, "issue": "not_found_no_error"})
 
-        # Log failures but continue for DateTime
-        dt_failures = [f for f in failures if f["type"] != "DATE_TIME"]
-        dt_only = [f for f in failures if f["type"] == "DATE_TIME"]
-
-        assert not dt_failures, (
-            "UA-2-3-017 non-DateTime types failed: "
-            + json.dumps(dt_failures, ensure_ascii=False, default=str)
+        assert not failures, (
+            "UA-2-3-017 failed data types: "
+            + json.dumps(failures, ensure_ascii=False, default=str)
         )
-        if dt_only:
-            import warnings
-            warnings.warn(
-                "UA-2-3-017 DateTime type FAIL (known product limitation, see UA-2-1-071/072/074): "
-                + json.dumps(dt_only, ensure_ascii=False, default=str)
-            )
     finally:
         for tn in tag_names:
             page = list_tags(api, page=1, page_size=50, data={"tagName": tn})

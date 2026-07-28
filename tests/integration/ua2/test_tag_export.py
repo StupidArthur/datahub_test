@@ -16,7 +16,7 @@ from tpt_api.types import DataTypes, TagTypes
 from tests.support.cleanup import delete_tag_if_exists
 from tests.support.polling import wait_until
 from tests.support.rt_helpers import get_rt_point
-from tests.support.ua2_helpers import setup_ds_and_tag, teardown_ds_tag_mocker
+from tests.support.ua2_helpers import setup_ds_and_tag, setup_ds_only, teardown_ds_tag_mocker
 
 
 _CANONICAL_HEADER = [
@@ -27,17 +27,7 @@ _CANONICAL_HEADER = [
     "Description", "Group Name",
     "Real-time Push", "Readonly", "Lo EU", "Hi EU",
 ]
-# Columns beyond the 21 canonical headers (observed on product):
-#   index 21: None (empty)
-#   index 22: "当前值"
-#   index 23: "质量戳"
-_CANONICAL_COL_COUNT = 24
-
-_CANONICAL_COL_COUNT = 24
-
-_EXPECTED_HEADER = _CANONICAL_HEADER + [None, "当前值", "质量码"]
-
-_EXPECTED_COL_COUNT = len(_EXPECTED_HEADER)  # 24
+_CANONICAL_COL_COUNT = 21
 
 
 def _create_simple_tag(api, ds_id: int, case_id: str, settings,
@@ -100,7 +90,7 @@ def test_export_single_tag(api, settings, tmp_path_factory, mocker_endpoint):
     try:
         rows = _export_and_parse(api, [tag_id])
         header = rows[0]
-        assert header == _EXPECTED_HEADER, f"header mismatch: {header}"
+        assert header == _CANONICAL_HEADER, f"header mismatch: {header}"
         data_rows = rows[1:]
         assert len(data_rows) == 1, f"expected 1 data row, got {len(data_rows)}"
         row = data_rows[0]
@@ -155,12 +145,18 @@ def test_export_multiple_tags(api, settings, tmp_path_factory, mocker_endpoint):
             assert name in exported_names, f"{name} missing in export"
         assert len(set(exported_names)) == 10, f"duplicates in exported names: {exported_names}"
     finally:
+        cleanup_errors = []
         for eid in extra_ids:
             try:
                 delete_tag_if_exists(api, eid)
-            except Exception:
-                pass
-        teardown_ds_tag_mocker(api, ctx)
+            except Exception as e:
+                cleanup_errors.append(f"delete tag {eid}: {e}")
+        try:
+            teardown_ds_tag_mocker(api, ctx)
+        except Exception as e:
+            cleanup_errors.append(f"teardown: {e}")
+        if cleanup_errors:
+            raise AssertionError("cleanup errors: " + "; ".join(cleanup_errors))
 
 
 @pytest.mark.case(
@@ -278,7 +274,7 @@ def test_export_duplicate_request(api, settings, tmp_path_factory, mocker_endpoi
 )
 @pytest.mark.integration
 @pytest.mark.destructive
-def test_file_21_column_header(api, settings, tmp_path_factory, mocker_endpoint):
+def test_file_21_column_header(api, settings, tmp_path_factory, mocker_endpoint, record_property):
     ctx = setup_ds_and_tag(
         api, settings, mocker_endpoint, tmp_path_factory, "UA-2-3-006",
         tag_base_name="2_ua23_006_node_1",
@@ -296,16 +292,23 @@ def test_file_21_column_header(api, settings, tmp_path_factory, mocker_endpoint)
         actual_headers = [cell.value for cell in ws[1]]
         wb.close()
 
-        assert len(actual_headers) == 24, (
-            f"expected 24 columns, got {len(actual_headers)}: {actual_headers!r}"
+        actual_count = len(actual_headers)
+        extra = actual_headers[_CANONICAL_COL_COUNT:]
+        empty_header_pos = None
+        for i, h in enumerate(actual_headers):
+            if h is None:
+                empty_header_pos = i
+                break
+        record_property("actual_column_count", actual_count)
+        record_property("actual_headers", actual_headers)
+        record_property("extra_headers", extra)
+        record_property("empty_header_position", empty_header_pos)
+
+        assert actual_headers == _CANONICAL_HEADER, (
+            "UA-2-3-006 export schema mismatch: "
+            f"expected 21 canonical columns, got {actual_count}; "
+            f"actual_headers={actual_headers!r}"
         )
-        first_21 = actual_headers[:21]
-        assert first_21 == _CANONICAL_HEADER, (
-            f"first 21 columns mismatch: expected={_CANONICAL_HEADER!r}, actual={first_21!r}"
-        )
-        assert actual_headers[21] is None
-        assert isinstance(actual_headers[22], str) and len(actual_headers[22]) > 0
-        assert isinstance(actual_headers[23], str) and len(actual_headers[23]) > 0
     finally:
         teardown_ds_tag_mocker(api, ctx)
 
@@ -418,78 +421,121 @@ def test_file_range_alarm_limits(api, settings, tmp_path_factory, mocker_endpoin
 
 @pytest.mark.case(
     id="UA-2-3-010", chapter="UA-2-3",
-    title="文件_13种类型",
+    title="文件_13种数据类型",
     preconditions=["13 种数据类型位号存在"],
-    steps=["创建 13 种类型位号", "导出", "各类型可识别"],
-    expected=["各类型可识别"],
+    steps=["创建包含 13 个真实节点的 mocker", "逐类型创建位号", "导出全部", "比对 Data Type"],
+    expected=["13 种类型均正确识别"],
 )
 @pytest.mark.integration
 @pytest.mark.destructive
 def test_file_13_data_types(api, settings, tmp_path_factory, mocker_endpoint):
-    type_map = {
-        DataTypes["BOOLEAN"]: ("Boolean", "Bool", False),
-        DataTypes["S_BYTE"]: ("SByte", "SByte", 0),
-        DataTypes["BYTE"]: ("Byte", "Byte", 0),
-        DataTypes["SHORT"]: ("Int16", "Int16", 0),
-        DataTypes["U_SHORT"]: ("UInt16", "UInt16", 0),
-        DataTypes["INT"]: ("Int32", "Int32", 0),
-        DataTypes["U_INT"]: ("UInt32", "UInt32", 0),
-        DataTypes["LONG"]: ("Int64", "Int64", 0),
-        DataTypes["U_LONG"]: ("UInt64", "UInt64", 0),
-        DataTypes["FLOAT"]: ("Float", "Float", 0.0),
-        DataTypes["DOUBLE"]: ("Double", "Double", 0.0),
-        DataTypes["STRING"]: ("String", "String", "hello"),
-        DataTypes["DATE_TIME"]: ("DateTime", "DateTime", "2024-01-01T00:00:00Z"),
+    # One mocker node per type
+    node_specs = [
+        {"name": "ua23_010_bool_", "type": "Boolean", "default": False, "writable": True},
+        {"name": "ua23_010_sbyte_", "type": "SByte", "default": 0, "writable": True},
+        {"name": "ua23_010_byte_", "type": "Byte", "default": 0, "writable": True},
+        {"name": "ua23_010_int16_", "type": "Int16", "default": 0, "writable": True},
+        {"name": "ua23_010_uint16_", "type": "UInt16", "default": 0, "writable": True},
+        {"name": "ua23_010_int32_", "type": "Int32", "default": 0, "writable": True},
+        {"name": "ua23_010_uint32_", "type": "UInt32", "default": 0, "writable": True},
+        {"name": "ua23_010_int64_", "type": "Int64", "default": 0, "writable": True},
+        {"name": "ua23_010_uint64_", "type": "UInt64", "default": 0, "writable": True},
+        {"name": "ua23_010_float_", "type": "Float", "default": 0.0, "writable": True},
+        {"name": "ua23_010_double_", "type": "Double", "default": 0.0, "writable": True},
+        {"name": "ua23_010_string_", "type": "String", "default": "hello", "writable": True},
+        {"name": "ua23_010_datetime_", "type": "DateTime", "default": "2024-01-01T00:00:00Z", "writable": True},
+    ]
+    # DataHub display string for each type in export
+    type_display_map: dict[int, str] = {
+        DataTypes["BOOLEAN"]: "Boolean",
+        DataTypes["S_BYTE"]: "SByte",
+        DataTypes["BYTE"]: "Byte",
+        DataTypes["SHORT"]: "Int16",
+        DataTypes["U_SHORT"]: "UInt16",
+        DataTypes["INT"]: "Int32",
+        DataTypes["U_INT"]: "UInt32",
+        DataTypes["LONG"]: "Int64",
+        DataTypes["U_LONG"]: "UInt64",
+        DataTypes["FLOAT"]: "Float",
+        DataTypes["DOUBLE"]: "Double",
+        DataTypes["STRING"]: "String",
+        DataTypes["DATE_TIME"]: "DateTime",
     }
-    ctx = setup_ds_and_tag(
-        api, settings, mocker_endpoint, tmp_path_factory, "UA-2-3-010",
-        tag_base_name="2_ua23_010_node_1",
-        data_type=DataTypes["DOUBLE"],
-        tag_type=TagTypes["一次位号"],
-        only_read=False,
-        nodes=[{"name": "ua23_010_node_", "type": "Double", "default": 0.0, "writable": True}],
-        namespace_index=2,
-        cycle=500,
-    )
-    ds_id = ctx["ds_id"]
-    extra_ids = []
-    try:
-        exported_dts: set[str] = set()
-        main_row = _export_and_parse(api, [ctx["tag_id"]])[1]
-        exported_dts.add(str(main_row[5]))
+    # Node name suffix -> DataHub data type
+    type_suffix: list[tuple[str, int]] = [
+        ("bool", DataTypes["BOOLEAN"]),
+        ("sbyte", DataTypes["S_BYTE"]),
+        ("byte", DataTypes["BYTE"]),
+        ("int16", DataTypes["SHORT"]),
+        ("uint16", DataTypes["U_SHORT"]),
+        ("int32", DataTypes["INT"]),
+        ("uint32", DataTypes["U_INT"]),
+        ("int64", DataTypes["LONG"]),
+        ("uint64", DataTypes["U_LONG"]),
+        ("float", DataTypes["FLOAT"]),
+        ("double", DataTypes["DOUBLE"]),
+        ("string", DataTypes["STRING"]),
+        ("datetime", DataTypes["DATE_TIME"]),
+    ]
 
-        dt_list = list(type_map.items())
-        for idx, (dt_code, (opcua_type, _, default_val)) in enumerate(dt_list):
-            node_name = f"ua23_010_type_{idx}"
-            tag_name = f"{ctx['tag_name']}_type_{idx}"
-            extra = add_tag(
+    ctx = setup_ds_only(api, settings, mocker_endpoint, tmp_path_factory, "UA-2-3-010",
+                        nodes=node_specs, namespace_index=2)
+    ds_id = ctx["ds_id"]
+    tag_ids: list[int] = []
+    results: list[dict] = []
+    try:
+        for suffix, dt_code in type_suffix:
+            node_name = f"2_ua23_010_{suffix}_1"
+            tag_name = f"{settings.test_prefix}UA-2-3-010_{suffix}"
+            tag = add_tag(
                 api, tag_name=tag_name,
                 data_type=dt_code,
                 tag_type=TagTypes["一次位号"],
                 ds_id=ds_id,
-                tag_base_name=f"2_{node_name}",
+                tag_base_name=node_name,
                 only_read=False,
                 frequency=10,
             )
-            extra_ids.append(int(extra.get("id") or extra.get("tagId")))
+            tag_id = int(tag.get("id") or tag.get("tagId"))
+            tag_ids.append(tag_id)
+            results.append({"suffix": suffix, "tag_name": tag_name, "tag_id": tag_id, "dt_code": dt_code})
 
-        all_ids = [ctx["tag_id"]] + extra_ids
-        rows = _export_and_parse(api, all_ids)
+        rows = _export_and_parse(api, tag_ids)
+        header = rows[0]
+        assert header == _CANONICAL_HEADER, f"header mismatch: {header}"
         row_map = {str(r[0]): r for r in rows[1:]}
-        for idx, (dt_code, (opcua_type, _, _)) in enumerate(type_map.items()):
-            tag_key = f"{ctx['tag_name']}_type_{idx}"
-            r = row_map.get(tag_key)
-            if r is not None:
-                exported_dts.add(str(r[5]))
 
-        assert len(exported_dts) >= 2, f"too few data types seen: {exported_dts}"
+        actual_by_type: dict[int, str] = {}
+        for r in results:
+            tag_name = r["tag_name"]
+            row = row_map.get(tag_name)
+            assert row is not None, f"tag {tag_name} not found in export"
+            exported_dt = str(row[5])
+            actual_by_type[r["dt_code"]] = exported_dt
+
+        expected_by_type = {dt: display for dt, display in type_display_map.items()}
+        for dt, exported in actual_by_type.items():
+            expected = expected_by_type[dt]
+            assert exported == expected, (
+                f"data type {dt} exported as {exported!r}, expected {expected!r}"
+            )
+
+        assert set(actual_by_type) == set(expected_by_type), (
+            f"type mismatch: actual={set(actual_by_type)}, expected={set(expected_by_type)}"
+        )
     finally:
-        for eid in extra_ids:
+        cleanup_errors = []
+        for tid in tag_ids:
             try:
-                delete_tag_if_exists(api, eid)
-            except Exception:
-                pass
-        teardown_ds_tag_mocker(api, ctx)
+                delete_tag_if_exists(api, tid)
+            except Exception as e:
+                cleanup_errors.append(f"delete tag {tid}: {e}")
+        try:
+            teardown_ds_tag_mocker(api, ctx)
+        except Exception as e:
+            cleanup_errors.append(f"teardown: {e}")
+        if cleanup_errors:
+            raise AssertionError("cleanup errors: " + "; ".join(cleanup_errors))
 
 
 @pytest.mark.case(
@@ -540,12 +586,18 @@ def test_file_large_int_datetime(api, settings, tmp_path_factory, mocker_endpoin
             observations.append(obs)
             record_property("export_row", obs)
     finally:
+        cleanup_errors = []
         for eid in extra_ids:
             try:
                 delete_tag_if_exists(api, eid)
-            except Exception:
-                pass
-        teardown_ds_tag_mocker(api, ctx)
+            except Exception as e:
+                cleanup_errors.append(f"delete tag {eid}: {e}")
+        try:
+            teardown_ds_tag_mocker(api, ctx)
+        except Exception as e:
+            cleanup_errors.append(f"teardown: {e}")
+        if cleanup_errors:
+            raise AssertionError("cleanup errors: " + "; ".join(cleanup_errors))
 
     pytest.xfail(
         "UA-2-3-011 large integer/DateTime export cell format is product-specific; "
