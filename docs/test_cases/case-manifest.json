@@ -5354,6 +5354,211 @@
         "destructive",
         "integration"
       ]
+    },
+    {
+      "id": "UA-2-4-001",
+      "chapter": "UA-2-4",
+      "title": "软删除_单个位号",
+      "nodeid": "tests/integration/ua2/test_tag_delete_soft.py::test_soft_delete_single_tag",
+      "preconditions": [
+        "数据源 alive",
+        "位号已创建",
+        "RT 可读"
+      ],
+      "steps": [
+        "创建位号",
+        "delete_tags(id)",
+        "查询 list_tags",
+        "查询 list_recycle_tags"
+      ],
+      "expected": [
+        "正常查询消失",
+        "回收站出现同一 ID"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-4-002",
+      "chapter": "UA-2-4",
+      "title": "软删除_多个位号",
+      "nodeid": "tests/integration/ua2/test_tag_delete_soft.py::test_soft_delete_multiple_tags",
+      "preconditions": [
+        "数据源 alive",
+        "10 个位号已创建且 RT 正常"
+      ],
+      "steps": [
+        "batchAdd 创建 10 个位号",
+        "批量软删除所有 10 个 ID",
+        "查询 list_tags",
+        "查询 list_recycle_tags"
+      ],
+      "expected": [
+        "目标全部进入回收站",
+        "未选位号不变"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-4-003",
+      "chapter": "UA-2-4",
+      "title": "软删除_跨数据源",
+      "nodeid": "tests/integration/ua2/test_tag_delete_soft.py::test_soft_delete_cross_ds",
+      "preconditions": [
+        "两个数据源各自有位号"
+      ],
+      "steps": [
+        "创建 DS-A + tag-A",
+        "创建 DS-B + tag-B",
+        "分别软删除 tag-A 和 tag-B",
+        "查询 list_tags 和 list_recycle_tags"
+      ],
+      "expected": [
+        "各目标按 dsId 正确删除",
+        "不串源"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-4-004",
+      "chapter": "UA-2-4",
+      "title": "软删除_身份保持",
+      "nodeid": "tests/integration/ua2/test_tag_delete_soft.py::test_soft_delete_identity_preserved",
+      "preconditions": [
+        "位号已创建"
+      ],
+      "steps": [
+        "快照 tag 配置",
+        "软删除",
+        "查回收站记录",
+        "比对 id/tagName/tagBaseName/dsId/dataType"
+      ],
+      "expected": [
+        "回收站中 ID、tagName、tagBaseName、dsId、dataType 不变"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-4-005",
+      "chapter": "UA-2-4",
+      "title": "软删除_重复提交",
+      "nodeid": "tests/integration/ua2/test_tag_delete_soft.py::test_soft_delete_duplicate",
+      "preconditions": [
+        "位号已创建"
+      ],
+      "steps": [
+        "首次软删除",
+        "再次软删除同一 ID",
+        "查询回收站"
+      ],
+      "expected": [
+        "记录幂等或错误规则；无重复记录"
+      ],
+      "markers": [
+        "spec_pending",
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-4-006",
+      "chapter": "UA-2-4",
+      "title": "软删除_无效ID",
+      "nodeid": "tests/integration/ua2/test_tag_delete_soft.py::test_soft_delete_invalid_id",
+      "preconditions": [],
+      "steps": [
+        "使用不存在的 ID 调用软删除",
+        "记录响应",
+        "确认现有数据不变"
+      ],
+      "expected": [
+        "记录响应；现有数据不变"
+      ],
+      "markers": [
+        "spec_pending",
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-4-007",
+      "chapter": "UA-2-4",
+      "title": "软删除_有效无效混合",
+      "nodeid": "tests/integration/ua2/test_tag_delete_soft.py::test_soft_delete_mixed_ids",
+      "preconditions": [
+        "一个有效位号已创建"
+      ],
+      "steps": [
+        "同批传入有效 ID 和无效 ID",
+        "记录响应",
+        "查询位号状态"
+      ],
+      "expected": [
+        "记录事务规则；有效项最终状态可确认"
+      ],
+      "markers": [
+        "spec_pending",
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-4-008",
+      "chapter": "UA-2-4",
+      "title": "删除影响_RT查询",
+      "nodeid": "tests/integration/ua2/test_tag_delete_soft.py::test_soft_delete_rt_impact",
+      "preconditions": [
+        "位号 RT 有效"
+      ],
+      "steps": [
+        "保存删除前 RT+质量",
+        "软删除",
+        "删除后查询 RT 与质量",
+        "记录返回规则"
+      ],
+      "expected": [
+        "不得仍作为正常有效位号返回"
+      ],
+      "markers": [
+        "spec_pending",
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-4-009",
+      "chapter": "UA-2-4",
+      "title": "删除影响_写入",
+      "nodeid": "tests/integration/ua2/test_tag_delete_soft.py::test_write_after_soft_delete",
+      "preconditions": [
+        "可写位号已创建",
+        "RT 有效",
+        "OPC UA 源值可读"
+      ],
+      "steps": [
+        "记录 UA 源值",
+        "软删除",
+        "回写测试值",
+        "重新读取 UA 源值"
+      ],
+      "expected": [
+        "写入失败或不生效；UA 源值不变"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
     }
   ]
 }
