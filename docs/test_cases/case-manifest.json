@@ -6096,6 +6096,241 @@
       "markers": [
         "integration"
       ]
+    },
+    {
+      "id": "UA-2-5-010",
+      "chapter": "UA-2-5",
+      "title": "编辑_移动父节点",
+      "nodeid": "tests/integration/ua2/test_tag_group_management.py::TestGroupEdit::test_move_parent",
+      "preconditions": [],
+      "steps": "将 G2 从 G1 移到 G3",
+      "expected": "ID 不变；parentId 更新；原父节点不再包含",
+      "markers": [
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-5-011",
+      "chapter": "UA-2-5",
+      "title": "编辑_同时改名移动",
+      "nodeid": "tests/integration/ua2/test_tag_group_management.py::TestGroupEdit::test_rename_and_move",
+      "preconditions": [],
+      "steps": "一次请求改名称和 parentId",
+      "expected": "两项变化均生效",
+      "markers": [
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-5-012",
+      "chapter": "UA-2-5",
+      "title": "编辑_无效节点ID",
+      "nodeid": "tests/integration/ua2/test_tag_group_management.py::TestGroupEdit::test_update_invalid_id",
+      "preconditions": [],
+      "steps": "更新不存在 ID",
+      "expected": "明确失败；树不变化",
+      "markers": [
+        "spec_pending",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-5-013",
+      "chapter": "UA-2-5",
+      "title": "编辑_形成循环",
+      "nodeid": "tests/integration/ua2/test_tag_group_management.py::TestGroupEdit::test_circular_reference",
+      "preconditions": [],
+      "steps": "尝试把父节点移到子孙下",
+      "expected": "请求拒绝或最终树保持无环",
+      "markers": [
+        "spec_pending",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-5-014",
+      "chapter": "UA-2-5",
+      "title": "位号移动_单个",
+      "nodeid": "tests/integration/ua2/test_tag_group_operations.py::TestTagMove::test_move_single_tag",
+      "preconditions": [],
+      "steps": "batchUpdate([id],groupId=G2)",
+      "expected": "从原组消失，在 G2 出现；其他配置不变",
+      "markers": [
+        "integration",
+        "destructive"
+      ]
+    },
+    {
+      "id": "UA-2-5-015",
+      "chapter": "UA-2-5",
+      "title": "位号移动_多个",
+      "nodeid": "tests/integration/ua2/test_tag_group_operations.py::TestTagMove::test_move_multiple_tags",
+      "preconditions": [],
+      "steps": "批量移动 10 个位号",
+      "expected": "目标全部移动；未选位号保持",
+      "markers": [
+        "integration",
+        "destructive"
+      ]
+    },
+    {
+      "id": "UA-2-5-016",
+      "chapter": "UA-2-5",
+      "title": "位号移动_Root",
+      "nodeid": "tests/integration/ua2/test_tag_group_operations.py::TestTagMove::test_move_to_root",
+      "preconditions": [],
+      "steps": "移动到 groupId=0",
+      "expected": "位号进入 Root 范围；配置和采集不变",
+      "markers": [
+        "integration",
+        "destructive"
+      ]
+    },
+    {
+      "id": "UA-2-5-017",
+      "chapter": "UA-2-5",
+      "title": "位号移动_无效分组",
+      "nodeid": "tests/integration/ua2/test_tag_group_operations.py::TestTagMove::test_move_invalid_group",
+      "preconditions": [],
+      "steps": "使用不存在 groupId",
+      "expected": "失败或按明确规则处理；原关系保持",
+      "markers": [
+        "spec_pending",
+        "integration",
+        "destructive"
+      ]
+    },
+    {
+      "id": "UA-2-5-018",
+      "chapter": "UA-2-5",
+      "title": "删除_空节点",
+      "nodeid": "tests/integration/ua2/test_tag_group_management.py::TestGroupDelete::test_delete_empty_node",
+      "preconditions": [],
+      "steps": "delete([G], isForce=false)",
+      "expected": "节点从树消失；其他节点不变",
+      "markers": [
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-5-019",
+      "chapter": "UA-2-5",
+      "title": "删除_非空不强制",
+      "nodeid": "tests/integration/ua2/test_tag_group_operations.py::TestGroupDeleteNonEmpty::test_delete_nonempty_not_force",
+      "preconditions": [],
+      "steps": "节点内有位号，isForce=false",
+      "expected": "记录拒绝、位号迁移或保留规则；位号不得静默丢失",
+      "markers": [
+        "spec_pending",
+        "integration",
+        "destructive"
+      ]
+    },
+    {
+      "id": "UA-2-5-020",
+      "chapter": "UA-2-5",
+      "title": "删除_非空强制",
+      "nodeid": "tests/integration/ua2/test_tag_group_operations.py::TestGroupDeleteNonEmpty::test_delete_nonempty_force",
+      "preconditions": [],
+      "steps": "节点内有位号，isForce=true",
+      "expected": "记录位号进入回收站或物理删除规则；最终状态可确认",
+      "markers": [
+        "spec_pending",
+        "integration",
+        "destructive"
+      ]
+    },
+    {
+      "id": "UA-2-5-021",
+      "chapter": "UA-2-5",
+      "title": "删除_含子节点",
+      "nodeid": "tests/integration/ua2/test_tag_group_operations.py::TestGroupDeleteNonEmpty::test_delete_with_children",
+      "preconditions": [],
+      "steps": "父节点含子树，分别测试 force=false/true",
+      "expected": "记录子树处理规则；不得产生孤儿节点",
+      "markers": [
+        "spec_pending",
+        "integration",
+        "destructive"
+      ]
+    },
+    {
+      "id": "UA-2-5-022",
+      "chapter": "UA-2-5",
+      "title": "删除_批量空节点",
+      "nodeid": "tests/integration/ua2/test_tag_group_management.py::TestGroupDelete::test_delete_batch_empty",
+      "preconditions": [],
+      "steps": "批量删除多个空节点",
+      "expected": "所有目标消失；非目标保持",
+      "markers": [
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-5-023",
+      "chapter": "UA-2-5",
+      "title": "收藏_单个位号",
+      "nodeid": "tests/integration/ua2/test_tag_group_operations.py::TestFavorites::test_favorite_single",
+      "preconditions": [],
+      "steps": "addRelation('2',[id])",
+      "expected": "收藏列表出现目标；普通分组关系不变",
+      "markers": [
+        "integration",
+        "destructive"
+      ]
+    },
+    {
+      "id": "UA-2-5-024",
+      "chapter": "UA-2-5",
+      "title": "收藏_多个位号",
+      "nodeid": "tests/integration/ua2/test_tag_group_operations.py::TestFavorites::test_favorite_multiple",
+      "preconditions": [],
+      "steps": "批量收藏多个 ID",
+      "expected": "所有目标出现且无重复",
+      "markers": [
+        "integration",
+        "destructive"
+      ]
+    },
+    {
+      "id": "UA-2-5-025",
+      "chapter": "UA-2-5",
+      "title": "收藏_重复提交",
+      "nodeid": "tests/integration/ua2/test_tag_group_operations.py::TestFavorites::test_favorite_duplicate",
+      "preconditions": [],
+      "steps": "对已收藏 ID 再次收藏",
+      "expected": "无重复；记录幂等或错误规则",
+      "markers": [
+        "spec_pending",
+        "integration",
+        "destructive"
+      ]
+    },
+    {
+      "id": "UA-2-5-026",
+      "chapter": "UA-2-5",
+      "title": "取消收藏_单个与批量",
+      "nodeid": "tests/integration/ua2/test_tag_group_operations.py::TestFavorites::test_unfavorite",
+      "preconditions": [],
+      "steps": "removeRelation('2',ids)",
+      "expected": "收藏列表移除目标；正常查询仍存在",
+      "markers": [
+        "integration",
+        "destructive"
+      ]
+    },
+    {
+      "id": "UA-2-5-027",
+      "chapter": "UA-2-5",
+      "title": "取消收藏_返回false但生效",
+      "nodeid": "tests/integration/ua2/test_tag_group_operations.py::TestFavorites::test_unfavorite_returns_false",
+      "preconditions": [],
+      "steps": "记录返回值并查询收藏列表",
+      "expected": "返回 false 时，以目标实际消失判定生效",
+      "markers": [
+        "integration",
+        "destructive"
+      ]
     }
   ]
 }
