@@ -71,7 +71,7 @@
     }
   ],
   "duplicates_in_source": [],
-  "pytest_total": 239,
+  "pytest_total": 248,
   "migrated": [
     "UA-1-1-01",
     "UA-1-1-02",
@@ -311,7 +311,16 @@
     "UA-2-3-029",
     "UA-2-3-030",
     "UA-2-3-031",
-    "UA-2-3-032"
+    "UA-2-3-032",
+    "UA-2-4-001",
+    "UA-2-4-002",
+    "UA-2-4-003",
+    "UA-2-4-004",
+    "UA-2-4-005",
+    "UA-2-4-006",
+    "UA-2-4-007",
+    "UA-2-4-008",
+    "UA-2-4-009"
   ],
   "missing": [
     "UA-1-4-01",
@@ -342,15 +351,6 @@
     "UA-1-6-11",
     "UA-1-6-12",
     "UA-1-6-13",
-    "UA-2-4-001",
-    "UA-2-4-002",
-    "UA-2-4-003",
-    "UA-2-4-004",
-    "UA-2-4-005",
-    "UA-2-4-006",
-    "UA-2-4-007",
-    "UA-2-4-008",
-    "UA-2-4-009",
     "UA-2-4-010",
     "UA-2-4-011",
     "UA-2-4-012",
@@ -917,6 +917,33 @@
     "UA-2-1-081": [
       "tests/integration/ua2/test_tag_creation_unit_desc.py::test_desc_unicode_and_length"
     ],
+    "UA-2-4-001": [
+      "tests/integration/ua2/test_tag_delete_soft.py::test_soft_delete_single_tag"
+    ],
+    "UA-2-4-002": [
+      "tests/integration/ua2/test_tag_delete_soft.py::test_soft_delete_multiple_tags"
+    ],
+    "UA-2-4-003": [
+      "tests/integration/ua2/test_tag_delete_soft.py::test_soft_delete_cross_ds"
+    ],
+    "UA-2-4-004": [
+      "tests/integration/ua2/test_tag_delete_soft.py::test_soft_delete_identity_preserved"
+    ],
+    "UA-2-4-005": [
+      "tests/integration/ua2/test_tag_delete_soft.py::test_soft_delete_duplicate"
+    ],
+    "UA-2-4-006": [
+      "tests/integration/ua2/test_tag_delete_soft.py::test_soft_delete_invalid_id"
+    ],
+    "UA-2-4-007": [
+      "tests/integration/ua2/test_tag_delete_soft.py::test_soft_delete_mixed_ids"
+    ],
+    "UA-2-4-008": [
+      "tests/integration/ua2/test_tag_delete_soft.py::test_soft_delete_rt_impact"
+    ],
+    "UA-2-4-009": [
+      "tests/integration/ua2/test_tag_delete_soft.py::test_write_after_soft_delete"
+    ],
     "UA-2-3-001": [
       "tests/integration/ua2/test_tag_export.py::test_export_single_tag"
     ],
@@ -1356,6 +1383,15 @@
     "tests/integration/ua2/test_tag_creation_unit_desc.py::test_desc_normal": "UA-2-1-079",
     "tests/integration/ua2/test_tag_creation_unit_desc.py::test_desc_default": "UA-2-1-080",
     "tests/integration/ua2/test_tag_creation_unit_desc.py::test_desc_unicode_and_length": "UA-2-1-081",
+    "tests/integration/ua2/test_tag_delete_soft.py::test_soft_delete_single_tag": "UA-2-4-001",
+    "tests/integration/ua2/test_tag_delete_soft.py::test_soft_delete_multiple_tags": "UA-2-4-002",
+    "tests/integration/ua2/test_tag_delete_soft.py::test_soft_delete_cross_ds": "UA-2-4-003",
+    "tests/integration/ua2/test_tag_delete_soft.py::test_soft_delete_identity_preserved": "UA-2-4-004",
+    "tests/integration/ua2/test_tag_delete_soft.py::test_soft_delete_duplicate": "UA-2-4-005",
+    "tests/integration/ua2/test_tag_delete_soft.py::test_soft_delete_invalid_id": "UA-2-4-006",
+    "tests/integration/ua2/test_tag_delete_soft.py::test_soft_delete_mixed_ids": "UA-2-4-007",
+    "tests/integration/ua2/test_tag_delete_soft.py::test_soft_delete_rt_impact": "UA-2-4-008",
+    "tests/integration/ua2/test_tag_delete_soft.py::test_write_after_soft_delete": "UA-2-4-009",
     "tests/integration/ua2/test_tag_export.py::test_export_single_tag": "UA-2-3-001",
     "tests/integration/ua2/test_tag_export.py::test_export_multiple_tags": "UA-2-3-002",
     "tests/integration/ua2/test_tag_export.py::test_export_cross_ds_group": "UA-2-3-003",
@@ -1527,9 +1563,9 @@
     {
       "chapter": "UA-2",
       "source": 265,
-      "pytest": 211,
-      "migrated_count": 211,
-      "missing_count": 54,
+      "pytest": 220,
+      "migrated_count": 220,
+      "missing_count": 45,
       "migrated": [
         "UA-2-1-001",
         "UA-2-1-002",
@@ -1741,9 +1777,7 @@
         "UA-2-3-029",
         "UA-2-3-030",
         "UA-2-3-031",
-        "UA-2-3-032"
-      ],
-      "missing": [
+        "UA-2-3-032",
         "UA-2-4-001",
         "UA-2-4-002",
         "UA-2-4-003",
@@ -1752,7 +1786,9 @@
         "UA-2-4-006",
         "UA-2-4-007",
         "UA-2-4-008",
-        "UA-2-4-009",
+        "UA-2-4-009"
+      ],
+      "missing": [
         "UA-2-4-010",
         "UA-2-4-011",
         "UA-2-4-012",

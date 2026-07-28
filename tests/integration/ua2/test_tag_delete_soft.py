@@ -51,7 +51,10 @@ def test_soft_delete_single_tag(api, settings, tmp_path_factory, mocker_endpoint
         record_property("delete_response", json.dumps(resp, ensure_ascii=False, default=str))
 
         active_after = find_unique_tag(api, tag_name)
-        record_property("active_list_after_delete", bool(active_after))
+        assert not active_after, (
+            "UA-2-4-001 soft-deleted tag remains in active list: "
+            f"id={tag_id}, tagName={tag_name!r}, record={active_after!r}"
+        )
 
         recycle = list_recycle_tags(api, page=1, page_size=999)
         recycle_records = (recycle.get("tagInfoList") or {}).get("records") or []
@@ -117,6 +120,13 @@ def test_soft_delete_multiple_tags(api, settings, tmp_path_factory, mocker_endpo
         resp = delete_tags(api, created_ids)
         record_property("delete_response", json.dumps(resp, ensure_ascii=False, default=str))
 
+        for tn in created_names:
+            active_after = find_unique_tag(api, tn)
+            assert not active_after, (
+                "UA-2-4-002 soft-deleted tag remains in active list: "
+                f"tagName={tn!r}, record={active_after!r}"
+            )
+
         recycle = list_recycle_tags(api, page=1, page_size=999)
         recycle_records = (recycle.get("tagInfoList") or {}).get("records") or []
         recycle_names = {t.get("tagName") for t in recycle_records if t.get("tagName")}
@@ -170,6 +180,13 @@ def test_soft_delete_cross_ds(api, settings, tmp_path_factory, mocker_endpoint, 
         resp_b = delete_tags(api, [ctx_b["tag_id"]])
         record_property("resp_a", json.dumps(resp_a, ensure_ascii=False, default=str))
         record_property("resp_b", json.dumps(resp_b, ensure_ascii=False, default=str))
+
+        for ctx in [ctx_a, ctx_b]:
+            active_after = find_unique_tag(api, ctx["tag_name"])
+            assert not active_after, (
+                "UA-2-4-003 soft-deleted tag remains in active list: "
+                f"tagName={ctx['tag_name']!r}, id={ctx['tag_id']}"
+            )
 
         recycle = list_recycle_tags(api, page=1, page_size=999)
         recycle_records = (recycle.get("tagInfoList") or {}).get("records") or []
@@ -460,6 +477,11 @@ def test_write_after_soft_delete(api, settings, tmp_path_factory, mocker_endpoin
         write_observations["source_before"] = source_before
         write_observations["source_after"] = source_after
         record_property("write_observations", json.dumps(write_observations, ensure_ascii=False, default=str))
+
+        assert source_after == source_before, (
+            "UA-2-4-009 write after soft-delete changed source value: "
+            f"before={source_before!r}, after={source_after!r}"
+        )
 
     finally:
         strict_cleanup_ua2_context(api, tag_id=tag_id, tag_name=tag_name,
