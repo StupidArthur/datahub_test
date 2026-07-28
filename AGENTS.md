@@ -231,8 +231,9 @@ pytest.skip 掩盖环境未设置
 | UA-2-1 | 112 | 62 | 10 | 40 | 0 |
 | UA-2-2 | 67 | 56 | 0 | 11 | 0 |
 | UA-2-3 | 29 | 23 | 1 | 5 | 0 |
+| UA-2-4 | 27 | 5 | 4 | 10 | 8 |
 
-FAIL 十道确认产品能力限制：
+FAIL 十四道确认产品能力限制：
 - **UA-2-1-019** 空 tagName → 产品接受空 tagName，回落为节点名
 - **UA-2-1-044** Byte 255 → DataHub signed-byte 映射限制（`Write tag value type convert failed`）
 - **UA-2-1-048** UInt16 65535 → DataHub U_SHORT 映射限制
@@ -243,12 +244,20 @@ FAIL 十道确认产品能力限制：
 - **UA-2-1-072** DateTime 带时区被拒绝（`tag data type error`）
 - **UA-2-1-074** DateTime epoch 边界被拒绝（`tag data type error`）
 - **UA-2-1-027** SByte 默认读取偶发时序竞争（change node 值漂移：期望 3 实际 2）
+- **UA-2-4-001/002/003** 软删除后 `list_tags` 仍返回位号（双重可见）
+- **UA-2-4-009** 软删除后 `write_tag_values` 成功且传播到 OPC UA 源
 
-XFAIL 40 道为行为未约定（overflow / coercion / whitespace / length 129 / special chars / unicode / Int64 out-of-range / UInt64 negative and overflow / NaN/Inf / length boundaries / frequency effect / alarm limits / history / batchAdd）。
+XFAIL 50 道为行为未约定（overflow / coercion / whitespace / length 129 / special chars / unicode / Int64 out-of-range / UInt64 negative and overflow / NaN/Inf / length boundaries / frequency effect / alarm limits / history / batchAdd / spec_pending）。
 
 ### 清理基础设施
 - **`tests/support/ua2_cleanup.py`**: `strict_cleanup_ua2_context()` — 六步严格清理（物理删 tag → 清回收站 → 禁 DS → 删 DS → 停 mocker → 验端口），所有错误聚合不吞
 - **残差验证**: 执行前后 COW 审计 DS/active-tag/recycle-tag/mocker/dynamic-port 零残留
+
+### 恢复 API 注意事项
+- 恢复位号: `remove_tag_group_relation(api, group_id="1", tag_ids=[...])`
+- API 返回 `false` 但操作实际生效，必须以 `list_recycle_tags` 确认为准
+- 验证模式: 软删除后 `assert recycle 无此 ID` → 恢复后 `assert recycle 无此 ID` + RT 轮询
+- 恢复测试文件: `tests/integration/ua2/test_tag_delete_restore.py`
 
 ### 架构约束已确认
 - UA-2-1-012/015 使用 `setup_ds_only()` + `try_add_tag()` 分步模式，严格 cleanup 后动态 `pytest.xfail`
@@ -259,3 +268,5 @@ XFAIL 40 道为行为未约定（overflow / coercion / whitespace / length 129 /
 - UA-1-1 阻塞（UA-1-1-07 鉴权）：见 `docs/migration/ua-1-1-07-blocker.md`
 - UA-1-2 阻塞（UA-1-2-03/05 历史）：见 `docs/migration/ua-1-2-03-blocker.md`
 - UA-2-1 全组已迁移并回归
+- UA-2-3 全组已迁移并回归（3 FAIL：006/010 表头偏移，017 DateTime 导入拒绝）
+- UA-2-4 已迁移 001~019（5 PASS + 4 FAIL 产品限 + 10 XFAIL spec_pending）；020~027 待迁移
