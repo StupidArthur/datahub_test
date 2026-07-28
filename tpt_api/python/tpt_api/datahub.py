@@ -533,6 +533,9 @@ def import_tags_from_file(
     url = f"{api.base_url}/{DataHubTagImportStream.lstrip('/')}"
     r = api.client.request("POST", url, files=files, data=data)
     r.raise_for_status()
+    content = r.content
+    if content and content[:2] == b"PK":
+        return {"success": True, "code": "00000", "content": {"file": content}}
     result = r.json()
     if result.get("code") != SuccessCode:
         from .errors import TptAPIError
