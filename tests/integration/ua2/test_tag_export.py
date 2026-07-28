@@ -5,6 +5,10 @@ import time
 
 import pytest
 
+import io
+
+from openpyxl import load_workbook
+
 from tpt_api.datahub import add_tag, export_tags, list_tags, update_tag
 from tpt_api.errors import TptAPIError
 from tpt_api.types import DataTypes, TagTypes
@@ -15,17 +19,20 @@ from tests.support.rt_helpers import get_rt_point
 from tests.support.ua2_helpers import setup_ds_and_tag, teardown_ds_tag_mocker
 
 
-_EXPECTED_HEADER = [
+_CANONICAL_HEADER = [
     "Tag Name", "Base Tag Name", "Tag Type", "Datasource Name", "Unit",
     "Data Type", "Expression", "Tag Value", "Frequency",
     "High Limit", "HH Limit", "HHH Limit",
     "Low Limit", "LL Limit", "LLL Limit",
     "Description", "Group Name",
     "Real-time Push", "Readonly", "Lo EU", "Hi EU",
-    None, "当前值", "质量码",
 ]
 
-_EXPECTED_COL_COUNT = 24
+_CANONICAL_COL_COUNT = 21
+
+_EXPECTED_HEADER = _CANONICAL_HEADER + [None, "当前值", "质量码"]
+
+_EXPECTED_COL_COUNT = len(_EXPECTED_HEADER)  # 24
 
 
 def _create_simple_tag(api, ds_id: int, case_id: str, settings,
@@ -278,10 +285,33 @@ def test_file_21_column_header(api, settings, tmp_path_factory, mocker_endpoint)
         cycle=500,
     )
     try:
-        rows = _export_and_parse(api, [ctx["tag_id"]])
-        header = rows[0]
-        assert len(header) == _EXPECTED_COL_COUNT, f"expected {_EXPECTED_COL_COUNT} columns, got {len(header)}: {header}"
-        assert header == _EXPECTED_HEADER, f"header mismatch:\nexpected={_EXPECTED_HEADER}\ngot={header}"
+        raw = export_tags(api, [ctx["tag_id"]], parse=False)
+        wb = load_workbook(io.BytesIO(raw), read_only=True, data_only=True)
+        ws = wb.active
+        actual_headers = [cell.value for cell in ws[1]]
+        wb.close()
+
+        canonical_actual = actual_headers[:_CANONICAL_COL_COUNT]
+        extra = actual_headers[_CANONICAL_COL_COUNT:]
+
+        assert len(actual_headers) == _CANONICAL_COL_COUNT, (
+            "UA-2-3-006 export schema mismatch: "
+            f"expected_column_count={_CANONICAL_COL_COUNT}, "
+            f"actual_column_count={len(actual_headers)}, "
+            f"expected_headers={_CANONICAL_HEADER!r}, "
+            f"actual_headers={actual_headers!r}, "
+            f"extra_headers={extra!r}, "
+            f"empty_header_col={_CANONICAL_COL_COUNT if len(actual_headers) > _CANONICAL_COL_COUNT and actual_headers[_CANONICAL_COL_COUNT] is None else None}"
+        )
+        assert canonical_actual == _CANONICAL_HEADER, (
+            "UA-2-3-006 export schema mismatch: "
+            f"expected_column_count={_CANONICAL_COL_COUNT}, "
+            f"actual_column_count={len(actual_headers)}, "
+            f"expected_headers={_CANONICAL_HEADER!r}, "
+            f"actual_headers={actual_headers!r}, "
+            f"extra_headers={extra!r}, "
+            f"empty_header_col={_CANONICAL_COL_COUNT if len(actual_headers) > _CANONICAL_COL_COUNT and actual_headers[_CANONICAL_COL_COUNT] is None else None}"
+        )
     finally:
         teardown_ds_tag_mocker(api, ctx)
 
