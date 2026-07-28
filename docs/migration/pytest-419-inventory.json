@@ -71,7 +71,7 @@
     }
   ],
   "duplicates_in_source": [],
-  "pytest_total": 248,
+  "pytest_total": 266,
   "migrated": [
     "UA-1-1-01",
     "UA-1-1-02",
@@ -320,7 +320,25 @@
     "UA-2-4-006",
     "UA-2-4-007",
     "UA-2-4-008",
-    "UA-2-4-009"
+    "UA-2-4-009",
+    "UA-2-4-010",
+    "UA-2-4-011",
+    "UA-2-4-012",
+    "UA-2-4-013",
+    "UA-2-4-014",
+    "UA-2-4-015",
+    "UA-2-4-016",
+    "UA-2-4-017",
+    "UA-2-4-018",
+    "UA-2-4-019",
+    "UA-2-4-020",
+    "UA-2-4-021",
+    "UA-2-4-022",
+    "UA-2-4-023",
+    "UA-2-4-024",
+    "UA-2-4-025",
+    "UA-2-4-026",
+    "UA-2-4-027"
   ],
   "missing": [
     "UA-1-4-01",
@@ -351,24 +369,6 @@
     "UA-1-6-11",
     "UA-1-6-12",
     "UA-1-6-13",
-    "UA-2-4-010",
-    "UA-2-4-011",
-    "UA-2-4-012",
-    "UA-2-4-013",
-    "UA-2-4-014",
-    "UA-2-4-015",
-    "UA-2-4-016",
-    "UA-2-4-017",
-    "UA-2-4-018",
-    "UA-2-4-019",
-    "UA-2-4-020",
-    "UA-2-4-021",
-    "UA-2-4-022",
-    "UA-2-4-023",
-    "UA-2-4-024",
-    "UA-2-4-025",
-    "UA-2-4-026",
-    "UA-2-4-027",
     "UA-2-5-001",
     "UA-2-5-002",
     "UA-2-5-003",
@@ -917,6 +917,60 @@
     "UA-2-1-081": [
       "tests/integration/ua2/test_tag_creation_unit_desc.py::test_desc_unicode_and_length"
     ],
+    "UA-2-4-020": [
+      "tests/integration/ua2/test_tag_delete_physical.py::test_physical_delete_single"
+    ],
+    "UA-2-4-021": [
+      "tests/integration/ua2/test_tag_delete_physical.py::test_physical_delete_multiple"
+    ],
+    "UA-2-4-022": [
+      "tests/integration/ua2/test_tag_delete_physical.py::test_physical_delete_duplicate"
+    ],
+    "UA-2-4-023": [
+      "tests/integration/ua2/test_tag_delete_physical.py::test_physical_delete_mixed"
+    ],
+    "UA-2-4-024": [
+      "tests/integration/ua2/test_tag_delete_physical.py::test_physical_delete_restore_fails"
+    ],
+    "UA-2-4-025": [
+      "tests/integration/ua2/test_tag_delete_physical.py::test_physical_delete_rebuild_same_name"
+    ],
+    "UA-2-4-026": [
+      "tests/integration/ua2/test_tag_delete_physical.py::test_physical_delete_rebuild_same_name_node"
+    ],
+    "UA-2-4-027": [
+      "tests/integration/ua2/test_tag_delete_physical.py::test_physical_delete_untouched"
+    ],
+    "UA-2-4-010": [
+      "tests/integration/ua2/test_tag_delete_restore.py::test_delete_impact_source_node"
+    ],
+    "UA-2-4-011": [
+      "tests/integration/ua2/test_tag_delete_restore.py::test_delete_impact_history_new"
+    ],
+    "UA-2-4-012": [
+      "tests/integration/ua2/test_tag_delete_restore.py::test_delete_impact_history_existing"
+    ],
+    "UA-2-4-013": [
+      "tests/integration/ua2/test_tag_delete_restore.py::test_restore_single_tag"
+    ],
+    "UA-2-4-014": [
+      "tests/integration/ua2/test_tag_delete_restore.py::test_restore_multiple_tags"
+    ],
+    "UA-2-4-015": [
+      "tests/integration/ua2/test_tag_delete_restore.py::test_restore_identity_kept"
+    ],
+    "UA-2-4-016": [
+      "tests/integration/ua2/test_tag_delete_restore.py::test_restore_rt_quality_loop"
+    ],
+    "UA-2-4-017": [
+      "tests/integration/ua2/test_tag_delete_restore.py::test_restore_false_but_works"
+    ],
+    "UA-2-4-018": [
+      "tests/integration/ua2/test_tag_delete_restore.py::test_restore_duplicate"
+    ],
+    "UA-2-4-019": [
+      "tests/integration/ua2/test_tag_delete_restore.py::test_restore_mixed_valid_invalid"
+    ],
     "UA-2-4-001": [
       "tests/integration/ua2/test_tag_delete_soft.py::test_soft_delete_single_tag"
     ],
@@ -1383,6 +1437,24 @@
     "tests/integration/ua2/test_tag_creation_unit_desc.py::test_desc_normal": "UA-2-1-079",
     "tests/integration/ua2/test_tag_creation_unit_desc.py::test_desc_default": "UA-2-1-080",
     "tests/integration/ua2/test_tag_creation_unit_desc.py::test_desc_unicode_and_length": "UA-2-1-081",
+    "tests/integration/ua2/test_tag_delete_physical.py::test_physical_delete_single": "UA-2-4-020",
+    "tests/integration/ua2/test_tag_delete_physical.py::test_physical_delete_multiple": "UA-2-4-021",
+    "tests/integration/ua2/test_tag_delete_physical.py::test_physical_delete_duplicate": "UA-2-4-022",
+    "tests/integration/ua2/test_tag_delete_physical.py::test_physical_delete_mixed": "UA-2-4-023",
+    "tests/integration/ua2/test_tag_delete_physical.py::test_physical_delete_restore_fails": "UA-2-4-024",
+    "tests/integration/ua2/test_tag_delete_physical.py::test_physical_delete_rebuild_same_name": "UA-2-4-025",
+    "tests/integration/ua2/test_tag_delete_physical.py::test_physical_delete_rebuild_same_name_node": "UA-2-4-026",
+    "tests/integration/ua2/test_tag_delete_physical.py::test_physical_delete_untouched": "UA-2-4-027",
+    "tests/integration/ua2/test_tag_delete_restore.py::test_delete_impact_source_node": "UA-2-4-010",
+    "tests/integration/ua2/test_tag_delete_restore.py::test_delete_impact_history_new": "UA-2-4-011",
+    "tests/integration/ua2/test_tag_delete_restore.py::test_delete_impact_history_existing": "UA-2-4-012",
+    "tests/integration/ua2/test_tag_delete_restore.py::test_restore_single_tag": "UA-2-4-013",
+    "tests/integration/ua2/test_tag_delete_restore.py::test_restore_multiple_tags": "UA-2-4-014",
+    "tests/integration/ua2/test_tag_delete_restore.py::test_restore_identity_kept": "UA-2-4-015",
+    "tests/integration/ua2/test_tag_delete_restore.py::test_restore_rt_quality_loop": "UA-2-4-016",
+    "tests/integration/ua2/test_tag_delete_restore.py::test_restore_false_but_works": "UA-2-4-017",
+    "tests/integration/ua2/test_tag_delete_restore.py::test_restore_duplicate": "UA-2-4-018",
+    "tests/integration/ua2/test_tag_delete_restore.py::test_restore_mixed_valid_invalid": "UA-2-4-019",
     "tests/integration/ua2/test_tag_delete_soft.py::test_soft_delete_single_tag": "UA-2-4-001",
     "tests/integration/ua2/test_tag_delete_soft.py::test_soft_delete_multiple_tags": "UA-2-4-002",
     "tests/integration/ua2/test_tag_delete_soft.py::test_soft_delete_cross_ds": "UA-2-4-003",
@@ -1563,9 +1635,9 @@
     {
       "chapter": "UA-2",
       "source": 265,
-      "pytest": 220,
-      "migrated_count": 220,
-      "missing_count": 45,
+      "pytest": 238,
+      "migrated_count": 238,
+      "missing_count": 27,
       "migrated": [
         "UA-2-1-001",
         "UA-2-1-002",
@@ -1786,9 +1858,7 @@
         "UA-2-4-006",
         "UA-2-4-007",
         "UA-2-4-008",
-        "UA-2-4-009"
-      ],
-      "missing": [
+        "UA-2-4-009",
         "UA-2-4-010",
         "UA-2-4-011",
         "UA-2-4-012",
@@ -1806,7 +1876,9 @@
         "UA-2-4-024",
         "UA-2-4-025",
         "UA-2-4-026",
-        "UA-2-4-027",
+        "UA-2-4-027"
+      ],
+      "missing": [
         "UA-2-5-001",
         "UA-2-5-002",
         "UA-2-5-003",

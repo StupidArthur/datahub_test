@@ -5563,8 +5563,8 @@
     {
       "id": "UA-2-4-010",
       "chapter": "UA-2-4",
-      "title": "恢复_源节点",
-      "nodeid": "tests/integration/ua2/test_tag_delete_restore.py::test_restore_source_node",
+      "title": "删除影响_源端节点",
+      "nodeid": "tests/integration/ua2/test_tag_delete_restore.py::test_delete_impact_source_node",
       "preconditions": [
         "数据源 alive",
         "位号已创建",
@@ -5573,12 +5573,11 @@
       ],
       "steps": [
         "记录删除前源值",
-        "软删除",
-        "恢复",
+        "软删除（不恢复）",
         "重新读取 OPC UA 源值"
       ],
       "expected": [
-        "源节点连接正常，读值不受删除/恢复影响"
+        "源节点连接正常，读值不受删除影响"
       ],
       "markers": [
         "destructive",
@@ -5588,21 +5587,20 @@
     {
       "id": "UA-2-4-011",
       "chapter": "UA-2-4",
-      "title": "恢复_历史_新采集",
-      "nodeid": "tests/integration/ua2/test_tag_delete_restore.py::test_restore_history_new",
+      "title": "删除影响_新增历史",
+      "nodeid": "tests/integration/ua2/test_tag_delete_restore.py::test_delete_impact_history_new",
       "preconditions": [
         "数据源 alive",
         "位号已创建并产生过历史数据"
       ],
       "steps": [
-        "记录恢复前历史样本数",
+        "记录删除前历史样本数",
         "软删除",
-        "恢复",
-        "写入新值",
-        "查询恢复后历史"
+        "用窄时间窗口查询历史",
+        "记录观察"
       ],
       "expected": [
-        "恢复后新写入的值能被历史记录"
+        "观察删除后位号历史是否仍可查（spec_pending）"
       ],
       "markers": [
         "spec_pending",
@@ -5613,19 +5611,20 @@
     {
       "id": "UA-2-4-012",
       "chapter": "UA-2-4",
-      "title": "恢复_历史_已有",
-      "nodeid": "tests/integration/ua2/test_tag_delete_restore.py::test_restore_history_existing",
+      "title": "删除影响_既有历史",
+      "nodeid": "tests/integration/ua2/test_tag_delete_restore.py::test_delete_impact_history_existing",
       "preconditions": [
         "位号已有历史数据"
       ],
       "steps": [
-        "记录历史数据快照",
+        "计算运行时滑动时间窗口",
+        "查询删除前历史",
         "软删除",
-        "恢复",
-        "对比恢复后的历史数据"
+        "用相同窗口查询历史",
+        "记录观察"
       ],
       "expected": [
-        "软删除后的历史数据不丢失"
+        "观察删除后既有历史数据是否丢失（spec_pending）"
       ],
       "markers": [
         "spec_pending",
@@ -5642,14 +5641,18 @@
         "一个位号已在回收站"
       ],
       "steps": [
-        "确认回收站中有位号",
+        "快照删除前身份",
+        "软删除",
+        "确认回收站中位号",
         "remove_tag_group_relation(group_id=1, [tag_id])",
         "确认回收站中无该位号",
-        "确认 RT 正常"
+        "确认 RT 正常",
+        "比对身份"
       ],
       "expected": [
         "位号离开回收站",
-        "RT 可读"
+        "RT 可读",
+        "tagName/dsId/dataType 不变"
       ],
       "markers": [
         "destructive",
@@ -5662,18 +5665,20 @@
       "title": "恢复_多个位号",
       "nodeid": "tests/integration/ua2/test_tag_delete_restore.py::test_restore_multiple_tags",
       "preconditions": [
-        "10 个位号已在回收站"
+        "11 个位号已创建且 RT 正常"
       ],
       "steps": [
-        "批量软删除 10 个位号",
-        "确认回收站有 10 条",
-        "批量恢复",
-        "确认回收站中无这些位号",
-        "确认 RT 正常"
+        "batchAdd 创建 11 个位号",
+        "批量软删除 11 个",
+        "确认回收站有 11 条",
+        "恢复 10 个，留 1 个作控制",
+        "确认回收站仅剩 1 个控制位号",
+        "确认 10 个已恢复标签 RT 正常"
       ],
       "expected": [
-        "所有位号离开回收站",
-        "RT 可读"
+        "10 个位号离开回收站",
+        "控制位号仍在回收站",
+        "10 个 RT 可读"
       ],
       "markers": [
         "destructive",
@@ -5683,21 +5688,20 @@
     {
       "id": "UA-2-4-015",
       "chapter": "UA-2-4",
-      "title": "恢复_跨数据源",
-      "nodeid": "tests/integration/ua2/test_tag_delete_restore.py::test_restore_cross_ds",
+      "title": "恢复_身份配置保持",
+      "nodeid": "tests/integration/ua2/test_tag_delete_restore.py::test_restore_identity_kept",
       "preconditions": [
-        "两个数据源各自有位号在回收站"
+        "位号已配置 unit/tagDesc/tagType"
       ],
       "steps": [
-        "DS-A 位号软删除",
-        "DS-B 位号软删除",
-        "同批恢复",
-        "确认两回收站均无",
-        "确认 RT 正常"
+        "快照完整身份与配置",
+        "软删除",
+        "恢复",
+        "查询位号",
+        "比对 id/tagName/tagBaseName/dsId/dataType/unit/tagDesc/tagType"
       ],
       "expected": [
-        "各按 dsId 正确恢复",
-        "不串源"
+        "身份与配置字段完全保持"
       ],
       "markers": [
         "destructive",
@@ -5706,6 +5710,54 @@
     },
     {
       "id": "UA-2-4-016",
+      "chapter": "UA-2-4",
+      "title": "恢复_RT质量闭环",
+      "nodeid": "tests/integration/ua2/test_tag_delete_restore.py::test_restore_rt_quality_loop",
+      "preconditions": [
+        "位号已创建",
+        "RT 有效",
+        "OPC UA 源值可读"
+      ],
+      "steps": [
+        "软删除",
+        "恢复",
+        "query_tags_with_quality 质量非 0",
+        "RT 取值有效",
+        "OPC UA 源值可读"
+      ],
+      "expected": [
+        "恢复后 RT、质量、源端都重新生效"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-4-017",
+      "chapter": "UA-2-4",
+      "title": "恢复_返回false但生效",
+      "nodeid": "tests/integration/ua2/test_tag_delete_restore.py::test_restore_false_but_works",
+      "preconditions": [
+        "位号已在回收站"
+      ],
+      "steps": [
+        "软删除",
+        "确认回收站",
+        "remove_tag_group_relation 调用",
+        "无论返回 false/true 均验证回收站已清",
+        "RT 验证"
+      ],
+      "expected": [
+        "API 可能返回 false，但实际生效"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-4-018",
       "chapter": "UA-2-4",
       "title": "恢复_重复提交",
       "nodeid": "tests/integration/ua2/test_tag_delete_restore.py::test_restore_duplicate",
@@ -5718,48 +5770,7 @@
         "查询回收站"
       ],
       "expected": [
-        "二次操作幂等；记录不重复"
-      ],
-      "markers": [
-        "spec_pending",
-        "destructive",
-        "integration"
-      ]
-    },
-    {
-      "id": "UA-2-4-017",
-      "chapter": "UA-2-4",
-      "title": "恢复_无效ID",
-      "nodeid": "tests/integration/ua2/test_tag_delete_restore.py::test_restore_invalid_id",
-      "preconditions": [],
-      "steps": [
-        "使用不存在的 ID 调用恢复",
-        "记录响应"
-      ],
-      "expected": [
-        "记录响应；现有数据不变"
-      ],
-      "markers": [
-        "spec_pending",
-        "destructive",
-        "integration"
-      ]
-    },
-    {
-      "id": "UA-2-4-018",
-      "chapter": "UA-2-4",
-      "title": "恢复_已恢复位号",
-      "nodeid": "tests/integration/ua2/test_tag_delete_restore.py::test_restore_already_active",
-      "preconditions": [
-        "位号已存在且未被删除"
-      ],
-      "steps": [
-        "对正常在位位号直接调用恢复",
-        "记录响应",
-        "确认位号状态不变"
-      ],
-      "expected": [
-        "记录行为；已恢复位号的 RT 不受影响"
+        "二次操作幂等；记录不重复（spec_pending）"
       ],
       "markers": [
         "spec_pending",
@@ -5770,21 +5781,207 @@
     {
       "id": "UA-2-4-019",
       "chapter": "UA-2-4",
-      "title": "恢复_混合场景",
-      "nodeid": "tests/integration/ua2/test_tag_delete_restore.py::test_restore_mixed",
+      "title": "恢复_有效无效混合",
+      "nodeid": "tests/integration/ua2/test_tag_delete_restore.py::test_restore_mixed_valid_invalid",
       "preconditions": [
         "一个有效位号在回收站"
       ],
       "steps": [
-        "同批传入有效回收站 ID 和无效 ID",
+        "同批传入有效回收站 ID 和动态不存在的 ID",
         "记录响应",
         "查询位号状态"
       ],
       "expected": [
-        "记录事务规则；有效项最终状态可确认"
+        "记录事务规则；有效项最终状态可确认（spec_pending）"
       ],
       "markers": [
         "spec_pending",
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-4-020",
+      "chapter": "UA-2-4",
+      "title": "物理删除_单个位号",
+      "nodeid": "tests/integration/ua2/test_tag_delete_physical.py::test_physical_delete_single",
+      "preconditions": [
+        "数据源 alive",
+        "位号已创建",
+        "RT 可读"
+      ],
+      "steps": [
+        "创建位号",
+        "delete_tags(id)",
+        "确认在回收站",
+        "delete_tags_physical(id)",
+        "list_recycle_tags 确认不在回收站",
+        "list_tags 确认不在活动列表"
+      ],
+      "expected": [
+        "物理删除后回收站与活动列表均无此位号"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-4-021",
+      "chapter": "UA-2-4",
+      "title": "物理删除_多个位号",
+      "nodeid": "tests/integration/ua2/test_tag_delete_physical.py::test_physical_delete_multiple",
+      "preconditions": [
+        "数据源 alive",
+        "10 个位号已创建且 RT 正常"
+      ],
+      "steps": [
+        "batchAdd 创建 10 个位号",
+        "批量软删除 10 个 ID",
+        "确认 10 个均在回收站",
+        "delete_tags_physical 批量物理删除",
+        "list_recycle_tags 与 list_tags 确认全部清空"
+      ],
+      "expected": [
+        "物理删除后回收站与活动列表均无这些位号"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-4-022",
+      "chapter": "UA-2-4",
+      "title": "物理删除_重复提交",
+      "nodeid": "tests/integration/ua2/test_tag_delete_physical.py::test_physical_delete_duplicate",
+      "preconditions": [
+        "位号已软删除至回收站"
+      ],
+      "steps": [
+        "首次 delete_tags_physical(id)",
+        "再次对同一 ID 调用 delete_tags_physical",
+        "记录响应",
+        "查询回收站"
+      ],
+      "expected": [
+        "记录幂等或错误规则；回收站无重复记录"
+      ],
+      "markers": [
+        "spec_pending",
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-4-023",
+      "chapter": "UA-2-4",
+      "title": "物理删除_有效无效混合",
+      "nodeid": "tests/integration/ua2/test_tag_delete_physical.py::test_physical_delete_mixed",
+      "preconditions": [
+        "一个有效位号已软删除至回收站"
+      ],
+      "steps": [
+        "同批传入有效 ID 与动态不存在的 fake_id=-1 调用 delete_tags_physical",
+        "记录响应",
+        "查询回收站与活动列表确认有效位号状态"
+      ],
+      "expected": [
+        "记录事务规则；有效位号最终状态可确认"
+      ],
+      "markers": [
+        "spec_pending",
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-4-024",
+      "chapter": "UA-2-4",
+      "title": "物理删除_删除后恢复",
+      "nodeid": "tests/integration/ua2/test_tag_delete_physical.py::test_physical_delete_restore_fails",
+      "preconditions": [
+        "位号已物理删除"
+      ],
+      "steps": [
+        "delete_tags + delete_tags_physical",
+        "对已物理删除的 ID 调用 remove_tag_group_relation(group_id='1') 恢复",
+        "记录响应",
+        "查询回收站与活动列表"
+      ],
+      "expected": [
+        "恢复失败；位号不可恢复"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-4-025",
+      "chapter": "UA-2-4",
+      "title": "物理删除_同名重建",
+      "nodeid": "tests/integration/ua2/test_tag_delete_physical.py::test_physical_delete_rebuild_same_name",
+      "preconditions": [
+        "位号已物理删除"
+      ],
+      "steps": [
+        "delete_tags + delete_tags_physical",
+        "用原 tagName 通过 add_tag 重建位号（不指定 tagBaseName）",
+        "记录是否成功",
+        "记录新位号 id"
+      ],
+      "expected": [
+        "记录同名重建规则"
+      ],
+      "markers": [
+        "spec_pending",
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-4-026",
+      "chapter": "UA-2-4",
+      "title": "物理删除_同名同节点重建",
+      "nodeid": "tests/integration/ua2/test_tag_delete_physical.py::test_physical_delete_rebuild_same_name_node",
+      "preconditions": [
+        "位号已物理删除"
+      ],
+      "steps": [
+        "记录原 tagName 和 tagBaseName",
+        "delete_tags + delete_tags_physical",
+        "在同 DS 上用相同 tagName 与 tagBaseName 重建位号",
+        "确认新位号 RT 可读",
+        "记录新旧 id 差异"
+      ],
+      "expected": [
+        "重建成功；新位号独立 id；RT 正常"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-2-4-027",
+      "chapter": "UA-2-4",
+      "title": "物理删除_数据源隔离",
+      "nodeid": "tests/integration/ua2/test_tag_delete_physical.py::test_physical_delete_untouched",
+      "preconditions": [
+        "同一数据源有两个位号 A 与 B",
+        "RT 均有效"
+      ],
+      "steps": [
+        "软删除 A",
+        "物理删除 A",
+        "确认 B 仍在活动列表",
+        "确认 B 仍可 RT 读取"
+      ],
+      "expected": [
+        "A 完全消失，B 不受影响；不串源"
+      ],
+      "markers": [
         "destructive",
         "integration"
       ]
