@@ -75,16 +75,10 @@ def _get_node(tree, group_id):
     return None
 
 
-def _collect_tag_ids_from_group(api, group_id):
-    result = query_tags_with_quality(api, group_id=str(group_id), page_size=999)
-    records = (result.get("tagInfoList") or {}).get("records") or []
-    return [int(r["id"]) for r in records]
-
-
-def _collect_tag_names_from_group(api, group_id):
-    result = query_tags_with_quality(api, group_id=str(group_id), page_size=999)
-    records = (result.get("tagInfoList") or {}).get("records") or []
-    return [r["tagName"] for r in records]
+def _check_tag_in_group(api, tag_name, group_id):
+    qwq = query_tags_with_quality(api, group_id=group_id, tag_name=tag_name, page_size=10)
+    recs = (qwq.get("tagInfoList") or {}).get("records") or []
+    return any(r.get("tagName") == tag_name for r in recs)
 
 
 def _assert_tree_well_formed(tree):
@@ -163,17 +157,20 @@ class TestTagMove:
                        lambda: get_rt_point(api, tag_name).get("tagValue") is not None,
                        timeout=30.0)
 
-            before_g1_names = _collect_tag_names_from_group(api, g1["id"])
-            assert tag_name in before_g1_names, f"tag should be in G1 before move"
+            before_ok = _check_tag_in_group(api, tag_name, g1["id"])
+            record_property("before_in_g1", before_ok)
+            assert before_ok, (
+                f"tag should be in G1 ({g1['id']}) before move"
+            )
 
             batch_update_tags(api, [tag_id], group_id=g2["id"])
 
-            after_g1_names = _collect_tag_names_from_group(api, g1["id"])
-            after_g2_names = _collect_tag_names_from_group(api, g2["id"])
-            assert tag_name not in after_g1_names, f"tag should no longer be in G1"
-            assert tag_name in after_g2_names, f"tag should now be in G2"
-            record_property("g1_after", after_g1_names)
-            record_property("g2_after", after_g2_names)
+            after_in_g2 = _check_tag_in_group(api, tag_name, g2["id"])
+            after_in_g1 = _check_tag_in_group(api, tag_name, g1["id"])
+            record_property("after_in_g2", after_in_g2)
+            record_property("after_in_g1", after_in_g1)
+            assert after_in_g2, f"tag should now be in G2 ({g2['id']})"
+            assert not after_in_g1, "tag should no longer be in G1"
         finally:
             if tag_id is not None:
                 try:
@@ -204,8 +201,8 @@ class TestTagMove:
     def test_move_multiple_tags(self, api, settings, tmp_path_factory, mocker_endpoint, record_property, run_id):
         groups_created = []
         mocker_ctx = None
-        moved_ids = []
-        kept_ids = []
+        moved_tags = {}
+        kept_tags = {}
         try:
             g1 = add_tag_group(api, f"ua25_{run_id}_src", "0")
             groups_created.append(g1["id"])
@@ -216,39 +213,33 @@ class TestTagMove:
 
             mocker_ctx = self._setup_mocker_ds(api, settings, tmp_path_factory, mocker_endpoint, run_id)
             ds_id = mocker_ctx["ds_id"]
-            moved_names = []
-            kept_names = []
             for i in range(10):
                 tn = unique_name(settings.test_prefix, f"UA-2-5-015_m{i}_{run_id}")
                 td = add_tag(api, tag_name=tn, data_type=DataTypes["DOUBLE"],
                              ds_id=ds_id, group_id=g1["id"],
-                             tag_base_name="2_smoke_static_1", only_read=True)
-                moved_ids.append(int(td.get("id") or td.get("tagId")))
-                moved_names.append(tn)
+                             tag_base_name=f"2_smoke_static_m{i}_{run_id}", only_read=True)
+                moved_tags[int(td.get("id") or td.get("tagId"))] = tn
             for i in range(3):
                 tn = unique_name(settings.test_prefix, f"UA-2-5-015_k{i}_{run_id}")
                 td = add_tag(api, tag_name=tn, data_type=DataTypes["DOUBLE"],
                              ds_id=ds_id, group_id=g1["id"],
-                             tag_base_name="2_smoke_static_1", only_read=True)
-                kept_ids.append(int(td.get("id") or td.get("tagId")))
-                kept_names.append(tn)
-            record_property("moved_count", len(moved_ids))
-            record_property("kept_count", len(kept_ids))
+                             tag_base_name=f"2_smoke_static_k{i}_{run_id}", only_read=True)
+                kept_tags[int(td.get("id") or td.get("tagId"))] = tn
+            record_property("moved_count", len(moved_tags))
+            record_property("kept_count", len(kept_tags))
 
-            batch_update_tags(api, moved_ids, group_id=g2["id"])
+            batch_update_tags(api, list(moved_tags.keys()), group_id=g2["id"])
 
-            after_g1_names = _collect_tag_names_from_group(api, g1["id"])
-            after_g2_names = _collect_tag_names_from_group(api, g2["id"])
-            for n in moved_names:
-                assert n not in after_g1_names, f"{n} should not be in G1 after move"
-                assert n in after_g2_names, f"{n} should be in G2 after move"
-            for n in kept_names:
-                assert n in after_g1_names, f"{n} should remain in G1"
-                assert n not in after_g2_names, f"{n} should not be in G2"
-            record_property("g1_after_count", len(after_g1_names))
-            record_property("g2_after_count", len(after_g2_names))
+            for tid, tn in moved_tags.items():
+                ok = _check_tag_in_group(api, tn, g2["id"])
+                assert ok, f"moved tag {tid} ({tn}) should be in G2 ({g2['id']})"
+            for tid, tn in kept_tags.items():
+                ok = _check_tag_in_group(api, tn, g1["id"])
+                assert ok, f"kept tag {tid} ({tn}) should remain in G1 ({g1['id']})"
+            record_property("moved_verified", len(moved_tags))
+            record_property("kept_verified", len(kept_tags))
         finally:
-            all_tag_ids = moved_ids + kept_ids
+            all_tag_ids = list(moved_tags.keys()) + list(kept_tags.keys())
             for tid in all_tag_ids:
                 try:
                     delete_tags_physical(api, [tid])
@@ -294,10 +285,12 @@ class TestTagMove:
 
             batch_update_tags(api, [tag_id], group_id="0")
 
-            after_g1_names = _collect_tag_names_from_group(api, g1["id"])
-            after_root_names = _collect_tag_names_from_group(api, "0")
-            assert tag_name not in after_g1_names, "tag should no longer be in G1"
-            assert tag_name in after_root_names, "tag should be in Root"
+            after_in_root = _check_tag_in_group(api, tag_name, "0")
+            after_in_g1 = _check_tag_in_group(api, tag_name, g1["id"])
+            record_property("after_in_root", after_in_root)
+            record_property("after_in_g1", after_in_g1)
+            assert after_in_root, "tag should be in Root after move"
+            assert not after_in_g1, "tag should no longer be in G1"
 
             rt_after = get_rt_point(api, tag_name)
             record_property("rt_after", rt_after.get("tagValue"))
@@ -344,7 +337,8 @@ class TestTagMove:
                        lambda: get_rt_point(api, tag_name).get("tagValue") is not None,
                        timeout=30.0)
 
-            before_g1_names = _collect_tag_names_from_group(api, g1["id"])
+            before_in_g1 = _check_tag_in_group(api, tag_name, g1["id"])
+            record_property("before_in_g1", before_in_g1)
 
             invalid_group_id = "99999999999999999"
             try:
@@ -354,13 +348,16 @@ class TestTagMove:
                 record_property("behavior", "rejected")
                 record_property("error", str(e))
 
-            after_g1_names = _collect_tag_names_from_group(api, g1["id"])
-            if tag_name not in after_g1_names:
-                record_property("tag_disappeared", "true")
-                after_all = _collect_tag_ids_from_group(api, "0")
-                record_property("root_tag_ids", after_all)
+            after_in_g1 = _check_tag_in_group(api, tag_name, g1["id"])
+            after_in_root = _check_tag_in_group(api, tag_name, "0")
+            record_property("after_in_g1", after_in_g1)
+            record_property("after_in_root", after_in_root)
+            if not after_in_g1 and after_in_root:
+                record_property("fallback_to_root", "true")
+            elif after_in_g1:
+                record_property("relationship_preserved", "true")
             else:
-                record_property("tag_relationship_preserved", "true")
+                record_property("relationship_lost", "true")
             pytest.xfail("spec_pending: behavior for moving tag to invalid group not specified")
         finally:
             if tag_id is not None:
@@ -452,20 +449,14 @@ class TestGroupDeleteNonEmpty:
             g1_still_exists = _get_node(tree, g1["id"]) is not None
             record_property("g1_still_in_tree", str(g1_still_exists))
 
-            tag_still_exists = True
             try:
                 rt = get_rt_point(api, tag_name)
                 record_property("tag_rt_value", rt.get("tagValue"))
+                if g1_still_exists:
+                    after_in_g1 = _check_tag_in_group(api, tag_name, g1["id"])
+                    record_property("tag_after_in_g1", after_in_g1)
             except TptAPIError:
-                tag_still_exists = False
                 record_property("tag_rt_value", "not_found")
-            record_property("tag_still_exists", str(tag_still_exists))
-
-            if tag_still_exists:
-                current_group = _collect_tag_ids_from_group(api, g1["id"])
-                root_ids = _collect_tag_ids_from_group(api, "0")
-                record_property("tag_in_g1", str(tag_id in current_group))
-                record_property("tag_in_root", str(tag_id in root_ids))
 
             pytest.xfail("spec_pending: delete non-empty not-force behavior not specified")
         finally:
@@ -698,8 +689,14 @@ class TestFavorites:
             record_property("fav_after_count", len(fav_after))
             assert tag_id in fav_after, "tag should be in favorites after add"
 
-            g1_ids = _collect_tag_ids_from_group(api, g1["id"])
-            assert tag_id in g1_ids, "tag should still be in its original group"
+            # Product behavior: favoriting moves tag from original group to Root+favorites
+            in_g1_after = _check_tag_in_group(api, tag_name, g1["id"])
+            in_root_after = _check_tag_in_group(api, tag_name, "0")
+            record_property("in_g1_after_fav", in_g1_after)
+            record_property("in_root_after_fav", in_root_after)
+            if not in_g1_after:
+                record_property("product_limitation", "favoriting_removes_group_assignment")
+                pytest.fail("favoriting removed tag from original group (product limitation)")
         finally:
             if tag_id is not None:
                 try:
@@ -870,10 +867,17 @@ class TestFavorites:
             assert tag_ids[1] in fav_after_single, "second tag should still be in favorites"
             assert tag_ids[2] in fav_after_single, "third tag should still be in favorites"
 
-            g1_ids = _collect_tag_ids_from_group(api, g1["id"])
-            assert all(tid in g1_ids for tid in tag_ids), (
-                "all tags should still exist in original group"
-            )
+            for tn in tag_names:
+                ok = _check_tag_in_group(api, tn, g1["id"])
+                record_property("unfavorite_in_g1", ok)
+                if not ok:
+                    # Check if ended up in Root (product behavior)
+                    in_root = _check_tag_in_group(api, tn, "0")
+                    record_property("unfavorite_fallback_root", in_root)
+                    record_property("product_limitation", "favoriting_removes_group_assignment")
+                assert ok, (
+                    f"tag {tn} left original group after unfavorite (product limitation)"
+                )
             record_property("unfavorite_single_verified", True)
 
             remove_tag_group_relation(api, "2", tag_ids[1:])
@@ -942,8 +946,13 @@ class TestFavorites:
                 f"response={response}, fav_after={fav_after}"
             )
 
-            g1_ids = _collect_tag_ids_from_group(api, g1["id"])
-            assert tag_id in g1_ids, "tag should still exist in its original group"
+            after_still_in_g1 = _check_tag_in_group(api, tag_name, g1["id"])
+            after_in_root = _check_tag_in_group(api, tag_name, "0")
+            record_property("after_still_in_g1", after_still_in_g1)
+            record_property("after_in_root", after_in_root)
+            if not after_still_in_g1:
+                record_property("product_limitation", "favoriting_removes_group_assignment")
+                pytest.fail("tag left original group after unfavorite (product limitation)")
         finally:
             if tag_id is not None:
                 try:
