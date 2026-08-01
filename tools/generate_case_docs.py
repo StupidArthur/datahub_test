@@ -23,7 +23,33 @@ HEADER = """\
 """
 
 
-def collect_cases() -> list[dict]:
+LIST_FIELDS = ("preconditions", "steps", "expected")
+
+
+def _coerce_list_field(value) -> list[str]:
+    if isinstance(value, str):
+        return [value]
+    if isinstance(value, (list, tuple)):
+        return [str(v) for v in value]
+    raise TypeError(f"expected str/list/tuple, got {type(value).__name__}")
+
+
+def _normalize_list_fields(c: dict, strict: bool = False) -> None:
+    for field in LIST_FIELDS:
+        val = c.get(field)
+        if val is None:
+            continue
+        if isinstance(val, str) and strict:
+            print(
+                f"warning: case {c.get('id', '?')} field {field!r} "
+                f"is a str (nodeid={c.get('nodeid', '?')}); "
+                f"wrapping as single entry",
+                file=sys.stderr,
+            )
+        c[field] = _coerce_list_field(val)
+
+
+def collect_cases(strict: bool = False) -> list[dict]:
     import pytest
 
     class _Collector:
@@ -41,6 +67,7 @@ def collect_cases() -> list[dict]:
                     m.name for m in item.iter_markers()
                     if m.name in ("integration", "destructive", "spec_pending")
                 ]
+                _normalize_list_fields(kw, strict=strict)
                 self.cases.append(kw)
 
     collector = _Collector()
@@ -65,6 +92,7 @@ def validate_cases(cases: list[dict]) -> None:
                 f"{seen_ids[cid]} and {c.get('nodeid')}"
             )
         seen_ids[cid] = c.get("nodeid", "")
+        _normalize_list_fields(c)
         for field in REQUIRED_FIELDS:
             val = c.get(field)
             if not val:
@@ -190,7 +218,7 @@ def check(cases: list[dict]) -> int:
 
 def main() -> None:
     check_mode = "--check" in sys.argv
-    cases = collect_cases()
+    cases = collect_cases(strict=check_mode)
     if not cases:
         print("no cases found", file=sys.stderr)
         sys.exit(1)

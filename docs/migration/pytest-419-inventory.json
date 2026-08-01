@@ -71,7 +71,7 @@
     }
   ],
   "duplicates_in_source": [],
-  "pytest_total": 275,
+  "pytest_total": 293,
   "migrated": [
     "UA-1-1-01",
     "UA-1-1-02",
@@ -347,7 +347,25 @@
     "UA-2-5-006",
     "UA-2-5-007",
     "UA-2-5-008",
-    "UA-2-5-009"
+    "UA-2-5-009",
+    "UA-2-5-010",
+    "UA-2-5-011",
+    "UA-2-5-012",
+    "UA-2-5-013",
+    "UA-2-5-014",
+    "UA-2-5-015",
+    "UA-2-5-016",
+    "UA-2-5-017",
+    "UA-2-5-018",
+    "UA-2-5-019",
+    "UA-2-5-020",
+    "UA-2-5-021",
+    "UA-2-5-022",
+    "UA-2-5-023",
+    "UA-2-5-024",
+    "UA-2-5-025",
+    "UA-2-5-026",
+    "UA-2-5-027"
   ],
   "missing": [
     "UA-1-4-01",
@@ -378,24 +396,6 @@
     "UA-1-6-11",
     "UA-1-6-12",
     "UA-1-6-13",
-    "UA-2-5-010",
-    "UA-2-5-011",
-    "UA-2-5-012",
-    "UA-2-5-013",
-    "UA-2-5-014",
-    "UA-2-5-015",
-    "UA-2-5-016",
-    "UA-2-5-017",
-    "UA-2-5-018",
-    "UA-2-5-019",
-    "UA-2-5-020",
-    "UA-2-5-021",
-    "UA-2-5-022",
-    "UA-2-5-023",
-    "UA-2-5-024",
-    "UA-2-5-025",
-    "UA-2-5-026",
-    "UA-2-5-027",
     "UA-3-1-001",
     "UA-3-1-002",
     "UA-3-1-003",
@@ -1061,6 +1061,60 @@
     "UA-2-5-009": [
       "tests/integration/ua2/test_tag_group_management.py::TestGroupEdit::test_rename"
     ],
+    "UA-2-5-010": [
+      "tests/integration/ua2/test_tag_group_management.py::TestGroupEdit::test_move_parent"
+    ],
+    "UA-2-5-011": [
+      "tests/integration/ua2/test_tag_group_management.py::TestGroupEdit::test_rename_and_move"
+    ],
+    "UA-2-5-012": [
+      "tests/integration/ua2/test_tag_group_management.py::TestGroupEdit::test_update_invalid_id"
+    ],
+    "UA-2-5-013": [
+      "tests/integration/ua2/test_tag_group_management.py::TestGroupEdit::test_circular_reference"
+    ],
+    "UA-2-5-018": [
+      "tests/integration/ua2/test_tag_group_management.py::TestGroupDelete::test_delete_empty_node"
+    ],
+    "UA-2-5-022": [
+      "tests/integration/ua2/test_tag_group_management.py::TestGroupDelete::test_delete_batch_empty"
+    ],
+    "UA-2-5-014": [
+      "tests/integration/ua2/test_tag_group_operations.py::TestTagMove::test_move_single_tag"
+    ],
+    "UA-2-5-015": [
+      "tests/integration/ua2/test_tag_group_operations.py::TestTagMove::test_move_multiple_tags"
+    ],
+    "UA-2-5-016": [
+      "tests/integration/ua2/test_tag_group_operations.py::TestTagMove::test_move_to_root"
+    ],
+    "UA-2-5-017": [
+      "tests/integration/ua2/test_tag_group_operations.py::TestTagMove::test_move_invalid_group"
+    ],
+    "UA-2-5-019": [
+      "tests/integration/ua2/test_tag_group_operations.py::TestGroupDeleteNonEmpty::test_delete_nonempty_not_force"
+    ],
+    "UA-2-5-020": [
+      "tests/integration/ua2/test_tag_group_operations.py::TestGroupDeleteNonEmpty::test_delete_nonempty_force"
+    ],
+    "UA-2-5-021": [
+      "tests/integration/ua2/test_tag_group_operations.py::TestGroupDeleteNonEmpty::test_delete_with_children"
+    ],
+    "UA-2-5-023": [
+      "tests/integration/ua2/test_tag_group_operations.py::TestFavorites::test_favorite_single"
+    ],
+    "UA-2-5-024": [
+      "tests/integration/ua2/test_tag_group_operations.py::TestFavorites::test_favorite_multiple"
+    ],
+    "UA-2-5-025": [
+      "tests/integration/ua2/test_tag_group_operations.py::TestFavorites::test_favorite_duplicate"
+    ],
+    "UA-2-5-026": [
+      "tests/integration/ua2/test_tag_group_operations.py::TestFavorites::test_unfavorite"
+    ],
+    "UA-2-5-027": [
+      "tests/integration/ua2/test_tag_group_operations.py::TestFavorites::test_unfavorite_returns_false"
+    ],
     "UA-2-3-013": [
       "tests/integration/ua2/test_tag_import_basic.py::test_import_single_tag"
     ],
@@ -1512,6 +1566,24 @@
     "tests/integration/ua2/test_tag_group_management.py::TestGroupCreate::test_create_empty_name": "UA-2-5-007",
     "tests/integration/ua2/test_tag_group_management.py::TestGroupCreate::test_create_nonexistent_parent": "UA-2-5-008",
     "tests/integration/ua2/test_tag_group_management.py::TestGroupEdit::test_rename": "UA-2-5-009",
+    "tests/integration/ua2/test_tag_group_management.py::TestGroupEdit::test_move_parent": "UA-2-5-010",
+    "tests/integration/ua2/test_tag_group_management.py::TestGroupEdit::test_rename_and_move": "UA-2-5-011",
+    "tests/integration/ua2/test_tag_group_management.py::TestGroupEdit::test_update_invalid_id": "UA-2-5-012",
+    "tests/integration/ua2/test_tag_group_management.py::TestGroupEdit::test_circular_reference": "UA-2-5-013",
+    "tests/integration/ua2/test_tag_group_management.py::TestGroupDelete::test_delete_empty_node": "UA-2-5-018",
+    "tests/integration/ua2/test_tag_group_management.py::TestGroupDelete::test_delete_batch_empty": "UA-2-5-022",
+    "tests/integration/ua2/test_tag_group_operations.py::TestTagMove::test_move_single_tag": "UA-2-5-014",
+    "tests/integration/ua2/test_tag_group_operations.py::TestTagMove::test_move_multiple_tags": "UA-2-5-015",
+    "tests/integration/ua2/test_tag_group_operations.py::TestTagMove::test_move_to_root": "UA-2-5-016",
+    "tests/integration/ua2/test_tag_group_operations.py::TestTagMove::test_move_invalid_group": "UA-2-5-017",
+    "tests/integration/ua2/test_tag_group_operations.py::TestGroupDeleteNonEmpty::test_delete_nonempty_not_force": "UA-2-5-019",
+    "tests/integration/ua2/test_tag_group_operations.py::TestGroupDeleteNonEmpty::test_delete_nonempty_force": "UA-2-5-020",
+    "tests/integration/ua2/test_tag_group_operations.py::TestGroupDeleteNonEmpty::test_delete_with_children": "UA-2-5-021",
+    "tests/integration/ua2/test_tag_group_operations.py::TestFavorites::test_favorite_single": "UA-2-5-023",
+    "tests/integration/ua2/test_tag_group_operations.py::TestFavorites::test_favorite_multiple": "UA-2-5-024",
+    "tests/integration/ua2/test_tag_group_operations.py::TestFavorites::test_favorite_duplicate": "UA-2-5-025",
+    "tests/integration/ua2/test_tag_group_operations.py::TestFavorites::test_unfavorite": "UA-2-5-026",
+    "tests/integration/ua2/test_tag_group_operations.py::TestFavorites::test_unfavorite_returns_false": "UA-2-5-027",
     "tests/integration/ua2/test_tag_import_basic.py::test_import_single_tag": "UA-2-3-013",
     "tests/integration/ua2/test_tag_import_basic.py::test_import_multiple_tags": "UA-2-3-014",
     "tests/integration/ua2/test_tag_import_basic.py::test_import_cross_ds_group": "UA-2-3-015",
@@ -1671,9 +1743,9 @@
     {
       "chapter": "UA-2",
       "source": 265,
-      "pytest": 247,
-      "migrated_count": 247,
-      "missing_count": 18,
+      "pytest": 265,
+      "migrated_count": 265,
+      "missing_count": 0,
       "migrated": [
         "UA-2-1-001",
         "UA-2-1-002",
@@ -1921,9 +1993,7 @@
         "UA-2-5-006",
         "UA-2-5-007",
         "UA-2-5-008",
-        "UA-2-5-009"
-      ],
-      "missing": [
+        "UA-2-5-009",
         "UA-2-5-010",
         "UA-2-5-011",
         "UA-2-5-012",
@@ -1942,7 +2012,8 @@
         "UA-2-5-025",
         "UA-2-5-026",
         "UA-2-5-027"
-      ]
+      ],
+      "missing": []
     },
     {
       "chapter": "UA-3",
