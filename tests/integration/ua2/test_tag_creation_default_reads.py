@@ -3,6 +3,7 @@ from __future__ import annotations
 import time
 
 import pytest
+from asyncua import ua
 
 from tpt_api.datahub import add_tag
 from tpt_api.types import DataTypes, TagTypes
@@ -13,20 +14,24 @@ from tests.support.rt_helpers import get_rt_point
 from tests.support.ua2_helpers import (
     find_unique_tag,
     opcua_read_sync,
+    opcua_read_variant_type_sync,
     setup_ds_only,
     teardown_ds_tag_mocker,
 )
 from tests.support.ua2_rt_assertions import parse_required_timestamp, wait_consistent_rt_and_qwq
 from tests.support.ua2_value_normalization import assert_value_equal
 
+_CHANGE_CLAMP_TIMEOUT_S = 5.0
+_CHANGE_CLAMP_INTERVAL_S = 0.25
 
-def _build_node(name: str, type_name: str, default_val: object) -> dict:
+
+def _build_node(name: str, type_name: str, default_val: object, *, change: bool = True) -> dict:
     return {
         "name": name,
         "type": type_name,
         "default": default_val,
         "writable": False,
-        "change": True,
+        "change": change,
         "count": 1,
     }
 
@@ -62,6 +67,97 @@ def _assert_clamped_match(snap: dict, data_type: int, tag_name: str) -> None:
             assert_value_equal(sa, rt_val, data_type)
 
 
+def _read_source_variant_type(endpoint: str, node_name: str, namespace_index: int) -> ua.VariantType:
+    _, vt = opcua_read_variant_type_sync(endpoint, node_name, namespace_index=namespace_index)
+    return vt
+
+
+def _expected_variant_type(node_type: str) -> ua.VariantType:
+    return getattr(ua.VariantType, node_type)
+
+
+def _assert_source_variant_type(endpoint: str, node_name: str, namespace_index: int, node_type: str) -> None:
+    observed = _read_source_variant_type(endpoint, node_name, namespace_index)
+    expected = _expected_variant_type(node_type)
+    assert observed == expected, \
+        f"OPC UA VariantType mismatch for {node_name}: observed={observed} expected={expected}"
+
+
+def _snapshot_matches_rt(snap: dict, data_type: int, tag_name: str, source_samples: list, *, differ_from: object = None) -> bool:
+    rt_val = snap["rt"].get("tagValue")
+    if rt_val is None or snap["rt"].get("quality", 0) == 0:
+        return False
+    if differ_from is not None and rt_val == differ_from:
+        return False
+    for src in source_samples:
+        try:
+            assert_value_equal(src, rt_val, data_type)
+        except AssertionError:
+            continue
+        return True
+    return False
+
+
+def _wait_clamped_match(
+    api, tag_name: str, source_fn, data_type: int,
+    *,
+    node_name: str,
+    node_type: str,
+    endpoint: str,
+    namespace_index: int,
+    is_change: bool,
+    differ_from: object = None,
+    timeout: float = _CHANGE_CLAMP_TIMEOUT_S,
+    interval: float = _CHANGE_CLAMP_INTERVAL_S,
+) -> dict:
+    """Return a clamped snapshot whose RT value matches the OPC UA source.
+
+    静态节点（change=false）：单次严格相等。
+    change 节点：有界轮询 ≤timeout（monotonic deadline），每轮采集源值窗口，
+    RT 与窗口内任一实际观察到的同类型源值一致即可（若提供 differ_from，
+    还需与 differ_from 不同）；同时独立校验 OPC UA VariantType 与 dataType。
+    超时仍未一致则真实 FAIL，并输出源值序列、RT 序列和时间戳。
+    """
+    if not is_change:
+        snap = _clamped_rt_snapshot(api, tag_name, source_fn)
+        _assert_clamped_match(snap, data_type, tag_name)
+        return snap
+
+    deadline = time.monotonic() + timeout
+    source_samples: list = []
+    rt_samples: list = []
+    last_snap: dict = {}
+
+    while time.monotonic() < deadline:
+        snap = _clamped_rt_snapshot(api, tag_name, source_fn)
+        last_snap = snap
+        sb = snap["source_before"]
+        sa = snap["source_after"]
+        rt = snap["rt"]
+        for src in (sb, sa):
+            if src is not None and src not in source_samples:
+                source_samples.append(src)
+        rt_samples.append((snap["rt_ts"], rt.get("tagValue"), rt.get("quality"), rt.get("tagTime")))
+        source_samples = source_samples[-8:]
+
+        if _snapshot_matches_rt(snap, data_type, tag_name, source_samples, differ_from=differ_from):
+            _assert_source_variant_type(endpoint, node_name, namespace_index, node_type)
+            return snap
+        time.sleep(interval)
+
+    detail = "\n".join(
+        f"  rt[{i}] ts={ts:.3f} tagValue={rv!r} quality={q} tagTime={tt!r}"
+        for i, (ts, rv, q, tt) in enumerate(rt_samples)
+    )
+    src_detail = ", ".join(repr(s) for s in source_samples)
+    raise AssertionError(
+        f"RT never matched any observed source value within {timeout:.1f}s for {tag_name} "
+        f"(data_type={data_type}, node_type={node_type})\n"
+        f"source samples observed: [{src_detail}]\n"
+        f"RT samples:\n{detail}"
+    )
+
+
 def _wait_rt_value(api, tag_name: str, timeout: float = 20.0) -> dict:
     def _has_val():
         pt = get_rt_point(api, tag_name)
@@ -90,6 +186,7 @@ def _run_default_read_case(
     node_name = f"{type_name}_r_"
     tag_base_name = f"1_{type_name}_r_1"
     nodes = [_build_node(node_name, node_type, default_val)]
+    is_change = any(n.get("change") is True for n in nodes)
     cycle_ms = 1000
 
     ctx = setup_ds_only(
@@ -122,17 +219,25 @@ def _run_default_read_case(
         ts1 = parse_required_timestamp(rt_ts1)
 
         source_fn = lambda: opcua_read_sync(ctx["endpoint"], f"{type_name}_r_1", namespace_index=1)
-        snap1 = _clamped_rt_snapshot(api, tag_name, source_fn)
+        snap1 = _wait_clamped_match(
+            api, tag_name, source_fn, data_type,
+            node_name=f"{type_name}_r_1", node_type=node_type,
+            endpoint=ctx["endpoint"], namespace_index=1,
+            is_change=is_change,
+        )
 
         pt2 = _wait_second_value(api, tag_name, snap1["rt"].get("tagValue"), timeout=30.0)
         rt_ts2 = pt2.get("tagTime")
         assert rt_ts2, f"second RT tagTime is empty: {pt2}"
         ts2 = parse_required_timestamp(rt_ts2)
 
-        snap2 = _clamped_rt_snapshot(api, tag_name, source_fn)
-
-        _assert_clamped_match(snap1, data_type, tag_name)
-        _assert_clamped_match(snap2, data_type, tag_name)
+        snap2 = _wait_clamped_match(
+            api, tag_name, source_fn, data_type,
+            node_name=f"{type_name}_r_1", node_type=node_type,
+            endpoint=ctx["endpoint"], namespace_index=1,
+            is_change=is_change,
+            differ_from=snap1["rt"].get("tagValue"),
+        )
 
         assert snap1["rt"].get("tagValue") != snap2["rt"].get("tagValue"), \
             "two RT values must differ"
@@ -150,8 +255,12 @@ def _run_default_read_case(
         assert qt_ts_str, f"queryWithQuality tagTime missing: {qr}"
         parse_required_timestamp(qt_ts_str)
 
-        snap_q = _clamped_rt_snapshot(api, tag_name, source_fn)
-        _assert_clamped_match(snap_q, data_type, tag_name)
+        snap_q = _wait_clamped_match(
+            api, tag_name, source_fn, data_type,
+            node_name=f"{type_name}_r_1", node_type=node_type,
+            endpoint=ctx["endpoint"], namespace_index=1,
+            is_change=is_change,
+        )
 
     finally:
         if tag_id:

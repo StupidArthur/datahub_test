@@ -125,8 +125,9 @@ def test_system_name_duplicate_same_ds(api, settings, tmp_path_factory, mocker_e
         assert int(recs[0].get("id", -1)) == tag1_id, "original tag id changed"
         assert recs[0].get("dataType") is not None, "original fields should be intact"
 
-        pt = get_rt_point(api, tag_name)
+        pt = _wait_rt(api, tag_name, timeout=60.0)
         assert pt.get("tagValue") is not None, "original tag RT should still work"
+        assert pt.get("quality", 0) != 0
     finally:
         delete_tag_if_exists(api, tag1_id, tag_name)
         teardown_ds_tag_mocker(api, ctx)

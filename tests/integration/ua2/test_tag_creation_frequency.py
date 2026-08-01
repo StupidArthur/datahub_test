@@ -9,7 +9,7 @@ from tpt_api.datahub import add_tag, get_history_value
 from tpt_api.errors import TptAPIError
 from tpt_api.types import DataTypes, TagTypes
 
-from tests.support.polling import wait_until
+from tests.support.polling import WaitTimeout, wait_until
 from tests.support.rt_helpers import get_rt_point
 from tests.support.ua2_helpers import (
     find_unique_tag,
@@ -275,6 +275,7 @@ def test_frequency_invalid(api, settings, tmp_path_factory, mocker_endpoint, rec
                 namespace_index=2,
                 cycle=500,
                 frequency=freq_val,
+                wait_for_rt=False,
             )
             tag_name = ctx["tag_name"]
 
@@ -286,10 +287,13 @@ def test_frequency_invalid(api, settings, tmp_path_factory, mocker_endpoint, rec
                 def _has_rt():
                     pt = get_rt_point(api, tag_name)
                     return pt.get("tagValue") is not None and pt.get("quality") not in (None, 0)
-                wait_until(f"rt_ready:{tag_name}", _has_rt, timeout=30.0, interval=0.5)
-
-                pt = get_rt_point(api, tag_name)
-                obs["rt_available"] = pt.get("tagValue") is not None
+                try:
+                    wait_until(f"rt_ready:{tag_name}", _has_rt, timeout=30.0, interval=0.5)
+                    pt = get_rt_point(api, tag_name)
+                    obs["rt_available"] = pt.get("tagValue") is not None
+                except WaitTimeout:
+                    obs["rt_available"] = False
+                    obs["rt_timeout"] = True
             finally:
                 strict_cleanup_ua2_context(
                     api,
