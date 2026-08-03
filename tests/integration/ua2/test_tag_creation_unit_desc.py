@@ -5,14 +5,16 @@ import json
 import pytest
 
 from tpt_api.datahub import add_tag
-from tpt_api.errors import TptAPIError
 from tpt_api.types import DataTypes, TagTypes
 
+from tests.support.naming import unique_name
 from tests.support.polling import wait_until
 from tests.support.rt_helpers import get_rt_point
 from tests.support.ua2_helpers import (
     find_unique_tag,
     setup_ds_and_tag,
+    setup_ds_only,
+    try_add_tag,
 )
 from tests.support.ua2_cleanup import strict_cleanup_ua2_context
 
@@ -146,38 +148,43 @@ def test_unit_unicode_and_length(api, settings, tmp_path_factory, mocker_endpoin
             "input_length": len(unit_val),
         }
 
+        ctx = setup_ds_only(
+            api, settings, mocker_endpoint, tmp_path_factory, f"UA-2-1-078-{label}",
+            namespace_index=2,
+            cycle=500,
+        )
+        tag_name = unique_name(settings.test_prefix, f"UA-2-1-078-{label}-tag")
+        tag_id = None
         try:
-            ctx = setup_ds_and_tag(
-                api, settings, mocker_endpoint, tmp_path_factory, f"UA-2-1-078-{label}",
-                tag_base_name="2_smoke_static_1",
+            result = try_add_tag(
+                api, tag_name=tag_name,
                 data_type=DataTypes["DOUBLE"],
                 tag_type=TagTypes["一次位号"],
+                ds_id=ctx["ds_id"],
                 only_read=True,
-                namespace_index=2,
-                cycle=500,
+                tag_base_name="2_smoke_static_1",
                 unit=unit_val,
             )
-            tag_name = ctx["tag_name"]
-
-            try:
+            if not result["ok"]:
+                obs["verdict"] = "rejected"
+                obs["error_code"] = result["error"].code
+                obs["error_msg"] = result["error"].msg
+            else:
+                tag_id = int(result["data"].get("id") or result["data"].get("tagId"))
                 rec = find_unique_tag(api, tag_name)
                 saved_unit = rec.get("unit")
                 obs["saved_unit"] = saved_unit if saved_unit and len(saved_unit) <= 100 else (saved_unit[:100] + "..." if saved_unit else saved_unit)
                 obs["saved_length"] = len(saved_unit) if saved_unit else 0
                 obs["matches"] = saved_unit == unit_val
                 obs["verdict"] = "accepted"
-            finally:
-                strict_cleanup_ua2_context(
-                    api,
-                    tag_id=ctx["tag_id"], tag_name=tag_name,
-                    ds_id=ctx["ds_id"], ds_name=ctx["ds_name"],
-                    mocker=ctx.get("mocker"),
-                    host=ctx["host"], port=ctx["port"],
-                )
-        except TptAPIError as exc:
-            obs["verdict"] = "rejected"
-            obs["error_code"] = exc.code
-            obs["error_msg"] = exc.msg
+        finally:
+            strict_cleanup_ua2_context(
+                api,
+                tag_id=tag_id, tag_name=tag_name,
+                ds_id=ctx["ds_id"], ds_name=ctx["ds_name"],
+                mocker=ctx.get("mocker"),
+                host=ctx["host"], port=ctx["port"],
+            )
 
         observations.append(obs)
         record_property(
@@ -290,38 +297,43 @@ def test_desc_unicode_and_length(api, settings, tmp_path_factory, mocker_endpoin
             "input_length": len(desc_val),
         }
 
+        ctx = setup_ds_only(
+            api, settings, mocker_endpoint, tmp_path_factory, f"UA-2-1-081-{label}",
+            namespace_index=2,
+            cycle=500,
+        )
+        tag_name = unique_name(settings.test_prefix, f"UA-2-1-081-{label}-tag")
+        tag_id = None
         try:
-            ctx = setup_ds_and_tag(
-                api, settings, mocker_endpoint, tmp_path_factory, f"UA-2-1-081-{label}",
-                tag_base_name="2_smoke_static_1",
+            result = try_add_tag(
+                api, tag_name=tag_name,
                 data_type=DataTypes["DOUBLE"],
                 tag_type=TagTypes["一次位号"],
+                ds_id=ctx["ds_id"],
                 only_read=True,
-                namespace_index=2,
-                cycle=500,
+                tag_base_name="2_smoke_static_1",
                 tag_desc=desc_val,
             )
-            tag_name = ctx["tag_name"]
-
-            try:
+            if not result["ok"]:
+                obs["verdict"] = "rejected"
+                obs["error_code"] = result["error"].code
+                obs["error_msg"] = result["error"].msg
+            else:
+                tag_id = int(result["data"].get("id") or result["data"].get("tagId"))
                 rec = find_unique_tag(api, tag_name)
                 saved_desc = rec.get("tagDesc")
                 obs["saved_desc"] = saved_desc if saved_desc and len(saved_desc) <= 100 else (saved_desc[:100] + "..." if saved_desc else saved_desc)
                 obs["saved_length"] = len(saved_desc) if saved_desc else 0
                 obs["matches"] = saved_desc == desc_val
                 obs["verdict"] = "accepted"
-            finally:
-                strict_cleanup_ua2_context(
-                    api,
-                    tag_id=ctx["tag_id"], tag_name=tag_name,
-                    ds_id=ctx["ds_id"], ds_name=ctx["ds_name"],
-                    mocker=ctx.get("mocker"),
-                    host=ctx["host"], port=ctx["port"],
-                )
-        except TptAPIError as exc:
-            obs["verdict"] = "rejected"
-            obs["error_code"] = exc.code
-            obs["error_msg"] = exc.msg
+        finally:
+            strict_cleanup_ua2_context(
+                api,
+                tag_id=tag_id, tag_name=tag_name,
+                ds_id=ctx["ds_id"], ds_name=ctx["ds_name"],
+                mocker=ctx.get("mocker"),
+                host=ctx["host"], port=ctx["port"],
+            )
 
         observations.append(obs)
         record_property(
