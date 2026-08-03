@@ -8,6 +8,7 @@ from tpt_api.datahub import write_tag_values
 from tpt_api.errors import TptAPIError
 from tpt_api.types import DataTypes, TagTypes
 
+from tests.support.naming import unique_name
 from tests.support.polling import wait_until
 from tests.support.rt_helpers import get_rt_point
 from tests.support.ua2_helpers import (
@@ -16,6 +17,8 @@ from tests.support.ua2_helpers import (
     opcua_read_sync,
     opcua_write_sync,
     setup_ds_and_tag,
+    setup_ds_only,
+    try_add_tag,
 )
 from tests.support.ua2_rt_assertions import parse_required_timestamp
 from tests.support.ua2_cleanup import strict_cleanup_ua2_context
@@ -258,36 +261,41 @@ def test_range_invalid_config(api, settings, tmp_path_factory, mocker_endpoint, 
             "input_kwargs": kwargs,
         }
 
+        ctx = setup_ds_only(
+            api, settings, mocker_endpoint, tmp_path_factory, f"UA-2-1-094-{label}",
+            namespace_index=2,
+            cycle=500,
+        )
+        tag_name = unique_name(settings.test_prefix, f"UA-2-1-094-{label}-tag")
+        tag_id = None
         try:
-            ctx = setup_ds_and_tag(
-                api, settings, mocker_endpoint, tmp_path_factory, f"UA-2-1-094-{label}",
-                tag_base_name="2_smoke_static_1",
+            result = try_add_tag(
+                api, tag_name=tag_name,
                 data_type=DataTypes["DOUBLE"],
                 tag_type=TagTypes["一次位号"],
+                ds_id=ctx["ds_id"],
                 only_read=True,
-                namespace_index=2,
-                cycle=500,
+                tag_base_name="2_smoke_static_1",
                 **kwargs,
             )
-            tag_name = ctx["tag_name"]
-
-            try:
+            if not result["ok"]:
+                obs["verdict"] = "rejected"
+                obs["error_code"] = result["error"].code
+                obs["error_msg"] = result["error"].msg
+            else:
+                tag_id = int(result["data"].get("id") or result["data"].get("tagId"))
                 rec = find_unique_tag(api, tag_name)
                 obs["saved_hiEU"] = rec.get("hiEU")
                 obs["saved_loEU"] = rec.get("loEU")
                 obs["verdict"] = "accepted"
-            finally:
-                strict_cleanup_ua2_context(
-                    api,
-                    tag_id=ctx["tag_id"], tag_name=tag_name,
-                    ds_id=ctx["ds_id"], ds_name=ctx["ds_name"],
-                    mocker=ctx.get("mocker"),
-                    host=ctx["host"], port=ctx["port"],
-                )
-        except TptAPIError as exc:
-            obs["verdict"] = "rejected"
-            obs["error_code"] = exc.code
-            obs["error_msg"] = exc.msg
+        finally:
+            strict_cleanup_ua2_context(
+                api,
+                tag_id=tag_id, tag_name=tag_name,
+                ds_id=ctx["ds_id"], ds_name=ctx["ds_name"],
+                mocker=ctx.get("mocker"),
+                host=ctx["host"], port=ctx["port"],
+            )
 
         observations.append(obs)
         record_property(
@@ -365,35 +373,40 @@ def test_alarm_limits_invalid_order(api, settings, tmp_path_factory, mocker_endp
             "input_kwargs": kwargs,
         }
 
+        ctx = setup_ds_only(
+            api, settings, mocker_endpoint, tmp_path_factory, f"UA-2-1-096-{label}",
+            namespace_index=2,
+            cycle=500,
+        )
+        tag_name = unique_name(settings.test_prefix, f"UA-2-1-096-{label}-tag")
+        tag_id = None
         try:
-            ctx = setup_ds_and_tag(
-                api, settings, mocker_endpoint, tmp_path_factory, f"UA-2-1-096-{label}",
-                tag_base_name="2_smoke_static_1",
+            result = try_add_tag(
+                api, tag_name=tag_name,
                 data_type=DataTypes["DOUBLE"],
                 tag_type=TagTypes["一次位号"],
+                ds_id=ctx["ds_id"],
                 only_read=True,
-                namespace_index=2,
-                cycle=500,
+                tag_base_name="2_smoke_static_1",
                 **kwargs,
             )
-            tag_name = ctx["tag_name"]
-
-            try:
+            if not result["ok"]:
+                obs["verdict"] = "rejected"
+                obs["error_code"] = result["error"].code
+                obs["error_msg"] = result["error"].msg
+            else:
+                tag_id = int(result["data"].get("id") or result["data"].get("tagId"))
                 rec = find_unique_tag(api, tag_name)
                 obs["saved_fields"] = {k: rec.get(k) for k in kwargs.keys()}
                 obs["verdict"] = "accepted"
-            finally:
-                strict_cleanup_ua2_context(
-                    api,
-                    tag_id=ctx["tag_id"], tag_name=tag_name,
-                    ds_id=ctx["ds_id"], ds_name=ctx["ds_name"],
-                    mocker=ctx.get("mocker"),
-                    host=ctx["host"], port=ctx["port"],
-                )
-        except TptAPIError as exc:
-            obs["verdict"] = "rejected"
-            obs["error_code"] = exc.code
-            obs["error_msg"] = exc.msg
+        finally:
+            strict_cleanup_ua2_context(
+                api,
+                tag_id=tag_id, tag_name=tag_name,
+                ds_id=ctx["ds_id"], ds_name=ctx["ds_name"],
+                mocker=ctx.get("mocker"),
+                host=ctx["host"], port=ctx["port"],
+            )
 
         observations.append(obs)
         record_property(
