@@ -230,9 +230,12 @@ pytest.skip 掩盖环境未设置
 ### 迁移计数
 | 组 | 总量 | PASS | FAIL (产品限) | XFAIL (未约定) | 未迁移 |
 |----|------|------|--------------|----------------|--------|
-| UA-1-1 | 12 | 12 | 0 | 0 | 0 |
-| UA-1-2 | 6 | 4 | 0 | 2 | 0 |
-| UA-1-3 | 8 | 8 | 0 | 0 | 0 |
+| UA-1-1 | 12 | 11 | 0 | 1 | 0 |
+| UA-1-2 | 8 | 8 | 0 | 0 | 0 |
+| UA-1-3 | 8 | 6 | 0 | 2 | 0 |
+| UA-1-4 | 6 | 6 | 0 | 0 | 0 |
+| UA-1-5 | 9 | 6 | 0 | 3 | 0 |
+| UA-1-6 | 13 | 8 | 0 | 5 | 0 |
 | UA-2-1 | 112 | 63 | 9 | 40 | 0 |
 | UA-2-2 | 67 | 55 | 0 | 12 | 0 |
 | UA-2-3 | 32 | 22 | 3 | 7 | 0 |
@@ -267,6 +270,9 @@ XFAIL 80 道为行为未约定（overflow / coercion / whitespace / length 129 /
 > **均为 PASS**，不再计为 FAIL；UA-2-2-043/044 在 UA-2-2 全量回归中为
 > spec_pending XFAIL（归因见 blocker 文档）。
 
+> 全量 UA-1（56 canonical）已真机全量回归（`output/ua-1-final-regression.xml`）：
+> **45 PASS / 11 XFAIL / 0 FAIL / 0 SKIP / 0 ERROR**，执行前后 DS/tag/mocker 零残留。
+
 ### 清理基础设施
 - **`tests/support/ua2_cleanup.py`**: `strict_cleanup_ua2_context()` — 六步严格清理（物理删 tag → 清回收站 → 禁 DS → 删 DS → 停 mocker → 验端口），所有错误聚合不吞
 - **`tests/support/mocker_registry.py`**: 仓库自有 mocker 进程登记表（`tmp/mocker-registry/`），记录 pid / create_time / parent_pid / repo_root / config_path / port / run_id / case_id
@@ -285,8 +291,10 @@ XFAIL 80 道为行为未约定（overflow / coercion / whitespace / length 129 /
 - GUI 仍 default legacy；native pytest 后端作为增量能力
 
 ### 详细迁移历史
-- UA-1-1 阻塞（UA-1-1-07 鉴权）：见 `docs/migration/ua-1-1-07-blocker.md`
-- UA-1-2 阻塞（UA-1-2-03/05 历史）：见 `docs/migration/ua-1-2-03-blocker.md`
+- UA-1 全组（56 canonical）已迁移并真机全量回归：**45 PASS / 11 XFAIL / 0 FAIL / 0 SKIP / 0 ERROR**，执行前后 DS/tag/mocker 零残留（`output/ua-1-final-regression.xml`）
+- UA-1-1-07 鉴权 XFAIL：产品不消费 `dsExtInfo` 中的 OPC UA username/password，见 `docs/migration/ua-1-1-blockers.md`
+- UA-1-2-03/05 历史用例通过自适应轮询稳定：禁用后异步落库缓冲以滑动窗口轮询直至 3 次连续无增长，重启用后 RT quality 恢复轮询 240s（真实环境 RT 恢复延迟随重复启停增长，实测 2s~120s+）
+- UA-1-4 多数据源独立性全 PASS；UA-1-5 删除（3 XFAIL 产品 `The data source is currently in use`）；UA-1-6 ds 测试 API（5 XFAIL：枚举 cap=10 spec_pending / 离线抛错 / 历史 mock 不支持时间查询）
 - UA-2-1 全组已迁移并回归
 - UA-2-3 全组已迁移并回归（3 FAIL：006/010 表头偏移，017 DateTime 导入拒绝）
 - UA-2-4 全组已迁移并回归（4 FAIL 产品限 + 11 XFAIL spec_pending）
