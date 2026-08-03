@@ -6,14 +6,16 @@ import time
 import pytest
 
 from tpt_api.datahub import add_tag, get_history_value
-from tpt_api.errors import TptAPIError
 from tpt_api.types import DataTypes, TagTypes
 
+from tests.support.naming import unique_name
 from tests.support.polling import WaitTimeout, wait_until
 from tests.support.rt_helpers import get_rt_point
 from tests.support.ua2_helpers import (
     find_unique_tag,
     setup_ds_and_tag,
+    setup_ds_only,
+    try_add_tag,
 )
 from tests.support.ua2_cleanup import strict_cleanup_ua2_context
 
@@ -265,21 +267,29 @@ def test_frequency_invalid(api, settings, tmp_path_factory, mocker_endpoint, rec
             "input_frequency": freq_val,
         }
 
+        ctx = setup_ds_only(
+            api, settings, mocker_endpoint, tmp_path_factory, f"UA-2-1-090-{label}",
+            namespace_index=2,
+            cycle=500,
+        )
+        tag_name = unique_name(settings.test_prefix, f"UA-2-1-090-{label}-tag")
+        tag_id = None
         try:
-            ctx = setup_ds_and_tag(
-                api, settings, mocker_endpoint, tmp_path_factory, f"UA-2-1-090-{label}",
-                tag_base_name="2_smoke_change_1",
+            result = try_add_tag(
+                api, tag_name=tag_name,
                 data_type=DataTypes["INT"],
                 tag_type=TagTypes["一次位号"],
+                ds_id=ctx["ds_id"],
                 only_read=True,
-                namespace_index=2,
-                cycle=500,
+                tag_base_name="2_smoke_change_1",
                 frequency=freq_val,
-                wait_for_rt=False,
             )
-            tag_name = ctx["tag_name"]
-
-            try:
+            if not result["ok"]:
+                obs["verdict"] = "rejected"
+                obs["error_code"] = result["error"].code
+                obs["error_msg"] = result["error"].msg
+            else:
+                tag_id = int(result["data"].get("id") or result["data"].get("tagId"))
                 rec = find_unique_tag(api, tag_name)
                 obs["saved_frequency"] = rec.get("frequency")
                 obs["verdict"] = "accepted"
@@ -294,18 +304,14 @@ def test_frequency_invalid(api, settings, tmp_path_factory, mocker_endpoint, rec
                 except WaitTimeout:
                     obs["rt_available"] = False
                     obs["rt_timeout"] = True
-            finally:
-                strict_cleanup_ua2_context(
-                    api,
-                    tag_id=ctx["tag_id"], tag_name=tag_name,
-                    ds_id=ctx["ds_id"], ds_name=ctx["ds_name"],
-                    mocker=ctx.get("mocker"),
-                    host=ctx["host"], port=ctx["port"],
-                )
-        except TptAPIError as exc:
-            obs["verdict"] = "rejected"
-            obs["error_code"] = exc.code
-            obs["error_msg"] = exc.msg
+        finally:
+            strict_cleanup_ua2_context(
+                api,
+                tag_id=tag_id, tag_name=tag_name,
+                ds_id=ctx["ds_id"], ds_name=ctx["ds_name"],
+                mocker=ctx.get("mocker"),
+                host=ctx["host"], port=ctx["port"],
+            )
 
         observations.append(obs)
         record_property(
