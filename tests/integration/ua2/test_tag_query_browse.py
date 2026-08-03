@@ -364,31 +364,35 @@ def test_browse_offline(api, settings, tmp_path_factory, mocker_endpoint):
         ds_tar_url=endpoint,
     )
     ds_id = int(data.get("id") or data.get("dsId"))
-    wait_ds_alive(api, ds_id, timeout=60.0)
-
-    stop_mocker(mocker)
-    wait_ds_offline(api, ds_id, timeout=60.0)
-
-    try:
-        page = browse_page(api, ds_id)
-        had_results = bool(page.get("successes"))
-    except Exception:
-        had_results = False
-
-    assert not had_results, "browse should have failed or returned empty after disconnect"
 
     cleanup_errors: list[str] = []
     try:
-        change_ds_state(api, ds_id, False)
-    except TptAPIError as exc:
-        cleanup_errors.append(f"disable: {exc.msg}")
-    delete_datasource_if_exists(api, ds_id, ds_name)
-    try:
+        wait_ds_alive(api, ds_id, timeout=60.0)
         stop_mocker(mocker)
-    except Exception as exc:
-        cleanup_errors.append(f"stop_mocker: {exc}")
-    if cleanup_errors:
-        raise AssertionError("Cleanup errors: " + "; ".join(cleanup_errors))
+        # Disconnect detection latency in this environment is ~50-55s; the
+        # UA-1 family allows up to 120s. A tight 60s bound aborts before
+        # cleanup and leaks the datasource.
+        wait_ds_offline(api, ds_id, timeout=120.0)
+
+        try:
+            page = browse_page(api, ds_id)
+            had_results = bool(page.get("successes"))
+        except Exception:
+            had_results = False
+
+        assert not had_results, "browse should have failed or returned empty after disconnect"
+    finally:
+        try:
+            change_ds_state(api, ds_id, False)
+        except TptAPIError as exc:
+            cleanup_errors.append(f"disable: {exc.msg}")
+        delete_datasource_if_exists(api, ds_id, ds_name)
+        try:
+            stop_mocker(mocker)
+        except Exception as exc:
+            cleanup_errors.append(f"stop_mocker: {exc}")
+        if cleanup_errors:
+            raise AssertionError("Cleanup errors: " + "; ".join(cleanup_errors))
 
 
 # ===================================================================
