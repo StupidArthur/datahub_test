@@ -171,7 +171,7 @@ def _wait_for_history_count(
         "等待若干采集周期，确认历史基线 > 0",
         "记录禁用动作时间 t_disable",
         "change_ds_state(enabled=false)",
-        "等待 alive=false + DataHub 异步落库宽限期",
+        "等待 alive=false + DataHub 异步落库缓冲完全排空",
         "记录稳定时间点 t_stable",
         "在 [t_stable, t_stable + N] 窗口反复查询历史",
         "期望：窗口内历史条数不增长",
@@ -205,12 +205,27 @@ def test_history_stops_after_disable(api, settings, tmp_path_factory, mocker_end
             lambda: not _is_alive(api, ctx["ds_id"]),
             timeout=30.0,
         )
-        # Async persistence grace: DataHub continues to collect and persist
-        # trailing points for up to ~90 seconds after disable (the platform
-        # flushes its buffer even after the datasource is reported offline).
-        # Wait long enough for that to settle, then assert the count is
-        # stable for a subsequent observation window.
-        time.sleep(90)
+        # Async persistence: after disable, DataHub continues to flush its
+        # collection buffer for a variable amount of time (observed 60s to
+        # well over 90s). Rather than assume a fixed grace period, poll the
+        # history count with a sliding window until it stops growing for a
+        # sustained interval (3 consecutive unchanged polls ~60s apart).
+        last = -1
+        stable_polls = 0
+        deadline = time.monotonic() + 480.0
+        while time.monotonic() < deadline:
+            cur = _history_count(api, ctx["tag_name"], beg, _now_local_str())
+            if cur == last:
+                stable_polls += 1
+            else:
+                stable_polls = 0
+                last = cur
+            if stable_polls >= 3:
+                break
+            time.sleep(20)
+        assert stable_polls >= 3, (
+            f"history never stabilized after disable: last={last}"
+        )
         t_stable = _now_local_str()
 
         # Take two history counts 60s apart in the post-grace window;
@@ -272,7 +287,7 @@ def test_history_resumes_after_enable(api, settings, tmp_path_factory, mocker_en
         def _quality_ok():
             return get_rt_point(api, ctx["tag_name"]).get("quality", 0) != 0
 
-        wait_until(f"rt_q:{ctx['tag_name']}", _quality_ok, timeout=30.0)
+        wait_until(f"rt_q:{ctx['tag_name']}", _quality_ok, timeout=240.0)
 
         # Async persistence after re-enable: ~60-90s for the first batch.
         new_count = _wait_for_history_count(

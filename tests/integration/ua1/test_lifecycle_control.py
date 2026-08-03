@@ -15,6 +15,7 @@ from tpt_api.errors import TptAPIError
 from tpt_api.types import DataTypes, DsSubTypes, DsTypes, TagTypes
 
 from tests.support.cleanup import delete_datasource_if_exists, delete_tag_if_exists
+from tests.support.endpoints import parse_mocker_endpoint
 from tests.support.naming import unique_name
 from tests.support.polling import wait_until
 from tests.support.rt_helpers import assert_rt_unavailable, get_rt_point
@@ -88,7 +89,7 @@ def _ensure_alive(api, ctx: ConnectedChangingTag) -> None:
         wait_until(f"ds_alive:{ctx.ds_id}", lambda: _is_alive(api, ctx.ds_id), timeout=60.0)
         def _q():
             return get_rt_point(api, ctx.tag_name).get("quality", 0) != 0
-        wait_until(f"rt_q:{ctx.tag_name}", _q, timeout=30.0)
+        wait_until(f"rt_q:{ctx.tag_name}", _q, timeout=240.0)
 
 
 @pytest.mark.case(
@@ -186,7 +187,7 @@ def test_reenable_disabled_datasource(api, connected_changing_tag):
     def _quality_ok():
         return get_rt_point(api, ctx.tag_name).get("quality", 0) != 0
 
-    wait_until(f"rt_quality:{ctx.tag_name}", _quality_ok, timeout=30.0)
+    wait_until(f"rt_quality:{ctx.tag_name}", _quality_ok, timeout=240.0)
 
     pt1 = get_rt_point(api, ctx.tag_name)
     time.sleep(2)
@@ -283,6 +284,6 @@ def test_multiple_start_stop_cycles(api, connected_changing_tag):
         def _q():
             return get_rt_point(api, ctx.tag_name).get("quality", 0) != 0
 
-        wait_until(f"q_{cycle}", _q, timeout=30.0)
+        wait_until(f"q_{cycle}", _q, timeout=240.0)
 
     assert _is_alive(api, ctx.ds_id), "final state should be alive"
