@@ -192,7 +192,7 @@ class TestStrictCleanup:
         mod, _ = patch_datahub
         mod.delete_ds_info = lambda api, ids: {}
         mod.list_ds_info = lambda api, page=1, page_size=999: {
-            "records": [{"id": 5, "name": "test-ds"}]
+            "records": [{"id": 5, "name": "test-ds", "dsStatus": 0}]
         }
 
         with pytest.raises(AssertionError, match="still exists"):
