@@ -53,7 +53,7 @@ def test_batch_add_10_tags(api, settings, tmp_path_factory, mocker_endpoint, rec
     ctx = setup_ds_only(api, settings, mocker_endpoint, tmp_path_factory, "UA-2-1-105")
     ds_id = ctx["ds_id"]
     ds_name = ctx["ds_name"]
-    
+
     created_tag_ids = []
     created_tag_names = []
     observations: dict = {}
@@ -62,7 +62,7 @@ def test_batch_add_10_tags(api, settings, tmp_path_factory, mocker_endpoint, rec
         available_bases = _get_available_base_tags(api, ds_id, count=10)
         observations["available_bases_count"] = len(available_bases)
         observations["available_bases"] = available_bases[:10]
-        
+
         if len(available_bases) < 10:
             observations["note"] = "Default mocker only has 2 nodes, need at least 10 for this test"
             record_property(
@@ -119,6 +119,15 @@ def test_batch_add_10_tags(api, settings, tmp_path_factory, mocker_endpoint, rec
                 )
             except Exception:
                 pass
+        # Ensure the datasource itself is always cleaned even when the xfail
+        # path skipped tag creation (created_tag_ids empty).
+        if not created_tag_ids:
+            strict_cleanup_ua2_context(
+                api,
+                ds_id=ds_id, ds_name=ds_name,
+                mocker=ctx.get("mocker"),
+                host=ctx["host"], port=ctx["port"],
+            )
 
 
 @pytest.mark.case(
