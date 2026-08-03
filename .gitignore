@@ -40,6 +40,9 @@ build/bin
 # Temp files
 _user_msgs.txt
 
+# Local test runtime artifacts (mocker registry, mocker configs)
+tmp/
+
 # IDE
 .idea/
 .vscode/

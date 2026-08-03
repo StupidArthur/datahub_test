@@ -1,15 +1,37 @@
 from __future__ import annotations
 
+import os
 import socket
 import subprocess
 import sys
 import time
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 
 import yaml
 
+from tests.support.mocker_registry import (
+    SCHEMA_VERSION,
+    REPO_ROOT,
+    generate_run_id,
+    get_process_create_time,
+    remove_registry_entry,
+    write_registry_entry,
+)
+
 _MOCKER_DIR = Path(__file__).resolve().parents[2] / "ua_mocker"
+_MOCKER_CONFIG_DIR = REPO_ROOT / "tmp" / "mocker-configs"
+
+_SESSION_RUN_ID: str | None = None
+
+
+def session_run_id() -> str:
+    """Return a run id unique per pytest session (cached per process)."""
+    global _SESSION_RUN_ID
+    if _SESSION_RUN_ID is None:
+        _SESSION_RUN_ID = generate_run_id()
+    return _SESSION_RUN_ID
 
 
 @dataclass
@@ -18,6 +40,8 @@ class MockerHandle:
     port: int
     endpoint: str
     config_path: Path
+    run_id: str | None = None
+    case_id: str | None = None
 
 
 def find_free_port() -> int:
@@ -51,6 +75,13 @@ def write_mocker_config(
     cycle: int = 500,
     auth: dict | None = None,
 ) -> Path:
+    """Write a mocker YAML config under the repo tmp scope.
+
+    ``tmp_dir`` is kept for call-site compatibility but the config file is
+    written under ``tmp/mocker-configs/`` so the registry's ``config_path``
+    is always within the repository tmp scope (required by
+    ``tools.cleanup_test_mockers`` ownership verification).
+    """
     cfg: dict = {
         "server": "0.0.0.0",
         "port": port,
@@ -63,18 +94,29 @@ def write_mocker_config(
     }
     if auth:
         cfg["auth"] = auth
-    config_path = tmp_dir / f"mocker_{port}.yaml"
+    config_dir = _MOCKER_CONFIG_DIR / session_run_id()
+    config_dir.mkdir(parents=True, exist_ok=True)
+    config_path = config_dir / f"mocker_{port}.yaml"
     config_path.write_text(yaml.dump(cfg, allow_unicode=True), encoding="utf-8")
     return config_path
 
 
-def start_mocker(config_path: Path, port: int, host: str | None = None) -> MockerHandle:
+def start_mocker(
+    config_path: Path,
+    port: int,
+    host: str | None = None,
+    *,
+    run_id: str | None = None,
+    case_id: str | None = None,
+) -> MockerHandle:
     if not host:
         raise ValueError(
             "start_mocker requires an explicit host: cross-machine access uses "
             "the dev-machine IP; 127.0.0.1 would map to the local loopback and "
             "is not a valid DataHub datasource endpoint."
         )
+    if run_id is None:
+        run_id = session_run_id()
     proc = subprocess.Popen(
         [sys.executable, "main.py", str(config_path)],
         cwd=str(_MOCKER_DIR),
@@ -92,10 +134,32 @@ def start_mocker(config_path: Path, port: int, host: str | None = None) -> Mocke
         stdout = proc.stdout.read().decode(errors="replace") if proc.stdout else ""
         stderr = proc.stderr.read().decode(errors="replace") if proc.stderr else ""
         proc.kill()
+        remove_registry_entry(proc.pid)
         raise RuntimeError(
             f"mocker on port {port} did not start.\nstdout: {stdout}\nstderr: {stderr}"
         )
-    return MockerHandle(process=proc, port=port, endpoint=endpoint, config_path=config_path)
+    # Registry entry is written only after the mocker is confirmed running.
+    create_time = get_process_create_time(proc.pid)
+    write_registry_entry({
+        "schema_version": SCHEMA_VERSION,
+        "pid": proc.pid,
+        "process_create_time": create_time,
+        "parent_pid": os.getpid(),
+        "repo_root": str(REPO_ROOT),
+        "python_executable": sys.executable,
+        "entrypoint": str(_MOCKER_DIR / "main.py"),
+        "config_path": str(config_path),
+        "host": host,
+        "port": port,
+        "run_id": run_id,
+        "case_id": case_id or "",
+        "started_at_utc": datetime.now(timezone.utc).isoformat(),
+        "command_line": [sys.executable, "main.py", str(config_path)],
+    })
+    return MockerHandle(
+        process=proc, port=port, endpoint=endpoint,
+        config_path=config_path, run_id=run_id, case_id=case_id or "",
+    )
 
 
 def wait_port_ready(port: int, timeout: float = 30.0, host: str = "127.0.0.1") -> None:
@@ -113,6 +177,7 @@ def wait_port_ready(port: int, timeout: float = 30.0, host: str = "127.0.0.1") -
 
 def stop_mocker(handle: MockerHandle) -> None:
     if handle.process.poll() is not None:
+        remove_registry_entry(handle.process.pid)
         return
     handle.process.terminate()
     try:
@@ -128,5 +193,6 @@ def stop_mocker(handle: MockerHandle) -> None:
                 s.connect(("127.0.0.1", handle.port))
                 time.sleep(0.2)
         except OSError:
+            remove_registry_entry(handle.process.pid)
             return
     raise AssertionError(f"port {handle.port} still open after stop_mocker")

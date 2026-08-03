@@ -1,0 +1,4 @@
+# Dev/test-only dependencies (never installed in production).
+# Used by tools/cleanup_test_mockers.py and tests/support/mocker_registry.py
+# to safely introspect and reap repo-owned orphan mocker processes.
+psutil>=5.9

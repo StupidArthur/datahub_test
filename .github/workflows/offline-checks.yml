@@ -19,7 +19,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -e ./tpt_api/python
-          pip install pytest pyyaml
+          pip install pytest pyyaml psutil
 
       - name: Compile check
         run: python -m compileall -q tests tools ua_test_harness tpt_api/python/tpt_api ua_mocker

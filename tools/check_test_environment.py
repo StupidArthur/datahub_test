@@ -88,6 +88,27 @@ def main() -> int:
     else:
         print("\nMocker endpoint: (not set)")
 
+    print("\nRepo-owned mocker registry:")
+    try:
+        from tools.cleanup_test_mockers import build_report, PsutilBackend
+        from tests.support.mocker_registry import read_registry_entries
+        entries, corrupt = read_registry_entries()
+        report = build_report(entries, corrupt, PsutilBackend())
+        print(f"  owned active mockers : {report['owned_active_mockers']}")
+        print(f"  owned orphan mockers : {report['owned_orphan_mockers']}")
+        print(f"  ambiguous entries    : {report['ambiguous_entries']}")
+        print(f"  total owned RSS      : {report['total_owned_rss_bytes']} bytes")
+        if report["owned_orphan_mockers"]:
+            print("  FOUND ORPHANS - reap with:")
+            print("    python -m tools.cleanup_test_mockers --apply")
+            ok = False
+        if report["ambiguous_entries"] or report["corrupt_entries"]:
+            print("  ambiguous/corrupt registry entries present - do not reap until resolved")
+            ok = False
+    except Exception as exc:
+        print(f"  FAILED: {exc}")
+        ok = False
+
     print(f"\nResult: {'PASS' if ok else 'FAIL'}")
     return 0 if ok else 1
 
