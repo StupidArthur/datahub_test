@@ -76,9 +76,13 @@ case_runtime / cleanup_registry / 任何 autouse 环境清理
 * `find_free_port` / `write_mocker_config` / `start_mocker` / `wait_port_ready` / `stop_mocker`
 * 测试函数必须用 `mocker = start_mocker(...); try: ... finally: stop_mocker(mocker)` 显式控制
 * 不通过端口号杀进程，不允许 kill 非本测试启动的进程
-* 临时 YAML 写到 pytest `tmp_path_factory` 目录，**不提交**
+* 临时 YAML 写到仓库 `tmp/mocker-configs/`（按 run_id 分目录），**不提交**
 * 默认节点：`2_smoke_static_1`（Double, default=12.5, writable）和 `2_smoke_change_1`（Int32, change=true）
 * `write_mocker_config(..., auth={enabled,username,password})` 启用 OPC UA 用户名密码认证
+
+启动的 mocker 会登记到仓库自有 registry（`tmp/mocker-registry/`，见
+`tests/support/mocker_registry.py`）；遗留孤儿由
+`python -m tools.cleanup_test_mockers --apply` 按归属条件安全清理（不杀外部进程）。
 
 ## cleanup 安全规则
 
@@ -228,12 +232,19 @@ pytest.skip 掩盖环境未设置
 |----|------|------|--------------|----------------|--------|
 | UA-1-1 | 12 | 12 | 0 | 0 | 0 |
 | UA-1-2 | 6 | 4 | 0 | 2 | 0 |
-| UA-2-1 | 112 | 62 | 10 | 40 | 0 |
-| UA-2-2 | 67 | 56 | 0 | 11 | 0 |
-| UA-2-3 | 29 | 23 | 1 | 5 | 0 |
-| UA-2-4 | 27 | 5 | 4 | 10 | 8 |
+| UA-1-3 | 8 | 8 | 0 | 0 | 0 |
+| UA-2-1 | 112 | 63 | 9 | 40 | 0 |
+| UA-2-2 | 67 | 55 | 0 | 12 | 0 |
+| UA-2-3 | 32 | 22 | 3 | 7 | 0 |
+| UA-2-4 | 27 | 12 | 4 | 11 | 0 |
+| UA-2-5 | 27 | 14 | 3 | 10 | 0 |
 
-FAIL 十四道确认产品能力限制：
+> 全量 UA-2（265 canonical）已在清洁主机上连续两次全量回归
+> （`output/ua-2-clean-run-1.xml` / `run-2.xml`），结果逐字段一致：
+> **166 PASS / 19 FAIL / 80 XFAIL / 0 SKIP / 0 XPASS / 0 ERROR**，
+> 且执行前后 DS/tag/recycle/mocker 零残留。
+
+FAIL 十九道确认产品能力限制：
 - **UA-2-1-019** 空 tagName → 产品接受空 tagName，回落为节点名
 - **UA-2-1-044** Byte 255 → DataHub signed-byte 映射限制（`Write tag value type convert failed`）
 - **UA-2-1-048** UInt16 65535 → DataHub U_SHORT 映射限制
@@ -243,14 +254,23 @@ FAIL 十四道确认产品能力限制：
 - **UA-2-1-071** DateTime UTC ISO 被拒绝（`tag data type error`）
 - **UA-2-1-072** DateTime 带时区被拒绝（`tag data type error`）
 - **UA-2-1-074** DateTime epoch 边界被拒绝（`tag data type error`）
-- **UA-2-1-027** SByte 默认读取偶发时序竞争（change node 值漂移：期望 3 实际 2）
+- **UA-2-3-006** 导出表头 24 列 vs 规格 21 列（`docs/migration/ua-2-3-blockers.md`）
+- **UA-2-3-010** 导出表头含额外列，规格要求 21 列（同上）
+- **UA-2-3-017** DATE_TIME 导入被拒（`tag data type error`，同上）
 - **UA-2-4-001/002/003** 软删除后 `list_tags` 仍返回位号（双重可见）
 - **UA-2-4-009** 软删除后 `write_tag_values` 成功且传播到 OPC UA 源
+- **UA-2-5-023/026/027** 收藏会移除位号的原普通分组归属，且不可恢复（`docs/migration/ua-2-5-blockers.md`）
 
-XFAIL 50 道为行为未约定（overflow / coercion / whitespace / length 129 / special chars / unicode / Int64 out-of-range / UInt64 negative and overflow / NaN/Inf / length boundaries / frequency effect / alarm limits / history / batchAdd / spec_pending）。
+XFAIL 80 道为行为未约定（overflow / coercion / whitespace / length 129 / special chars / unicode / Int64 out-of-range / UInt64 negative and overflow / NaN/Inf / length boundaries / frequency effect / alarm limits / history / batchAdd / spec_pending / sysname 规则 / browse filter / pagination / 软删结果刷新）。
+
+> 历史波动项 UA-2-1-027（SByte 默认读取时序竞争）在清洁主机两轮全量回归中
+> **均为 PASS**，不再计为 FAIL；UA-2-2-043/044 在 UA-2-2 全量回归中为
+> spec_pending XFAIL（归因见 blocker 文档）。
 
 ### 清理基础设施
 - **`tests/support/ua2_cleanup.py`**: `strict_cleanup_ua2_context()` — 六步严格清理（物理删 tag → 清回收站 → 禁 DS → 删 DS → 停 mocker → 验端口），所有错误聚合不吞
+- **`tests/support/mocker_registry.py`**: 仓库自有 mocker 进程登记表（`tmp/mocker-registry/`），记录 pid / create_time / parent_pid / repo_root / config_path / port / run_id / case_id
+- **`tools/cleanup_test_mockers.py`**: `--check` / `--apply` / `--json` — 只清理仓库自有孤儿 mocker（归属判断：repo_root + pid + create_time + cwd + config_path + 父进程已死），ambiguous/corrupt 条目只报告不清理，`--apply` 遇 ambiguous 返回非零
 - **残差验证**: 执行前后 COW 审计 DS/active-tag/recycle-tag/mocker/dynamic-port 零残留
 
 ### 恢复 API 注意事项
@@ -269,4 +289,5 @@ XFAIL 50 道为行为未约定（overflow / coercion / whitespace / length 129 /
 - UA-1-2 阻塞（UA-1-2-03/05 历史）：见 `docs/migration/ua-1-2-03-blocker.md`
 - UA-2-1 全组已迁移并回归
 - UA-2-3 全组已迁移并回归（3 FAIL：006/010 表头偏移，017 DateTime 导入拒绝）
-- UA-2-4 已迁移 001~019（5 PASS + 4 FAIL 产品限 + 10 XFAIL spec_pending）；020~027 待迁移
+- UA-2-4 全组已迁移并回归（4 FAIL 产品限 + 11 XFAIL spec_pending）
+- UA-2-5 全组已迁移并回归（3 FAIL：023/026/027 收藏移除原分组归属，见 `docs/migration/ua-2-5-blockers.md`）

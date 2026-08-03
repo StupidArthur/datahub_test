@@ -36,3 +36,34 @@
 - **可能原因**: DataHub 内部映射 U_INT 时无法处理无符号整型最大值 4294967295（可能通过 JSON 传输时被截断或有符号化）
 - **缺少的能力**: DataHub 平台侧无符号类型 U_INT 的正确最大值处理（参见 UA-2-1-044/048 同类问题）
 - **代码状态**: `test_uint32_min_max` 保持真实 FAIL，用于持续暴露产品限制
+
+## UA-2-1-058 UInt64 最大值被拒绝
+
+- **Case ID**: UA-2-1-058
+- **原始预期**: UInt64 节点可写入 0~18446744073709551615，三端一致
+- **真实环境行为**: 写入 18446744073709551615 → DataHub 返回 `[A0400]Write tag value type convert failed, target type: U_LONG`
+- **可能原因**: DataHub 内部映射 U_LONG 时无法处理无符号整型最大值（与 044/048/052 同类）
+- **代码状态**: `test_uint64_max_value` 保持真实 FAIL
+
+## UA-2-1-066 空字符串值被拒绝
+
+- **Case ID**: UA-2-1-066
+- **原始预期**: String 节点可写入空字符串 `""`
+- **真实环境行为**: 写入空字符串 → DataHub 返回 `writing tag value can not be null`
+- **可能原因**: DataHub 写入管道把空字符串当作空值拒绝
+- **代码状态**: `test_string_empty` 保持真实 FAIL
+
+## UA-2-1-071/072/074 DateTime 写入被拒绝
+
+- **Case ID**: UA-2-1-071（UTC ISO）、UA-2-1-072（带时区）、UA-2-1-074（epoch 边界）
+- **原始预期**: DateTime 节点可写入 ISO/时区/epoch 格式
+- **真实环境行为**: 均返回 `[A0400]tag data type error`，写入被拒
+- **可能原因**: DataHub 对 DateTime 输入格式/范围有平台侧限制，不接受 UTC ISO 与 epoch 边界
+- **代码状态**: 三个测试均保持真实 FAIL
+
+## UA-2-1-019 空 tagName 回落为节点名
+
+- **Case ID**: UA-2-1-019
+- **原始预期**: 空 tagName 应被拒绝或按规格处理
+- **真实环境行为**: 产品接受空 tagName，回落为 OPC UA 节点名（`2_smoke_static_1`）
+- **代码状态**: `test_system_name_empty` 保持真实 FAIL（`pytest.mark.xfail(strict=False)` 断言失败即报告）

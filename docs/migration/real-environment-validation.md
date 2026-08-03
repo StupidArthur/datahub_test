@@ -160,3 +160,26 @@ count 一致（说明 disable 后真实无新数据）。
 - `fix(ua1): correct history window with local time and sliding end`
 - `fix(ua1): tolerate transient tag-missing during OPC UA restart`
 - `fix(ua1): make _restart_mocker tolerate None mocker handle`
+
+## UA-2 全量清洁主机回归（2026-08-03）
+
+清洁主机（无 pytest 前缀残留 DS/tag/recycle、无仓库自有孤儿 mocker）上，
+对 265 条 UA-2 canonical Case 连续执行两次全量回归：
+
+| 运行 | 结果（canonical 265） | supplemental 9 |
+|------|----------------------|----------------|
+| run-1 | 166 PASS / 19 FAIL / 80 XFAIL / 0 SKIP / 0 XPASS / 0 ERROR | 5 PASS / 4 XFAIL |
+| run-2 | 166 PASS / 19 FAIL / 80 XFAIL / 0 SKIP / 0 XPASS / 0 ERROR | 5 PASS / 4 XFAIL |
+
+两次运行逐字段一致。执行前后 COW 审计零残留：
+DS 0 / active tag 0 / recycle tag 0 / 仓库自有 mocker 0 / dynamic port 0。
+
+19 条 FAIL 均为产品能力限制，逐条归因见 blocker 文档：
+- UA-2-1：019/044/048/052/058/066/071/072/074（`docs/migration/ua-2-1-blockers.md`）
+- UA-2-3：006/010/017（`docs/migration/ua-2-3-blockers.md`）
+- UA-2-4：001/002/003/009（`docs/migration/ua-2-4-blockers.md`）
+- UA-2-5：023/026/027（`docs/migration/ua-2-5-blockers.md`）
+
+历史波动项 UA-2-1-027 在清洁主机两轮回归中均为 PASS；UA-2-2-043/044
+在两轮中均稳定 XFAIL（spec_pending）。孤儿 mocker 清理依赖
+`tools/cleanup_test_mockers.py`（仓库自有 registry：`tmp/mocker-registry/`）。
