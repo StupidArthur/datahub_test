@@ -71,7 +71,7 @@
     }
   ],
   "duplicates_in_source": [],
-  "pytest_total": 293,
+  "pytest_total": 321,
   "migrated": [
     "UA-1-1-01",
     "UA-1-1-02",
@@ -101,6 +101,34 @@
     "UA-1-3-06",
     "UA-1-3-07",
     "UA-1-3-08",
+    "UA-1-4-01",
+    "UA-1-4-02",
+    "UA-1-4-03",
+    "UA-1-4-04",
+    "UA-1-4-05",
+    "UA-1-4-06",
+    "UA-1-5-01",
+    "UA-1-5-02",
+    "UA-1-5-03",
+    "UA-1-5-04",
+    "UA-1-5-05",
+    "UA-1-5-06",
+    "UA-1-5-07",
+    "UA-1-5-08",
+    "UA-1-5-09",
+    "UA-1-6-01",
+    "UA-1-6-02",
+    "UA-1-6-03",
+    "UA-1-6-04",
+    "UA-1-6-05",
+    "UA-1-6-06",
+    "UA-1-6-07",
+    "UA-1-6-08",
+    "UA-1-6-09",
+    "UA-1-6-10",
+    "UA-1-6-11",
+    "UA-1-6-12",
+    "UA-1-6-13",
     "UA-2-1-001",
     "UA-2-1-002",
     "UA-2-1-003",
@@ -368,34 +396,6 @@
     "UA-2-5-027"
   ],
   "missing": [
-    "UA-1-4-01",
-    "UA-1-4-02",
-    "UA-1-4-03",
-    "UA-1-4-04",
-    "UA-1-4-05",
-    "UA-1-4-06",
-    "UA-1-5-01",
-    "UA-1-5-02",
-    "UA-1-5-03",
-    "UA-1-5-04",
-    "UA-1-5-05",
-    "UA-1-5-06",
-    "UA-1-5-07",
-    "UA-1-5-08",
-    "UA-1-5-09",
-    "UA-1-6-01",
-    "UA-1-6-02",
-    "UA-1-6-03",
-    "UA-1-6-04",
-    "UA-1-6-05",
-    "UA-1-6-06",
-    "UA-1-6-07",
-    "UA-1-6-08",
-    "UA-1-6-09",
-    "UA-1-6-10",
-    "UA-1-6-11",
-    "UA-1-6-12",
-    "UA-1-6-13",
     "UA-3-1-001",
     "UA-3-1-002",
     "UA-3-1-003",
@@ -533,6 +533,72 @@
     "UA-1-1-11": [
       "tests/integration/ua1/test_connection_establishment.py::test_quality_zero"
     ],
+    "UA-1-5-01": [
+      "tests/integration/ua1/test_datasource_deletion.py::test_delete_disabled_no_tags"
+    ],
+    "UA-1-5-02": [
+      "tests/integration/ua1/test_datasource_deletion.py::test_delete_disabled_with_tags"
+    ],
+    "UA-1-5-03": [
+      "tests/integration/ua1/test_datasource_deletion.py::test_delete_enabled_no_tags"
+    ],
+    "UA-1-5-04": [
+      "tests/integration/ua1/test_datasource_deletion.py::test_delete_enabled_with_tags"
+    ],
+    "UA-1-5-05": [
+      "tests/integration/ua1/test_datasource_deletion.py::test_delete_ds_after_tag_soft_delete"
+    ],
+    "UA-1-5-06": [
+      "tests/integration/ua1/test_datasource_deletion.py::test_rebuild_recycle_tag_residual"
+    ],
+    "UA-1-5-07": [
+      "tests/integration/ua1/test_datasource_deletion.py::test_rebuild_same_endpoint"
+    ],
+    "UA-1-5-08": [
+      "tests/integration/ua1/test_datasource_deletion.py::test_delete_does_not_affect_other_ds"
+    ],
+    "UA-1-5-09": [
+      "tests/integration/ua1/test_datasource_deletion.py::test_rt_state_after_ds_delete"
+    ],
+    "UA-1-6-01": [
+      "tests/integration/ua1/test_datasource_test_api.py::test_enumerate_connected"
+    ],
+    "UA-1-6-02": [
+      "tests/integration/ua1/test_datasource_test_api.py::test_enumerate_offline"
+    ],
+    "UA-1-6-03": [
+      "tests/integration/ua1/test_datasource_test_api.py::test_enumerate_pagination"
+    ],
+    "UA-1-6-04": [
+      "tests/integration/ua1/test_datasource_test_api.py::test_read_source_rt"
+    ],
+    "UA-1-6-05": [
+      "tests/integration/ua1/test_datasource_test_api.py::test_read_rt_db"
+    ],
+    "UA-1-6-06": [
+      "tests/integration/ua1/test_datasource_test_api.py::test_read_nonexistent_tag"
+    ],
+    "UA-1-6-07": [
+      "tests/integration/ua1/test_datasource_test_api.py::test_read_offline_ds"
+    ],
+    "UA-1-6-08": [
+      "tests/integration/ua1/test_datasource_test_api.py::test_read_history"
+    ],
+    "UA-1-6-09": [
+      "tests/integration/ua1/test_datasource_test_api.py::test_read_history_missing_begin"
+    ],
+    "UA-1-6-10": [
+      "tests/integration/ua1/test_datasource_test_api.py::test_write_writable_node"
+    ],
+    "UA-1-6-11": [
+      "tests/integration/ua1/test_datasource_test_api.py::test_write_readonly_node"
+    ],
+    "UA-1-6-12": [
+      "tests/integration/ua1/test_datasource_test_api.py::test_write_type_mismatch"
+    ],
+    "UA-1-6-13": [
+      "tests/integration/ua1/test_datasource_test_api.py::test_write_offline_ds"
+    ],
     "UA-1-2-03": [
       "tests/integration/ua1/test_history_lifecycle.py::test_history_stops_after_disable"
     ],
@@ -556,6 +622,24 @@
     ],
     "UA-1-2-08": [
       "tests/integration/ua1/test_lifecycle_control.py::test_multiple_start_stop_cycles"
+    ],
+    "UA-1-4-01": [
+      "tests/integration/ua1/test_multiple_datasources.py::test_two_sources_normal_collect"
+    ],
+    "UA-1-4-02": [
+      "tests/integration/ua1/test_multiple_datasources.py::test_one_source_disconnect_other_untouched"
+    ],
+    "UA-1-4-03": [
+      "tests/integration/ua1/test_multiple_datasources.py::test_one_source_recover_other_untouched"
+    ],
+    "UA-1-4-04": [
+      "tests/integration/ua1/test_multiple_datasources.py::test_one_source_disable_enable_other_untouched"
+    ],
+    "UA-1-4-05": [
+      "tests/integration/ua1/test_multiple_datasources.py::test_same_underlying_node_two_sources"
+    ],
+    "UA-1-4-06": [
+      "tests/integration/ua1/test_multiple_datasources.py::test_duplicate_system_tag_name_rejected"
     ],
     "UA-1-3-01": [
       "tests/integration/ua1/test_recovery_and_reconnect.py::test_disconnect_detection_latency"
@@ -1390,6 +1474,28 @@
     "tests/integration/ua1/test_connection_establishment.py::test_quality_default": "UA-1-1-09",
     "tests/integration/ua1/test_connection_establishment.py::test_quality_192": "UA-1-1-10",
     "tests/integration/ua1/test_connection_establishment.py::test_quality_zero": "UA-1-1-11",
+    "tests/integration/ua1/test_datasource_deletion.py::test_delete_disabled_no_tags": "UA-1-5-01",
+    "tests/integration/ua1/test_datasource_deletion.py::test_delete_disabled_with_tags": "UA-1-5-02",
+    "tests/integration/ua1/test_datasource_deletion.py::test_delete_enabled_no_tags": "UA-1-5-03",
+    "tests/integration/ua1/test_datasource_deletion.py::test_delete_enabled_with_tags": "UA-1-5-04",
+    "tests/integration/ua1/test_datasource_deletion.py::test_delete_ds_after_tag_soft_delete": "UA-1-5-05",
+    "tests/integration/ua1/test_datasource_deletion.py::test_rebuild_recycle_tag_residual": "UA-1-5-06",
+    "tests/integration/ua1/test_datasource_deletion.py::test_rebuild_same_endpoint": "UA-1-5-07",
+    "tests/integration/ua1/test_datasource_deletion.py::test_delete_does_not_affect_other_ds": "UA-1-5-08",
+    "tests/integration/ua1/test_datasource_deletion.py::test_rt_state_after_ds_delete": "UA-1-5-09",
+    "tests/integration/ua1/test_datasource_test_api.py::test_enumerate_connected": "UA-1-6-01",
+    "tests/integration/ua1/test_datasource_test_api.py::test_enumerate_offline": "UA-1-6-02",
+    "tests/integration/ua1/test_datasource_test_api.py::test_enumerate_pagination": "UA-1-6-03",
+    "tests/integration/ua1/test_datasource_test_api.py::test_read_source_rt": "UA-1-6-04",
+    "tests/integration/ua1/test_datasource_test_api.py::test_read_rt_db": "UA-1-6-05",
+    "tests/integration/ua1/test_datasource_test_api.py::test_read_nonexistent_tag": "UA-1-6-06",
+    "tests/integration/ua1/test_datasource_test_api.py::test_read_offline_ds": "UA-1-6-07",
+    "tests/integration/ua1/test_datasource_test_api.py::test_read_history": "UA-1-6-08",
+    "tests/integration/ua1/test_datasource_test_api.py::test_read_history_missing_begin": "UA-1-6-09",
+    "tests/integration/ua1/test_datasource_test_api.py::test_write_writable_node": "UA-1-6-10",
+    "tests/integration/ua1/test_datasource_test_api.py::test_write_readonly_node": "UA-1-6-11",
+    "tests/integration/ua1/test_datasource_test_api.py::test_write_type_mismatch": "UA-1-6-12",
+    "tests/integration/ua1/test_datasource_test_api.py::test_write_offline_ds": "UA-1-6-13",
     "tests/integration/ua1/test_history_lifecycle.py::test_history_stops_after_disable": "UA-1-2-03",
     "tests/integration/ua1/test_history_lifecycle.py::test_history_resumes_after_enable": "UA-1-2-05",
     "tests/integration/ua1/test_lifecycle_control.py::test_disable_running_datasource": "UA-1-2-01",
@@ -1398,6 +1504,12 @@
     "tests/integration/ua1/test_lifecycle_control.py::test_repeat_enable": "UA-1-2-06",
     "tests/integration/ua1/test_lifecycle_control.py::test_repeat_disable": "UA-1-2-07",
     "tests/integration/ua1/test_lifecycle_control.py::test_multiple_start_stop_cycles": "UA-1-2-08",
+    "tests/integration/ua1/test_multiple_datasources.py::test_two_sources_normal_collect": "UA-1-4-01",
+    "tests/integration/ua1/test_multiple_datasources.py::test_one_source_disconnect_other_untouched": "UA-1-4-02",
+    "tests/integration/ua1/test_multiple_datasources.py::test_one_source_recover_other_untouched": "UA-1-4-03",
+    "tests/integration/ua1/test_multiple_datasources.py::test_one_source_disable_enable_other_untouched": "UA-1-4-04",
+    "tests/integration/ua1/test_multiple_datasources.py::test_same_underlying_node_two_sources": "UA-1-4-05",
+    "tests/integration/ua1/test_multiple_datasources.py::test_duplicate_system_tag_name_rejected": "UA-1-4-06",
     "tests/integration/ua1/test_recovery_and_reconnect.py::test_disconnect_detection_latency": "UA-1-3-01",
     "tests/integration/ua1/test_recovery_and_reconnect.py::test_reconnect_recovery_latency": "UA-1-3-02",
     "tests/integration/ua1/test_recovery_and_reconnect.py::test_short_disconnect_recovery": "UA-1-3-06",
@@ -1676,9 +1788,9 @@
     {
       "chapter": "UA-1",
       "source": 56,
-      "pytest": 28,
-      "migrated_count": 28,
-      "missing_count": 28,
+      "pytest": 56,
+      "migrated_count": 56,
+      "missing_count": 0,
       "migrated": [
         "UA-1-1-01",
         "UA-1-1-02",
@@ -1707,9 +1819,7 @@
         "UA-1-3-05",
         "UA-1-3-06",
         "UA-1-3-07",
-        "UA-1-3-08"
-      ],
-      "missing": [
+        "UA-1-3-08",
         "UA-1-4-01",
         "UA-1-4-02",
         "UA-1-4-03",
@@ -1738,7 +1848,8 @@
         "UA-1-6-11",
         "UA-1-6-12",
         "UA-1-6-13"
-      ]
+      ],
+      "missing": []
     },
     {
       "chapter": "UA-2",

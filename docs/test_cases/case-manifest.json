@@ -331,7 +331,7 @@
         "等待若干采集周期，确认历史基线 > 0",
         "记录禁用动作时间 t_disable",
         "change_ds_state(enabled=false)",
-        "等待 alive=false + DataHub 异步落库宽限期",
+        "等待 alive=false + DataHub 异步落库缓冲完全排空",
         "记录稳定时间点 t_stable",
         "在 [t_stable, t_stable + N] 窗口反复查询历史",
         "期望：窗口内历史条数不增长"
@@ -637,6 +637,591 @@
       ],
       "expected": [
         "新位号在重连后正常采集"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-1-4-01",
+      "chapter": "UA-1-4",
+      "title": "两数据源各自正常采集",
+      "nodeid": "tests/integration/ua1/test_multiple_datasources.py::test_two_sources_normal_collect",
+      "preconditions": [
+        "mock-A、mock-B 均已启动，配置 change=true"
+      ],
+      "steps": [
+        "分别注册 ds-A、ds-B",
+        "各注册位号",
+        "等待采集",
+        "各自 getRTValue 2 次确认值在变化"
+      ],
+      "expected": [
+        "两个 ds 均 alive=true",
+        "各自位号 RT 值 = 各自 mock 节点当前值"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-1-4-02",
+      "chapter": "UA-1-4",
+      "title": "一源断连不影响另一源",
+      "nodeid": "tests/integration/ua1/test_multiple_datasources.py::test_one_source_disconnect_other_untouched",
+      "preconditions": [
+        "UA-1-4-01 状态"
+      ],
+      "steps": [
+        "停止 mock-A",
+        "等待 2s",
+        "验证 ds-A 和 ds-B"
+      ],
+      "expected": [
+        "ds-A alive=false",
+        "ds-B 不受影响、alive=true、值继续变化"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-1-4-03",
+      "chapter": "UA-1-4",
+      "title": "一源恢复不影响另一源",
+      "nodeid": "tests/integration/ua1/test_multiple_datasources.py::test_one_source_recover_other_untouched",
+      "preconditions": [
+        "UA-1-4-02 后"
+      ],
+      "steps": [
+        "重启 mock-A",
+        "等待重连",
+        "验证 ds-A 和 ds-B"
+      ],
+      "expected": [
+        "ds-A 恢复 alive=true、采集恢复",
+        "ds-B 全程不受影响"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-1-4-04",
+      "chapter": "UA-1-4",
+      "title": "一源启停不影响另一源",
+      "nodeid": "tests/integration/ua1/test_multiple_datasources.py::test_one_source_disable_enable_other_untouched",
+      "preconditions": [
+        "UA-1-4-01 状态"
+      ],
+      "steps": [
+        "禁用 ds-A",
+        "验证 ds-B",
+        "启用 ds-A",
+        "验证 ds-B"
+      ],
+      "expected": [
+        "ds-B 全程 alive=true、值持续变化",
+        "ds-A 启停对 ds-B 无影响"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-1-4-05",
+      "chapter": "UA-1-4",
+      "title": "不同数据源相同底层位号",
+      "nodeid": "tests/integration/ua1/test_multiple_datasources.py::test_same_underlying_node_two_sources",
+      "preconditions": [
+        "mock-A、mock-B 各有节点 ns=1, nodeid='test_wr_1'",
+        "两位号均可写，值稳定（change=false）以便验证写入值不回写冲突"
+      ],
+      "steps": [
+        "ds-A 注册位号 tagName='tag_A'，tagBaseName='1_test_wr_1'",
+        "ds-B 注册位号 tagName='tag_B'，tagBaseName='1_test_wr_1'",
+        "等待采集",
+        "各自 writeTagValues 写不同值",
+        "各自 getRTValue"
+      ],
+      "expected": [
+        "两个位号都注册成功、各自独立采集",
+        "各自 RT 值 = 各自写入值，互不串值",
+        "不同数据源下相同 ns+nodeid 可以并存"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-1-4-06",
+      "chapter": "UA-1-4",
+      "title": "系统位号名重复拒绝",
+      "nodeid": "tests/integration/ua1/test_multiple_datasources.py::test_duplicate_system_tag_name_rejected",
+      "preconditions": [
+        "已注册 tagName='tag_A'"
+      ],
+      "steps": [
+        "在 ds-B 下注册 tagName='tag_A'（与已有重名）"
+      ],
+      "expected": [
+        "被拒绝，报错位号名重复"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-1-5-01",
+      "chapter": "UA-1-5",
+      "title": "删除_禁用+无位号",
+      "nodeid": "tests/integration/ua1/test_datasource_deletion.py::test_delete_disabled_no_tags",
+      "preconditions": [
+        "数据源已注册，无位号，已禁用(alive=false)"
+      ],
+      "steps": [
+        "delete_ds_info([id])",
+        "list_ds_info"
+      ],
+      "expected": [
+        "删除成功；数据源不再出现"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-1-5-02",
+      "chapter": "UA-1-5",
+      "title": "删除_禁用+有位号",
+      "nodeid": "tests/integration/ua1/test_datasource_deletion.py::test_delete_disabled_with_tags",
+      "preconditions": [
+        "数据源已禁用，下有 N 个位号"
+      ],
+      "steps": [
+        "delete_ds_info([id])",
+        "list_ds_info",
+        "list_tags(按原 dsId)"
+      ],
+      "expected": [
+        "验证能否直接删除；若不能，需先删位号；记录报错信息"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-1-5-03",
+      "chapter": "UA-1-5",
+      "title": "删除_启用+无位号",
+      "nodeid": "tests/integration/ua1/test_datasource_deletion.py::test_delete_enabled_no_tags",
+      "preconditions": [
+        "数据源已启用(alive=true)，无位号"
+      ],
+      "steps": [
+        "delete_ds_info([id])",
+        "list_ds_info"
+      ],
+      "expected": [
+        "删除成功或需先禁用；记录行为"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-1-5-04",
+      "chapter": "UA-1-5",
+      "title": "删除_启用+有位号",
+      "nodeid": "tests/integration/ua1/test_datasource_deletion.py::test_delete_enabled_with_tags",
+      "preconditions": [
+        "数据源已启用，下有 N 个位号，正常采集"
+      ],
+      "steps": [
+        "delete_ds_info([id])",
+        "list_ds_info",
+        "list_tags(按原 dsId)"
+      ],
+      "expected": [
+        "验证能否直接删除；若不能，需先禁用或删位号；记录报错信息"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-1-5-05",
+      "chapter": "UA-1-5",
+      "title": "删除_位号进回收站后删除数据源",
+      "nodeid": "tests/integration/ua1/test_datasource_deletion.py::test_delete_ds_after_tag_soft_delete",
+      "preconditions": [
+        "数据源下有位号；位号已软删（进入回收站）"
+      ],
+      "steps": [
+        "delete_tags(软删)",
+        "确认位号在回收站",
+        "delete_ds_info([id])",
+        "list_ds_info"
+      ],
+      "expected": [
+        "验证位号进回收站后数据源能否删除；若能删，回收站位号是否还在"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-1-5-06",
+      "chapter": "UA-1-5",
+      "title": "删除后重建回收站位号残留",
+      "nodeid": "tests/integration/ua1/test_datasource_deletion.py::test_rebuild_recycle_tag_residual",
+      "preconditions": [
+        "UA-1-5-05 数据源已删除，回收站有残留位号"
+      ],
+      "steps": [
+        "add_ds_info(同 url)",
+        "list_recycle_tags"
+      ],
+      "expected": [
+        "验证回收站中的位号是否还存在；是否关联到新数据源"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-1-5-07",
+      "chapter": "UA-1-5",
+      "title": "删除后同地址重建",
+      "nodeid": "tests/integration/ua1/test_datasource_deletion.py::test_rebuild_same_endpoint",
+      "preconditions": [
+        "数据源已删除，mock 仍在运行"
+      ],
+      "steps": [
+        "add_ds_info(同 url)",
+        "启用",
+        "注册位号",
+        "等待采集"
+      ],
+      "expected": [
+        "新数据源注册成功；alive=true；位号正常采集"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-1-5-08",
+      "chapter": "UA-1-5",
+      "title": "删除不影响其他数据源",
+      "nodeid": "tests/integration/ua1/test_datasource_deletion.py::test_delete_does_not_affect_other_ds",
+      "preconditions": [
+        "ds-A、ds-B 均正常"
+      ],
+      "steps": [
+        "delete_ds_info([ds-A])",
+        "验证 ds-B"
+      ],
+      "expected": [
+        "ds-A 被删除",
+        "ds-B 不受影响、alive=true、值继续变化"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-1-5-09",
+      "chapter": "UA-1-5",
+      "title": "删除后位号 RT 状态",
+      "nodeid": "tests/integration/ua1/test_datasource_deletion.py::test_rt_state_after_ds_delete",
+      "preconditions": [
+        "数据源已删除，原位号仍存在（前置条件可能无法满足）"
+      ],
+      "steps": [
+        "getRTValue 读原位号"
+      ],
+      "expected": [
+        "验证 RT 返回什么：报错、quality=0、还是返回最后值（若前置条件无法满足则标记 NA）"
+      ],
+      "markers": [
+        "spec_pending",
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-1-6-01",
+      "chapter": "UA-1-6",
+      "title": "枚举已连接数据源的位号",
+      "nodeid": "tests/integration/ua1/test_datasource_test_api.py::test_enumerate_connected",
+      "preconditions": [
+        "数据源 alive=true，mock 有已知节点"
+      ],
+      "steps": [
+        "test_ds_info(testType=1)",
+        "对返回的位号列表"
+      ],
+      "expected": [
+        "返回 successes[]，含 name/browseName/tagDataType/tagDataTypeName/readOnly",
+        "与 mock 实际节点一致"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-1-6-02",
+      "chapter": "UA-1-6",
+      "title": "枚举未连接数据源的位号",
+      "nodeid": "tests/integration/ua1/test_datasource_test_api.py::test_enumerate_offline",
+      "preconditions": [
+        "数据源 alive=false"
+      ],
+      "steps": [
+        "test_ds_info(testType=1)"
+      ],
+      "expected": [
+        "返回失败或空列表；不崩溃"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-1-6-03",
+      "chapter": "UA-1-6",
+      "title": "枚举分页",
+      "nodeid": "tests/integration/ua1/test_datasource_test_api.py::test_enumerate_pagination",
+      "preconditions": [
+        "mock 有 >10 个节点"
+      ],
+      "steps": [
+        "test_ds_info(testType=1)",
+        "检查 total/pageNum/pageSize/totalPage"
+      ],
+      "expected": [
+        "分页字段正确",
+        "total = mock 实际节点数"
+      ],
+      "markers": [
+        "spec_pending",
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-1-6-04",
+      "chapter": "UA-1-6",
+      "title": "读源端实时值(testType=2)",
+      "nodeid": "tests/integration/ua1/test_datasource_test_api.py::test_read_source_rt",
+      "preconditions": [
+        "数据源 alive=true；位号已注册并采集",
+        "testType=2 读的是 DataHub 实时缓存，需 tagBaseName"
+      ],
+      "steps": [
+        "注册位号绑定 2_smoke_static_1 并等待采集",
+        "test_ds_info(testType=2, tagName='2_smoke_static_1')",
+        "asyncua 直读对照"
+      ],
+      "expected": [
+        "successes[] 含 name/value/quality/timeStamp",
+        "value = mock 节点当前值"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-1-6-05",
+      "chapter": "UA-1-6",
+      "title": "读库实时值(testType=3)",
+      "nodeid": "tests/integration/ua1/test_datasource_test_api.py::test_read_rt_db",
+      "preconditions": [
+        "数据源 alive=true，位号已采集"
+      ],
+      "steps": [
+        "test_ds_info(testType=3, tagName='2_smoke_static_1')",
+        "验证与 testType=2 返回是否一致"
+      ],
+      "expected": [
+        "successes[] 含 value",
+        "与 testType=2 对比"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-1-6-06",
+      "chapter": "UA-1-6",
+      "title": "读不存在的位号",
+      "nodeid": "tests/integration/ua1/test_datasource_test_api.py::test_read_nonexistent_tag",
+      "preconditions": [
+        "数据源 alive=true"
+      ],
+      "steps": [
+        "test_ds_info(testType=2, tagName='nonexistent')"
+      ],
+      "expected": [
+        "failTagNames 含该位号",
+        "isAllSuccess=false"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-1-6-07",
+      "chapter": "UA-1-6",
+      "title": "读未连接数据源的位号",
+      "nodeid": "tests/integration/ua1/test_datasource_test_api.py::test_read_offline_ds",
+      "preconditions": [
+        "数据源 alive=false"
+      ],
+      "steps": [
+        "test_ds_info(testType=2, tagName)"
+      ],
+      "expected": [
+        "返回失败；不崩溃"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-1-6-08",
+      "chapter": "UA-1-6",
+      "title": "读历史值",
+      "nodeid": "tests/integration/ua1/test_datasource_test_api.py::test_read_history",
+      "preconditions": [
+        "数据源 alive=true，位号有历史数据"
+      ],
+      "steps": [
+        "test_ds_info(testType=4, tagName, beginTime, endTime)"
+      ],
+      "expected": [
+        "historyValueMap 含历史数据",
+        "或返回'不支持时间查询'（取决于 UA server 能力）"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-1-6-09",
+      "chapter": "UA-1-6",
+      "title": "读历史值缺时间参数",
+      "nodeid": "tests/integration/ua1/test_datasource_test_api.py::test_read_history_missing_begin",
+      "preconditions": [
+        "数据源 alive=true"
+      ],
+      "steps": [
+        "test_ds_info(testType=4, tagName, 不传 beginTime)"
+      ],
+      "expected": [
+        "报错 beginTime cannot be null"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-1-6-10",
+      "chapter": "UA-1-6",
+      "title": "写值到可写位号",
+      "nodeid": "tests/integration/ua1/test_datasource_test_api.py::test_write_writable_node",
+      "preconditions": [
+        "数据源 alive=true，mock 节点 writable=true"
+      ],
+      "steps": [
+        "test_ds_info(testType=5, tagName, tagValue=\"123.45\")",
+        "asyncua 直读"
+      ],
+      "expected": [
+        "isAllSuccess=true",
+        "源端值 = 123.45"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-1-6-11",
+      "chapter": "UA-1-6",
+      "title": "写值到只读位号",
+      "nodeid": "tests/integration/ua1/test_datasource_test_api.py::test_write_readonly_node",
+      "preconditions": [
+        "数据源 alive=true，mock 节点 writable=false"
+      ],
+      "steps": [
+        "test_ds_info(testType=5, tagName, tagValue=\"123.45\")"
+      ],
+      "expected": [
+        "isAllSuccess=false 或报错"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-1-6-12",
+      "chapter": "UA-1-6",
+      "title": "写值类型不匹配",
+      "nodeid": "tests/integration/ua1/test_datasource_test_api.py::test_write_type_mismatch",
+      "preconditions": [
+        "数据源 alive=true，位号为 Double"
+      ],
+      "steps": [
+        "test_ds_info(testType=5, tagName, tagValue=\"abc\")"
+      ],
+      "expected": [
+        "failMsg 含该位号",
+        "isAllSuccess=false"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-1-6-13",
+      "chapter": "UA-1-6",
+      "title": "写值到未连接数据源",
+      "nodeid": "tests/integration/ua1/test_datasource_test_api.py::test_write_offline_ds",
+      "preconditions": [
+        "数据源 alive=false"
+      ],
+      "steps": [
+        "test_ds_info(testType=5, tagName, tagValue=\"123\")"
+      ],
+      "expected": [
+        "返回失败；不崩溃"
       ],
       "markers": [
         "destructive",
