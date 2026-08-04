@@ -18,6 +18,8 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
+from asyncua import ua
+
 from tpt_api.datahub import (
     change_ds_state,
     delete_tags,
@@ -412,39 +414,53 @@ def test_ua3_1_019_history_landing(api, settings, tmp_path_factory, mocker_endpo
         tags.append(add_collection_tag(api, settings, ctx, case_id, node_id_str=node_id, type_key="INT"))
         wait_rt_valid(api, tags[0]["tag_name"], timeout=60.0)
 
-        t0 = datetime.now(timezone.utc)
         sequence = [310001, 310002, 310003, 310004]
+
+        beg = (datetime.now() - timedelta(minutes=2)).strftime("%Y-%m-%d %H:%M:%S")
+
+        def _history_vals():
+            end = (datetime.now() + timedelta(minutes=2)).strftime("%Y-%m-%d %H:%M:%S")
+            resp = get_history_value(api, [tags[0]["tag_name"]], beg_time=beg, end_time=end, page_size=500)
+            info = resp.get(tags[0]["tag_name"], {})
+            return {r.get("tagValue") for r in (info.get("list") or [])}, info
+
+        landed: set = set()
         for value in sequence:
-            opcua_write_sync(ctx["endpoint"], node_id, value, namespace_index=ctx["namespace_index"])
+            opcua_write_sync(
+                ctx["endpoint"], node_id, value,
+                namespace_index=ctx["namespace_index"], variant_type=ua.VariantType.Int32,
+            )
             wait_rt_matches_source(
                 api, ctx, tags[0]["tag_name"], node_id, "INT",
                 expected=value, timeout=60.0,
             )
+            deadline = time.monotonic() + 120.0
+            while time.monotonic() < deadline:
+                vals, info = _history_vals()
+                landed.update(vals)
+                if value in landed:
+                    break
+                time.sleep(5.0)
+            else:
+                raise AssertionError(
+                    f"history never landed value {value}; landed={sorted(landed)} "
+                    f"total={info.get('total')} records={info.get('list', [])[:20]}"
+                )
 
-        beg = (t0 - timedelta(minutes=2)).strftime("%Y-%m-%d %H:%M:%S")
-        end = (datetime.now(timezone.utc) + timedelta(minutes=2)).strftime("%Y-%m-%d %H:%M:%S")
-
-        def _history_has_all():
-            resp = get_history_value(api, [tags[0]["tag_name"]], beg_time=beg, end_time=end, page_size=500)
-            info = resp.get(tags[0]["tag_name"], {})
-            records = info.get("list") or []
-            vals = {r.get("tagValue") for r in records}
-            return all(v in vals for v in sequence), records, info
-
-        ok = False
-        last_records = []
-        last_info = {}
-        deadline = time.monotonic() + 240.0
+        deadline = time.monotonic() + 120.0
         while time.monotonic() < deadline:
-            ok, last_records, last_info = _history_has_all()
-            if ok:
+            vals, info = _history_vals()
+            landed.update(vals)
+            if all(v in landed for v in sequence):
                 break
-            time.sleep(10.0)
-        assert ok, (
+            time.sleep(5.0)
+        assert all(v in landed for v in sequence), (
             f"history did not contain all unique values {sequence} within timeout; "
-            f"total={last_info.get('total')} records={last_records[:20]}"
+            f"total={info.get('total')} records={info.get('list', [])[:20]}"
         )
 
+        _, last_info = _history_vals()
+        last_records = last_info.get("list") or []
         for rec in last_records:
             assert rec.get("tagName") == tags[0]["tag_name"], \
                 f"history record wrong identity: {rec}"
@@ -480,9 +496,11 @@ def test_ua3_1_020_delete_restore_history(api, settings, tmp_path_factory, mocke
         tags.append(add_collection_tag(api, settings, ctx, case_id, node_id_str=node_id, type_key="INT"))
         wait_rt_valid(api, tags[0]["tag_name"], timeout=60.0)
 
-        t0 = datetime.now(timezone.utc)
         for value in [320001, 320002]:
-            opcua_write_sync(ctx["endpoint"], node_id, value, namespace_index=ctx["namespace_index"])
+            opcua_write_sync(
+                ctx["endpoint"], node_id, value,
+                namespace_index=ctx["namespace_index"], variant_type=ua.VariantType.Int32,
+            )
             wait_rt_matches_source(api, ctx, tags[0]["tag_name"], node_id, "INT", expected=value, timeout=60.0)
 
         delete_tags(api, [tags[0]["tag_id"]])
@@ -497,7 +515,10 @@ def test_ua3_1_020_delete_restore_history(api, settings, tmp_path_factory, mocke
             observations["restore_error"] = {"code": exc.code, "msg": exc.msg}
 
         for value in [320003, 320004]:
-            opcua_write_sync(ctx["endpoint"], node_id, value, namespace_index=ctx["namespace_index"])
+            opcua_write_sync(
+                ctx["endpoint"], node_id, value,
+                namespace_index=ctx["namespace_index"], variant_type=ua.VariantType.Int32,
+            )
             try:
                 wait_rt_matches_source(
                     api, ctx, tags[0]["tag_name"], node_id, "INT", expected=value, timeout=60.0,
@@ -506,8 +527,8 @@ def test_ua3_1_020_delete_restore_history(api, settings, tmp_path_factory, mocke
             except AssertionError as exc:
                 observations.setdefault("post_restore_rt_errors", []).append(str(exc))
 
-        beg = (t0 - timedelta(minutes=2)).strftime("%Y-%m-%d %H:%M:%S")
-        end = (datetime.now(timezone.utc) + timedelta(minutes=2)).strftime("%Y-%m-%d %H:%M:%S")
+        beg = (datetime.now() - timedelta(minutes=2)).strftime("%Y-%m-%d %H:%M:%S")
+        end = (datetime.now() + timedelta(minutes=2)).strftime("%Y-%m-%d %H:%M:%S")
         try:
             resp = get_history_value(api, [tags[0]["tag_name"]], beg_time=beg, end_time=end, page_size=500)
             info = resp.get(tags[0]["tag_name"], {})

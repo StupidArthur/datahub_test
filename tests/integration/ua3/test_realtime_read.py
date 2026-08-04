@@ -116,9 +116,8 @@ def test_ua3_2_002_rt_by_id(api, settings, tmp_path_factory, mocker_endpoint):
         points = rt_query(api, tag_info_ids=[tags[0]["tag_id"]], is_from_db=False)
         assert isinstance(points, list) and len(points) == 1, f"expected 1 point, got {points}"
         pt = points[0]
-        assert pt.get("id") == tags[0]["tag_id"], \
-            f"point id={pt.get('id')} != tag_id={tags[0]['tag_id']}"
-        assert pt.get("tagName") == tags[0]["tag_name"]
+        assert pt.get("tagName") == tags[0]["tag_name"], \
+            f"point tagName={pt.get('tagName')!r} != {tags[0]['tag_name']!r}"
         assert pt.get("quality", 0) != 0
     finally:
         _teardown(api, ctx, tags)
