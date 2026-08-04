@@ -314,3 +314,32 @@ def cleanup_ua3_context(api, *, tag_ids: list[int] | None = None, tag_names: lis
     strict_cleanup_ua2_context(
         api, ds_id=ds_id, ds_name=ds_name, mocker=mocker, host=host, port=port,
     )
+
+
+def cleanup_ua3_multi_context(api, *, tags: list[dict] | None = None,
+                              ds_contexts: list[dict] | None = None) -> None:
+    """Strict cleanup for multi-datasource UA-3 tests.
+
+    Physically deletes every tag (active + recycle residual), then for each
+    datasource runs the full strict DS/mocker cleanup.  All errors are
+    aggregated; any failure raises AssertionError (never swallowed).
+    """
+    errors: list[str] = []
+    for tag in tags or []:
+        try:
+            strict_cleanup_ua2_context(
+                api, tag_id=tag.get("tag_id"), tag_name=tag.get("tag_name"),
+                ds_id=None, mocker=None, host=None, port=None,
+            )
+        except AssertionError as exc:
+            errors.append(str(exc))
+    for c in ds_contexts or []:
+        try:
+            strict_cleanup_ua2_context(
+                api, ds_id=c.get("ds_id"), ds_name=c.get("ds_name"),
+                mocker=c.get("mocker"), host=c.get("host"), port=c.get("port"),
+            )
+        except AssertionError as exc:
+            errors.append(str(exc))
+    if errors:
+        raise AssertionError("; ".join(errors))

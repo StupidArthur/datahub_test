@@ -7308,6 +7308,278 @@
         "destructive",
         "integration"
       ]
+    },
+    {
+      "id": "UA-3-1-013",
+      "chapter": "UA-3-1",
+      "title": "数据源断线_停止有效采集",
+      "nodeid": "tests/integration/ua3/test_collection_recovery.py::test_ua3_1_013_source_disconnect",
+      "preconditions": [
+        "数据源 alive=true",
+        "位号正常采集"
+      ],
+      "steps": [
+        "正常采集后停止 Mock",
+        "轮询 ds alive",
+        "轮询 RT 质量",
+        "确认不产生伪造新鲜值"
+      ],
+      "expected": [
+        "alive=false",
+        "质量无效",
+        "不产生伪造的新鲜值"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-1-014",
+      "chapter": "UA-3-1",
+      "title": "数据源恢复_自动续采",
+      "nodeid": "tests/integration/ua3/test_collection_recovery.py::test_ua3_1_014_source_reconnect",
+      "preconditions": [
+        "UA-3-1-013 后：mock 已停止；数据源 enabled；alive=false"
+      ],
+      "steps": [
+        "重启 Mock 并修改源值",
+        "轮询 alive",
+        "轮询 RT",
+        "确认无需重建自动恢复"
+      ],
+      "expected": [
+        "alive=true",
+        "质量和数据自动恢复",
+        "值可被继续采集"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-1-015",
+      "chapter": "UA-3-1",
+      "title": "数据源禁用_停止采集",
+      "nodeid": "tests/integration/ua3/test_collection_recovery.py::test_ua3_1_015_ds_disable",
+      "preconditions": [
+        "数据源 alive=true",
+        "位号正常采集"
+      ],
+      "steps": [
+        "changeState 禁用数据源",
+        "轮询 RT 质量",
+        "确认配置仍存在"
+      ],
+      "expected": [
+        "采集停止",
+        "质量无效",
+        "配置仍存在"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-1-016",
+      "chapter": "UA-3-1",
+      "title": "数据源重新启用",
+      "nodeid": "tests/integration/ua3/test_collection_recovery.py::test_ua3_1_016_ds_reenable",
+      "preconditions": [
+        "UA-3-1-015 后：数据源已禁用；mock 仍运行"
+      ],
+      "steps": [
+        "重新启用数据源",
+        "轮询 RT",
+        "确认值与源端一致"
+      ],
+      "expected": [
+        "自动恢复采集",
+        "值与源端一致"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-1-017",
+      "chapter": "UA-3-1",
+      "title": "单节点异常隔离",
+      "nodeid": "tests/integration/ua3/test_collection_recovery.py::test_ua3_1_017_single_node_isolation",
+      "preconditions": [
+        "同源有多个节点",
+        "数据源 alive=true"
+      ],
+      "steps": [
+        "注册两个位号",
+        "使一个节点读取异常（绑定不存在 NodeId）",
+        "确认同源其他节点继续采集"
+      ],
+      "expected": [
+        "同源其他正常节点继续采集"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-1-018",
+      "chapter": "UA-3-1",
+      "title": "多数据源隔离",
+      "nodeid": "tests/integration/ua3/test_collection_recovery.py::test_ua3_1_018_multi_ds_isolation",
+      "preconditions": [
+        "两个独立数据源 A/B",
+        "数据源 A/B alive=true"
+      ],
+      "steps": [
+        "A 断线，B 保持运行",
+        "读取 B 的值、质量和时间",
+        "确认 B 不受 A 影响"
+      ],
+      "expected": [
+        "B 的值、质量和时间不受 A 影响"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-1-019",
+      "chapter": "UA-3-1",
+      "title": "自动采集_历史落地",
+      "nodeid": "tests/integration/ua3/test_collection_recovery.py::test_ua3_1_019_history_landing",
+      "preconditions": [
+        "使用方式 A 造数前置",
+        "数据源 alive=true"
+      ],
+      "steps": [
+        "按方式 A 制造唯一值序列",
+        "等待历史可见",
+        "查询历史核对关键值、身份、时间和质量"
+      ],
+      "expected": [
+        "关键唯一值进入历史",
+        "身份、时间和质量可核对"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-1-020",
+      "chapter": "UA-3-1",
+      "title": "删除恢复_采集与历史生命周期",
+      "nodeid": "tests/integration/ua3/test_collection_recovery.py::test_ua3_1_020_delete_restore_history",
+      "preconditions": [
+        "使用方式 A 造数前置",
+        "数据源 alive=true"
+      ],
+      "steps": [
+        "按方式 A 造数",
+        "软删、等待、恢复后继续造数",
+        "查询历史观察删除期间与恢复后的记录"
+      ],
+      "expected": [
+        "记录删除期间是否停采",
+        "恢复后实时和历史采集可继续"
+      ],
+      "markers": [
+        "spec_pending",
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-2-001",
+      "chapter": "UA-3-2",
+      "title": "实时库_按名称读取",
+      "nodeid": "tests/integration/ua3/test_realtime_read.py::test_ua3_2_001_rt_by_name",
+      "preconditions": [
+        "数据源 alive=true",
+        "位号已创建"
+      ],
+      "steps": [
+        "传 tagNames 查询",
+        "返回目标位号",
+        "值与源端一致"
+      ],
+      "expected": [
+        "返回目标位号",
+        "值与源端一致"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-2-002",
+      "chapter": "UA-3-2",
+      "title": "实时库_按ID读取",
+      "nodeid": "tests/integration/ua3/test_realtime_read.py::test_ua3_2_002_rt_by_id",
+      "preconditions": [
+        "数据源 alive=true",
+        "位号已创建"
+      ],
+      "steps": [
+        "传 tagInfoIds 查询",
+        "确认 ID 与返回位号正确对应"
+      ],
+      "expected": [
+        "ID 与返回位号正确对应"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-2-003",
+      "chapter": "UA-3-2",
+      "title": "实时库_按分组读取",
+      "nodeid": "tests/integration/ua3/test_realtime_read.py::test_ua3_2_003_rt_by_group",
+      "preconditions": [
+        "数据源 alive=true",
+        "位号已创建并分配分组"
+      ],
+      "steps": [
+        "传 groupId 查询",
+        "确认只返回该组位号"
+      ],
+      "expected": [
+        "只返回该组位号"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-2-004",
+      "chapter": "UA-3-2",
+      "title": "实时库_批量跨数据源",
+      "nodeid": "tests/integration/ua3/test_realtime_read.py::test_ua3_2_004_rt_multi_ds",
+      "preconditions": [
+        "两个数据源 A/B",
+        "数据源 alive=true"
+      ],
+      "steps": [
+        "查询 A、B 多个位号",
+        "确认 dsId、tagName、值不串源"
+      ],
+      "expected": [
+        "dsId、tagName、值不串源"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
     }
   ]
 }

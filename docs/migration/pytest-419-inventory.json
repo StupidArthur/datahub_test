@@ -71,7 +71,7 @@
     }
   ],
   "duplicates_in_source": [],
-  "pytest_total": 333,
+  "pytest_total": 345,
   "migrated": [
     "UA-1-1-01",
     "UA-1-1-02",
@@ -405,9 +405,7 @@
     "UA-3-1-009",
     "UA-3-1-010",
     "UA-3-1-011",
-    "UA-3-1-012"
-  ],
-  "missing": [
+    "UA-3-1-012",
     "UA-3-1-013",
     "UA-3-1-014",
     "UA-3-1-015",
@@ -419,7 +417,9 @@
     "UA-3-2-001",
     "UA-3-2-002",
     "UA-3-2-003",
-    "UA-3-2-004",
+    "UA-3-2-004"
+  ],
+  "missing": [
     "UA-3-2-005",
     "UA-3-2-006",
     "UA-3-2-007",
@@ -1495,6 +1495,42 @@
     ],
     "UA-3-1-012": [
       "tests/integration/ua3/test_collection.py::test_ua3_1_012_type_mismatch"
+    ],
+    "UA-3-1-013": [
+      "tests/integration/ua3/test_collection_recovery.py::test_ua3_1_013_source_disconnect"
+    ],
+    "UA-3-1-014": [
+      "tests/integration/ua3/test_collection_recovery.py::test_ua3_1_014_source_reconnect"
+    ],
+    "UA-3-1-015": [
+      "tests/integration/ua3/test_collection_recovery.py::test_ua3_1_015_ds_disable"
+    ],
+    "UA-3-1-016": [
+      "tests/integration/ua3/test_collection_recovery.py::test_ua3_1_016_ds_reenable"
+    ],
+    "UA-3-1-017": [
+      "tests/integration/ua3/test_collection_recovery.py::test_ua3_1_017_single_node_isolation"
+    ],
+    "UA-3-1-018": [
+      "tests/integration/ua3/test_collection_recovery.py::test_ua3_1_018_multi_ds_isolation"
+    ],
+    "UA-3-1-019": [
+      "tests/integration/ua3/test_collection_recovery.py::test_ua3_1_019_history_landing"
+    ],
+    "UA-3-1-020": [
+      "tests/integration/ua3/test_collection_recovery.py::test_ua3_1_020_delete_restore_history"
+    ],
+    "UA-3-2-001": [
+      "tests/integration/ua3/test_realtime_read.py::test_ua3_2_001_rt_by_name"
+    ],
+    "UA-3-2-002": [
+      "tests/integration/ua3/test_realtime_read.py::test_ua3_2_002_rt_by_id"
+    ],
+    "UA-3-2-003": [
+      "tests/integration/ua3/test_realtime_read.py::test_ua3_2_003_rt_by_group"
+    ],
+    "UA-3-2-004": [
+      "tests/integration/ua3/test_realtime_read.py::test_ua3_2_004_rt_multi_ds"
     ]
   },
   "nodeid_to_case": {
@@ -1830,7 +1866,19 @@
     "tests/integration/ua3/test_collection.py::test_ua3_1_009_frequency_modify_runtime": "UA-3-1-009",
     "tests/integration/ua3/test_collection.py::test_ua3_1_010_quality_and_time": "UA-3-1-010",
     "tests/integration/ua3/test_collection.py::test_ua3_1_011_missing_node": "UA-3-1-011",
-    "tests/integration/ua3/test_collection.py::test_ua3_1_012_type_mismatch": "UA-3-1-012"
+    "tests/integration/ua3/test_collection.py::test_ua3_1_012_type_mismatch": "UA-3-1-012",
+    "tests/integration/ua3/test_collection_recovery.py::test_ua3_1_013_source_disconnect": "UA-3-1-013",
+    "tests/integration/ua3/test_collection_recovery.py::test_ua3_1_014_source_reconnect": "UA-3-1-014",
+    "tests/integration/ua3/test_collection_recovery.py::test_ua3_1_015_ds_disable": "UA-3-1-015",
+    "tests/integration/ua3/test_collection_recovery.py::test_ua3_1_016_ds_reenable": "UA-3-1-016",
+    "tests/integration/ua3/test_collection_recovery.py::test_ua3_1_017_single_node_isolation": "UA-3-1-017",
+    "tests/integration/ua3/test_collection_recovery.py::test_ua3_1_018_multi_ds_isolation": "UA-3-1-018",
+    "tests/integration/ua3/test_collection_recovery.py::test_ua3_1_019_history_landing": "UA-3-1-019",
+    "tests/integration/ua3/test_collection_recovery.py::test_ua3_1_020_delete_restore_history": "UA-3-1-020",
+    "tests/integration/ua3/test_realtime_read.py::test_ua3_2_001_rt_by_name": "UA-3-2-001",
+    "tests/integration/ua3/test_realtime_read.py::test_ua3_2_002_rt_by_id": "UA-3-2-002",
+    "tests/integration/ua3/test_realtime_read.py::test_ua3_2_003_rt_by_group": "UA-3-2-003",
+    "tests/integration/ua3/test_realtime_read.py::test_ua3_2_004_rt_multi_ds": "UA-3-2-004"
   },
   "by_chapter": [
     {
@@ -2177,9 +2225,9 @@
     {
       "chapter": "UA-3",
       "source": 98,
-      "pytest": 12,
-      "migrated_count": 12,
-      "missing_count": 86,
+      "pytest": 24,
+      "migrated_count": 24,
+      "missing_count": 74,
       "migrated": [
         "UA-3-1-001",
         "UA-3-1-002",
@@ -2192,9 +2240,7 @@
         "UA-3-1-009",
         "UA-3-1-010",
         "UA-3-1-011",
-        "UA-3-1-012"
-      ],
-      "missing": [
+        "UA-3-1-012",
         "UA-3-1-013",
         "UA-3-1-014",
         "UA-3-1-015",
@@ -2206,7 +2252,9 @@
         "UA-3-2-001",
         "UA-3-2-002",
         "UA-3-2-003",
-        "UA-3-2-004",
+        "UA-3-2-004"
+      ],
+      "missing": [
         "UA-3-2-005",
         "UA-3-2-006",
         "UA-3-2-007",
