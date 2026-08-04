@@ -71,7 +71,7 @@
     }
   ],
   "duplicates_in_source": [],
-  "pytest_total": 321,
+  "pytest_total": 333,
   "migrated": [
     "UA-1-1-01",
     "UA-1-1-02",
@@ -393,9 +393,7 @@
     "UA-2-5-024",
     "UA-2-5-025",
     "UA-2-5-026",
-    "UA-2-5-027"
-  ],
-  "missing": [
+    "UA-2-5-027",
     "UA-3-1-001",
     "UA-3-1-002",
     "UA-3-1-003",
@@ -407,7 +405,9 @@
     "UA-3-1-009",
     "UA-3-1-010",
     "UA-3-1-011",
-    "UA-3-1-012",
+    "UA-3-1-012"
+  ],
+  "missing": [
     "UA-3-1-013",
     "UA-3-1-014",
     "UA-3-1-015",
@@ -1459,6 +1459,42 @@
     ],
     "UA-2-2-064": [
       "tests/integration/ua2/test_tag_query_updates.py::test_result_update_available_after_delete"
+    ],
+    "UA-3-1-001": [
+      "tests/integration/ua3/test_collection.py::test_ua3_1_001_initial_collection"
+    ],
+    "UA-3-1-002": [
+      "tests/integration/ua3/test_collection.py::test_ua3_1_002_change_collection"
+    ],
+    "UA-3-1-003": [
+      "tests/integration/ua3/test_collection.py::test_ua3_1_003_static_collection"
+    ],
+    "UA-3-1-004": [
+      "tests/integration/ua3/test_collection.py::test_ua3_1_004_13_types"
+    ],
+    "UA-3-1-005": [
+      "tests/integration/ua3/test_collection.py::test_ua3_1_005_big_integers"
+    ],
+    "UA-3-1-006": [
+      "tests/integration/ua3/test_collection.py::test_ua3_1_006_datetime"
+    ],
+    "UA-3-1-007": [
+      "tests/integration/ua3/test_collection.py::test_ua3_1_007_frequency_1_5_10"
+    ],
+    "UA-3-1-008": [
+      "tests/integration/ua3/test_collection.py::test_ua3_1_008_frequency_independent"
+    ],
+    "UA-3-1-009": [
+      "tests/integration/ua3/test_collection.py::test_ua3_1_009_frequency_modify_runtime"
+    ],
+    "UA-3-1-010": [
+      "tests/integration/ua3/test_collection.py::test_ua3_1_010_quality_and_time"
+    ],
+    "UA-3-1-011": [
+      "tests/integration/ua3/test_collection.py::test_ua3_1_011_missing_node"
+    ],
+    "UA-3-1-012": [
+      "tests/integration/ua3/test_collection.py::test_ua3_1_012_type_mismatch"
     ]
   },
   "nodeid_to_case": {
@@ -1782,7 +1818,19 @@
     "tests/integration/ua2/test_tag_query_updates.py::test_result_update_soft_delete": "UA-2-2-061",
     "tests/integration/ua2/test_tag_query_updates.py::test_result_update_physical_delete": "UA-2-2-062",
     "tests/integration/ua2/test_tag_query_updates.py::test_result_update_available_after_add": "UA-2-2-063",
-    "tests/integration/ua2/test_tag_query_updates.py::test_result_update_available_after_delete": "UA-2-2-064"
+    "tests/integration/ua2/test_tag_query_updates.py::test_result_update_available_after_delete": "UA-2-2-064",
+    "tests/integration/ua3/test_collection.py::test_ua3_1_001_initial_collection": "UA-3-1-001",
+    "tests/integration/ua3/test_collection.py::test_ua3_1_002_change_collection": "UA-3-1-002",
+    "tests/integration/ua3/test_collection.py::test_ua3_1_003_static_collection": "UA-3-1-003",
+    "tests/integration/ua3/test_collection.py::test_ua3_1_004_13_types": "UA-3-1-004",
+    "tests/integration/ua3/test_collection.py::test_ua3_1_005_big_integers": "UA-3-1-005",
+    "tests/integration/ua3/test_collection.py::test_ua3_1_006_datetime": "UA-3-1-006",
+    "tests/integration/ua3/test_collection.py::test_ua3_1_007_frequency_1_5_10": "UA-3-1-007",
+    "tests/integration/ua3/test_collection.py::test_ua3_1_008_frequency_independent": "UA-3-1-008",
+    "tests/integration/ua3/test_collection.py::test_ua3_1_009_frequency_modify_runtime": "UA-3-1-009",
+    "tests/integration/ua3/test_collection.py::test_ua3_1_010_quality_and_time": "UA-3-1-010",
+    "tests/integration/ua3/test_collection.py::test_ua3_1_011_missing_node": "UA-3-1-011",
+    "tests/integration/ua3/test_collection.py::test_ua3_1_012_type_mismatch": "UA-3-1-012"
   },
   "by_chapter": [
     {
@@ -2129,11 +2177,10 @@
     {
       "chapter": "UA-3",
       "source": 98,
-      "pytest": 0,
-      "migrated_count": 0,
-      "missing_count": 98,
-      "migrated": [],
-      "missing": [
+      "pytest": 12,
+      "migrated_count": 12,
+      "missing_count": 86,
+      "migrated": [
         "UA-3-1-001",
         "UA-3-1-002",
         "UA-3-1-003",
@@ -2145,7 +2192,9 @@
         "UA-3-1-009",
         "UA-3-1-010",
         "UA-3-1-011",
-        "UA-3-1-012",
+        "UA-3-1-012"
+      ],
+      "missing": [
         "UA-3-1-013",
         "UA-3-1-014",
         "UA-3-1-015",

@@ -7024,6 +7024,290 @@
         "integration",
         "destructive"
       ]
+    },
+    {
+      "id": "UA-3-1-001",
+      "chapter": "UA-3-1",
+      "title": "初始采集_新增后自动开始",
+      "nodeid": "tests/integration/ua3/test_collection.py::test_ua3_1_001_initial_collection",
+      "preconditions": [
+        "Mock 有可用节点",
+        "数据源 alive=true"
+      ],
+      "steps": [
+        "新增读取位号",
+        "等待 RT 出现有效值",
+        "asyncua 直读源端节点对比"
+      ],
+      "expected": [
+        "无需额外触发",
+        "RT 出现有效值且与源端一致",
+        "quality 有效"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-1-002",
+      "chapter": "UA-3-1",
+      "title": "变化采集_源值连续变化",
+      "nodeid": "tests/integration/ua3/test_collection.py::test_ua3_1_002_change_collection",
+      "preconditions": [
+        "Mock 有可写节点",
+        "数据源 alive=true"
+      ],
+      "steps": [
+        "asyncua 按唯一序列修改源值",
+        "轮询 RT 观察新值",
+        "确认无长期停滞"
+      ],
+      "expected": [
+        "DataHub 依次观察到新值",
+        "无长期停滞"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-1-003",
+      "chapter": "UA-3-1",
+      "title": "静态采集_值不变化",
+      "nodeid": "tests/integration/ua3/test_collection.py::test_ua3_1_003_static_collection",
+      "preconditions": [
+        "Mock 静态节点值固定",
+        "数据源 alive=true"
+      ],
+      "steps": [
+        "连续多次查询 RT",
+        "确认值不变时质量仍有效",
+        "确认不误判断线"
+      ],
+      "expected": [
+        "值不变时质量仍有效",
+        "不误判断线",
+        "RT 值保持与源端一致"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-1-004",
+      "chapter": "UA-3-1",
+      "title": "数据类型_13种采集",
+      "nodeid": "tests/integration/ua3/test_collection.py::test_ua3_1_004_13_types",
+      "preconditions": [
+        "Mock 配置 13 种类型节点",
+        "数据源 alive=true"
+      ],
+      "steps": [
+        "注册并采集 13 种类型位号",
+        "逐个 asyncua 直读源端",
+        "核对类型、值、表示"
+      ],
+      "expected": [
+        "类型、值和表示正确",
+        "不串类型",
+        "RT dataType 与配置一致"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-1-005",
+      "chapter": "UA-3-1",
+      "title": "大整数_Int64与UInt64",
+      "nodeid": "tests/integration/ua3/test_collection.py::test_ua3_1_005_big_integers",
+      "preconditions": [
+        "Mock 有 Int64 / UInt64 可写节点",
+        "数据源 alive=true"
+      ],
+      "steps": [
+        "源端设置超过 JS 安全整数范围的值",
+        "读取 RT 并比较",
+        "确认无损还原"
+      ],
+      "expected": [
+        "可无损还原",
+        "不发生舍入",
+        "字符串/大整数比较通过"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-1-006",
+      "chapter": "UA-3-1",
+      "title": "DateTime_值与时区",
+      "nodeid": "tests/integration/ua3/test_collection.py::test_ua3_1_006_datetime",
+      "preconditions": [
+        "Mock 有 DateTime 可写节点",
+        "数据源 alive=true"
+      ],
+      "steps": [
+        "源端设置已知 UTC 时间",
+        "读取 RT 值",
+        "UTC 转换比较"
+      ],
+      "expected": [
+        "DataHub 值与源端表示同一时刻",
+        "时区处理正确"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-1-007",
+      "chapter": "UA-3-1",
+      "title": "采集频率_1秒5秒10秒",
+      "nodeid": "tests/integration/ua3/test_collection.py::test_ua3_1_007_frequency_1_5_10",
+      "preconditions": [
+        "Mock 值持续变化",
+        "数据源 alive=true"
+      ],
+      "steps": [
+        "三个位号设置不同 frequency",
+        "采样 RT 时间序列",
+        "统计实际更新间隔"
+      ],
+      "expected": [
+        "实际更新时间间隔与配置具有对应关系"
+      ],
+      "markers": [
+        "spec_pending",
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-1-008",
+      "chapter": "UA-3-1",
+      "title": "采集频率_同源独立",
+      "nodeid": "tests/integration/ua3/test_collection.py::test_ua3_1_008_frequency_independent",
+      "preconditions": [
+        "Mock 同一数据源多节点变化",
+        "数据源 alive=true"
+      ],
+      "steps": [
+        "同源多个位号设置不同频率",
+        "采样各 RT 时间序列",
+        "确认互不覆盖"
+      ],
+      "expected": [
+        "各位号按自身频率更新",
+        "互不覆盖"
+      ],
+      "markers": [
+        "spec_pending",
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-1-009",
+      "chapter": "UA-3-1",
+      "title": "采集频率_运行中修改",
+      "nodeid": "tests/integration/ua3/test_collection.py::test_ua3_1_009_frequency_modify_runtime",
+      "preconditions": [
+        "数据源 alive=true",
+        "位号正常采集"
+      ],
+      "steps": [
+        "采集中修改 frequency",
+        "记录新频率生效时间",
+        "确认无需重建"
+      ],
+      "expected": [
+        "无需重建",
+        "记录新频率生效时间"
+      ],
+      "markers": [
+        "spec_pending",
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-1-010",
+      "chapter": "UA-3-1",
+      "title": "正常质量与时间",
+      "nodeid": "tests/integration/ua3/test_collection.py::test_ua3_1_010_quality_and_time",
+      "preconditions": [
+        "数据源 alive=true",
+        "位号在线采集"
+      ],
+      "steps": [
+        "在线采集多个周期",
+        "检查 quality",
+        "检查 tagTime/appTime 解析且不倒退"
+      ],
+      "expected": [
+        "quality 有效",
+        "tagTime/appTime 可解析",
+        "时间不倒退"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-1-011",
+      "chapter": "UA-3-1",
+      "title": "节点不存在",
+      "nodeid": "tests/integration/ua3/test_collection.py::test_ua3_1_011_missing_node",
+      "preconditions": [
+        "Mock 有可用节点",
+        "数据源 alive=true"
+      ],
+      "steps": [
+        "绑定不存在 NodeId",
+        "查询 RT 与 quality",
+        "确认其他位号正常"
+      ],
+      "expected": [
+        "不产生伪造有效值",
+        "其他位号正常"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-1-012",
+      "chapter": "UA-3-1",
+      "title": "配置类型与源类型不一致",
+      "nodeid": "tests/integration/ua3/test_collection.py::test_ua3_1_012_type_mismatch",
+      "preconditions": [
+        "Mock 有 Double 节点",
+        "数据源 alive=true"
+      ],
+      "steps": [
+        "Double 节点配置为错误类型",
+        "记录拒绝/转换/质量规则",
+        "确认服务不异常"
+      ],
+      "expected": [
+        "记录拒绝、转换或质量规则",
+        "服务不异常"
+      ],
+      "markers": [
+        "spec_pending",
+        "destructive",
+        "integration"
+      ]
     }
   ]
 }
