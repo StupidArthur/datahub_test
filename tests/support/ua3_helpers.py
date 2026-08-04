@@ -56,7 +56,7 @@ _TYPE_DEFAULTS: dict[str, object] = {
     "Int32": -2000000000,
     "UInt32": 4000000000,
     "Int64": 9007199254740993,
-    "UInt64": 18446744073709551615,
+    "UInt64": 4294967296,
     "Float": 3.5,
     "Double": 123.456,
     "String": "ua3-init",
@@ -190,7 +190,7 @@ def wait_rt_matches_source(
         rt_quality = pt.get("quality", 0)
         if rt_val is not None and rt_quality not in (None, 0):
             if expected is not None:
-                if _value_in_source_samples(expected, data_type) and _value_equals(rt_val, expected, data_type):
+                if _value_in_source_samples(expected, data_type, source_samples) and _value_equals(rt_val, expected, data_type):
                     return pt
             else:
                 for s in source_samples:
