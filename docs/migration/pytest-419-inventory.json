@@ -71,7 +71,7 @@
     }
   ],
   "duplicates_in_source": [],
-  "pytest_total": 362,
+  "pytest_total": 382,
   "migrated": [
     "UA-1-1-01",
     "UA-1-1-02",
@@ -434,9 +434,7 @@
     "UA-3-2-018",
     "UA-3-2-019",
     "UA-3-2-020",
-    "UA-3-2-021"
-  ],
-  "missing": [
+    "UA-3-2-021",
     "UA-3-3-001",
     "UA-3-3-002",
     "UA-3-3-003",
@@ -456,7 +454,9 @@
     "UA-3-3-017",
     "UA-3-3-018",
     "UA-3-3-019",
-    "UA-3-3-020",
+    "UA-3-3-020"
+  ],
+  "missing": [
     "UA-3-3-021",
     "UA-3-3-022",
     "UA-3-4-001",
@@ -1582,6 +1582,66 @@
     ],
     "UA-3-2-021": [
       "tests/integration/ua3/test_realtime_read_edge.py::test_ua3_2_021_consecutive_reads"
+    ],
+    "UA-3-3-001": [
+      "tests/integration/ua3/test_realtime_write.py::test_ua3_3_001_single_write"
+    ],
+    "UA-3-3-002": [
+      "tests/integration/ua3/test_realtime_write.py::test_ua3_3_002_multi_write"
+    ],
+    "UA-3-3-003": [
+      "tests/integration/ua3/test_realtime_write.py::test_ua3_3_003_write_13_types"
+    ],
+    "UA-3-3-004": [
+      "tests/integration/ua3/test_realtime_write.py::test_ua3_3_004_integer_boundaries"
+    ],
+    "UA-3-3-005": [
+      "tests/integration/ua3/test_realtime_write.py::test_ua3_3_005_int64_uint64_precision"
+    ],
+    "UA-3-3-006": [
+      "tests/integration/ua3/test_realtime_write.py::test_ua3_3_006_float_double"
+    ],
+    "UA-3-3-007": [
+      "tests/integration/ua3/test_realtime_write.py::test_ua3_3_007_string_unicode"
+    ],
+    "UA-3-3-008": [
+      "tests/integration/ua3/test_realtime_write.py::test_ua3_3_008_datetime_write"
+    ],
+    "UA-3-3-009": [
+      "tests/integration/ua3/test_realtime_write.py::test_ua3_3_009_onlyread"
+    ],
+    "UA-3-3-010": [
+      "tests/integration/ua3/test_realtime_write.py::test_ua3_3_010_nonexistent"
+    ],
+    "UA-3-3-011": [
+      "tests/integration/ua3/test_realtime_write.py::test_ua3_3_011_mixed"
+    ],
+    "UA-3-3-012": [
+      "tests/integration/ua3/test_realtime_write.py::test_ua3_3_012_type_mismatch"
+    ],
+    "UA-3-3-013": [
+      "tests/integration/ua3/test_realtime_write.py::test_ua3_3_013_out_of_range"
+    ],
+    "UA-3-3-014": [
+      "tests/integration/ua3/test_realtime_write.py::test_ua3_3_014_empty_values"
+    ],
+    "UA-3-3-015": [
+      "tests/integration/ua3/test_realtime_write.py::test_ua3_3_015_specified_tagtime"
+    ],
+    "UA-3-3-016": [
+      "tests/integration/ua3/test_realtime_write.py::test_ua3_3_016_quality_code"
+    ],
+    "UA-3-3-017": [
+      "tests/integration/ua3/test_realtime_write.py::test_ua3_3_017_return_structure"
+    ],
+    "UA-3-3-018": [
+      "tests/integration/ua3/test_realtime_write.py::test_ua3_3_018_write_two_reads"
+    ],
+    "UA-3-3-019": [
+      "tests/integration/ua3/test_realtime_write.py::test_ua3_3_019_write_history"
+    ],
+    "UA-3-3-020": [
+      "tests/integration/ua3/test_realtime_write.py::test_ua3_3_020_source_impact"
     ]
   },
   "nodeid_to_case": {
@@ -1946,7 +2006,27 @@
     "tests/integration/ua3/test_realtime_read_edge.py::test_ua3_2_018_option_combos": "UA-3-2-018",
     "tests/integration/ua3/test_realtime_read_edge.py::test_ua3_2_019_partial_source_query_time": "UA-3-2-019",
     "tests/integration/ua3/test_realtime_read_edge.py::test_ua3_2_020_delete_restore_read": "UA-3-2-020",
-    "tests/integration/ua3/test_realtime_read_edge.py::test_ua3_2_021_consecutive_reads": "UA-3-2-021"
+    "tests/integration/ua3/test_realtime_read_edge.py::test_ua3_2_021_consecutive_reads": "UA-3-2-021",
+    "tests/integration/ua3/test_realtime_write.py::test_ua3_3_001_single_write": "UA-3-3-001",
+    "tests/integration/ua3/test_realtime_write.py::test_ua3_3_002_multi_write": "UA-3-3-002",
+    "tests/integration/ua3/test_realtime_write.py::test_ua3_3_003_write_13_types": "UA-3-3-003",
+    "tests/integration/ua3/test_realtime_write.py::test_ua3_3_004_integer_boundaries": "UA-3-3-004",
+    "tests/integration/ua3/test_realtime_write.py::test_ua3_3_005_int64_uint64_precision": "UA-3-3-005",
+    "tests/integration/ua3/test_realtime_write.py::test_ua3_3_006_float_double": "UA-3-3-006",
+    "tests/integration/ua3/test_realtime_write.py::test_ua3_3_007_string_unicode": "UA-3-3-007",
+    "tests/integration/ua3/test_realtime_write.py::test_ua3_3_008_datetime_write": "UA-3-3-008",
+    "tests/integration/ua3/test_realtime_write.py::test_ua3_3_009_onlyread": "UA-3-3-009",
+    "tests/integration/ua3/test_realtime_write.py::test_ua3_3_010_nonexistent": "UA-3-3-010",
+    "tests/integration/ua3/test_realtime_write.py::test_ua3_3_011_mixed": "UA-3-3-011",
+    "tests/integration/ua3/test_realtime_write.py::test_ua3_3_012_type_mismatch": "UA-3-3-012",
+    "tests/integration/ua3/test_realtime_write.py::test_ua3_3_013_out_of_range": "UA-3-3-013",
+    "tests/integration/ua3/test_realtime_write.py::test_ua3_3_014_empty_values": "UA-3-3-014",
+    "tests/integration/ua3/test_realtime_write.py::test_ua3_3_015_specified_tagtime": "UA-3-3-015",
+    "tests/integration/ua3/test_realtime_write.py::test_ua3_3_016_quality_code": "UA-3-3-016",
+    "tests/integration/ua3/test_realtime_write.py::test_ua3_3_017_return_structure": "UA-3-3-017",
+    "tests/integration/ua3/test_realtime_write.py::test_ua3_3_018_write_two_reads": "UA-3-3-018",
+    "tests/integration/ua3/test_realtime_write.py::test_ua3_3_019_write_history": "UA-3-3-019",
+    "tests/integration/ua3/test_realtime_write.py::test_ua3_3_020_source_impact": "UA-3-3-020"
   },
   "by_chapter": [
     {
@@ -2293,9 +2373,9 @@
     {
       "chapter": "UA-3",
       "source": 98,
-      "pytest": 41,
-      "migrated_count": 41,
-      "missing_count": 57,
+      "pytest": 61,
+      "migrated_count": 61,
+      "missing_count": 37,
       "migrated": [
         "UA-3-1-001",
         "UA-3-1-002",
@@ -2337,9 +2417,7 @@
         "UA-3-2-018",
         "UA-3-2-019",
         "UA-3-2-020",
-        "UA-3-2-021"
-      ],
-      "missing": [
+        "UA-3-2-021",
         "UA-3-3-001",
         "UA-3-3-002",
         "UA-3-3-003",
@@ -2359,7 +2437,9 @@
         "UA-3-3-017",
         "UA-3-3-018",
         "UA-3-3-019",
-        "UA-3-3-020",
+        "UA-3-3-020"
+      ],
+      "missing": [
         "UA-3-3-021",
         "UA-3-3-022",
         "UA-3-4-001",
