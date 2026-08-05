@@ -15,11 +15,12 @@ Conventions applied from the source spec:
 from __future__ import annotations
 
 import json
+import time
 from datetime import datetime, timezone
 
 import pytest
 
-from tpt_api.datahub import get_history_value, write_tag_values
+from tpt_api.datahub import change_ds_state, get_history_value, write_tag_values
 from tpt_api.errors import TptAPIError
 from tpt_api.types import DataTypes, TagTypes
 
@@ -93,6 +94,7 @@ def _build_ctx(api, settings, mocker_endpoint, tmp_path_factory, case_id: str, t
         cycle=500,
     )
     ctx["node_id_str"] = node_id_str
+    ctx["node_cfg"] = node_cfg
     return ctx
 
 
@@ -146,6 +148,36 @@ def _cleanup(api, ctx: dict, *, restore_value: object = None) -> None:
         errors.append(f"cleanup_unexpected: {exc}")
     if errors:
         raise AssertionError("_cleanup errors: " + "; ".join(errors))
+
+
+def _wait_ds_alive(api, ctx: dict, expected: bool, timeout: float = 120.0) -> float:
+    """Poll ``is_ds_alive`` until it equals ``expected``; return elapsed."""
+    from tests.support.ua2_helpers import is_ds_alive
+    from time import monotonic
+    deadline = monotonic() + timeout
+    start = monotonic()
+    while monotonic() < deadline:
+        if is_ds_alive(api, ctx["ds_id"]) == expected:
+            return monotonic() - start
+        time.sleep(1.0)
+    raise AssertionError(
+        f"ds {ctx['ds_id']} alive state did not reach {expected} within {timeout}s"
+    )
+
+
+def _restart_mocker(ctx: dict, tmp_path_factory):
+    """Stop and relaunch the mocker on the same port with the stored node."""
+    from tests.support.mocker_process import start_mocker, stop_mocker, write_mocker_config
+    if ctx.get("mocker") is not None:
+        stop_mocker(ctx["mocker"])
+        ctx["mocker"] = None
+    tmp_dir = tmp_path_factory.mktemp(f"restart_{ctx['case_id'].lower()}")
+    cfg_path = write_mocker_config(
+        tmp_dir, ctx["port"],
+        nodes=[ctx["node_cfg"]], namespace_index=1, cycle=ctx.get("cycle", 500),
+    )
+    ctx["mocker"] = start_mocker(cfg_path, ctx["port"], host=ctx["host"])
+    return ctx["mocker"]
 
 
 # ---------------------------------------------------------------------------
@@ -1113,6 +1145,173 @@ def test_ua3_3_020_source_impact(api, settings, tmp_path_factory, mocker_endpoin
         _cleanup(api, ctx, restore_value=original)
     pytest.xfail(
         "UA-3-3-020 whether writeTagValues writes back to the OPC UA source "
+        "is not specified; "
+        f"observed={json.dumps(observations, ensure_ascii=False, default=str)}"
+    )
+
+
+# ---------------------------------------------------------------------------
+# UA-3-3-021 断线或禁用时写入
+# ---------------------------------------------------------------------------
+@pytest.mark.case(
+    id="UA-3-3-021", chapter="UA-3-3",
+    title="断线或禁用时写入",
+    preconditions=["数据源 alive=true", "可写位号"],
+    steps=["禁用数据源后写入", "断线（停 mock）后写入", "记录响应与恢复"],
+    expected=["行为明确，不误报全部成功"],
+)
+@pytest.mark.integration
+@pytest.mark.destructive
+@pytest.mark.slow
+def test_ua3_3_021_write_offline(api, settings, tmp_path_factory, mocker_endpoint, record_property):
+    from tests.support.mocker_process import stop_mocker
+    case_id = "UA-3-3-021"
+    ctx = _build_ctx(api, settings, mocker_endpoint, tmp_path_factory, case_id, "DOUBLE")
+    ctx["type_key"] = "DOUBLE"
+    tag_name = ctx["tag_name"]
+    original = _default_serialized("DOUBLE")
+    observations: dict = {}
+    try:
+        wait_until(f"rt_ready:{tag_name}",
+                   lambda: get_rt_point(api, tag_name).get("tagValue") is not None, timeout=60.0)
+        baseline = get_rt_point(api, tag_name).get("tagValue")
+
+        # 1) disabled ds -> write must NOT be reported as a silent success
+        change_ds_state(api, ctx["ds_id"], False)
+        _wait_ds_alive(api, ctx, False, timeout=120.0)
+        try:
+            resp = write_tag_values(api, {tag_name: 777.0})
+            observations["disabled"] = {"ok": True, "response": resp}
+            disabled_ok = tag_name in (resp.get("tagNames") or [])
+            observations["disabled"]["reported_success"] = disabled_ok
+        except TptAPIError as exc:
+            observations["disabled"] = {"error": {"code": exc.code, "msg": exc.msg}}
+        assert observations["disabled"].get("reported_success") is not True, \
+            f"disabled write reported success (silent false-positive): {observations['disabled']}"
+        record_property("observation", json.dumps(observations, ensure_ascii=False, default=str))
+
+        # re-enable and confirm recovery
+        change_ds_state(api, ctx["ds_id"], True)
+        _wait_ds_alive(api, ctx, True, timeout=120.0)
+        wait_until(f"rt_recover:{tag_name}",
+                   lambda: get_rt_point(api, tag_name).get("tagValue") is not None, timeout=120.0)
+        recovered = get_rt_point(api, tag_name).get("tagValue")
+        observations["disabled"]["recovered"] = str(recovered)
+        assert recovered is not None, "RT did not recover after ds re-enable"
+
+        # 2) disconnected (mock stopped) -> write must not report all success
+        stop_mocker(ctx["mocker"])
+        ctx["mocker"] = None
+        _wait_ds_alive(api, ctx, False, timeout=120.0)
+        try:
+            resp = write_tag_values(api, {tag_name: 888.0})
+            observations["disconnected"] = {"ok": True, "response": resp}
+            disc_ok = tag_name in (resp.get("tagNames") or [])
+            observations["disconnected"]["reported_success"] = disc_ok
+        except TptAPIError as exc:
+            observations["disconnected"] = {"error": {"code": exc.code, "msg": exc.msg}}
+        assert observations["disconnected"].get("reported_success") is not True, \
+            f"disconnected write reported success (silent false-positive): {observations['disconnected']}"
+
+        # restart mock and confirm recovery + value intact
+        _restart_mocker(ctx, tmp_path_factory)
+        _wait_ds_alive(api, ctx, True, timeout=120.0)
+        wait_until(f"rt_restart_recover:{tag_name}",
+                   lambda: get_rt_point(api, tag_name).get("tagValue") is not None, timeout=120.0)
+        after = get_rt_point(api, tag_name).get("tagValue")
+        observations["disconnected"]["recovered"] = str(after)
+        assert after is not None, "RT did not recover after mock restart"
+        observations["baseline"] = str(baseline)
+        record_property("observation", json.dumps(observations, ensure_ascii=False, default=str))
+    finally:
+        _cleanup(api, ctx, restore_value=original)
+
+
+# ---------------------------------------------------------------------------
+# UA-3-3-022 并发与跨源写入隔离 (探索)
+# ---------------------------------------------------------------------------
+@pytest.mark.case(
+    id="UA-3-3-022", chapter="UA-3-3",
+    title="并发与跨源写入隔离",
+    preconditions=["两个数据源 A/B", "各自可写位号"],
+    steps=["并发写同一位号", "并发写不同源位号", "记录竞争顺序"],
+    expected=["不串位号", "不串源", "记录竞争顺序"],
+)
+@pytest.mark.integration
+@pytest.mark.destructive
+@pytest.mark.spec_pending
+def test_ua3_3_022_concurrent_cross_source(api, settings, tmp_path_factory, mocker_endpoint, record_property):
+    from concurrent.futures import ThreadPoolExecutor
+    case_id = "UA-3-3-022"
+    ctx_a = _build_ctx(api, settings, mocker_endpoint, tmp_path_factory, f"{case_id}-A", "DOUBLE")
+    ctx_a["type_key"] = "DOUBLE"
+    ctx_b = _build_ctx(api, settings, mocker_endpoint, tmp_path_factory, f"{case_id}-B", "DOUBLE")
+    ctx_b["type_key"] = "DOUBLE"
+    observations: dict = {}
+    try:
+        for label, ctx in (("A", ctx_a), ("B", ctx_b)):
+            wait_until(f"rt_ready:{label}",
+                       lambda c=ctx: get_rt_point(api, c["tag_name"]).get("tagValue") is not None,
+                       timeout=60.0)
+
+        def _write(ctx, value):
+            try:
+                resp = write_tag_values(api, {ctx["tag_name"]: value})
+                return {"accepted": ctx["tag_name"] in (resp.get("tagNames") or []),
+                        "fail_msg": resp.get("failMsg") or {}, "response": resp}
+            except TptAPIError as exc:
+                return {"error": {"code": exc.code, "msg": exc.msg}}
+
+        # 1) concurrent same-tag writes
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            f1 = pool.submit(_write, ctx_a, 111.0)
+            f2 = pool.submit(_write, ctx_a, 222.0)
+            observations["same_tag"] = {"w1": f1.result(), "w2": f2.result()}
+
+        def _settled():
+            pt = get_rt_point(api, ctx_a["tag_name"])
+            return pt.get("tagValue") in (111.0, 222.0)
+
+        wait_until(f"rt_settle_a:{ctx_a['tag_name']}", _settled, timeout=60.0)
+        final_a = get_rt_point(api, ctx_a["tag_name"]).get("tagValue")
+        observations["same_tag"]["final_a"] = str(final_a)
+        observations["same_tag"]["final_in_written"] = final_a in (111.0, 222.0)
+        # 同一位号并发写：最终值必须是写入值之一（不串位号、不产生第三值）
+        if not observations["same_tag"]["final_in_written"]:
+            assert False, \
+                f"same-tag concurrent write produced a third value: {final_a} " \
+                f"w={observations['same_tag']}"
+
+        # 2) concurrent cross-source writes
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            fa = pool.submit(_write, ctx_a, 333.0)
+            fb = pool.submit(_write, ctx_b, 444.0)
+            observations["cross_source"] = {"wa": fa.result(), "wb": fb.result()}
+        wait_until(f"rt_cross_a:{ctx_a['tag_name']}",
+                   lambda: get_rt_point(api, ctx_a["tag_name"]).get("tagValue") == 333.0, timeout=60.0)
+        wait_until(f"rt_cross_b:{ctx_b['tag_name']}",
+                   lambda: get_rt_point(api, ctx_b["tag_name"]).get("tagValue") == 444.0, timeout=60.0)
+        final_a2 = get_rt_point(api, ctx_a["tag_name"]).get("tagValue")
+        final_b2 = get_rt_point(api, ctx_b["tag_name"]).get("tagValue")
+        observations["cross_source"]["final_a"] = str(final_a2)
+        observations["cross_source"]["final_b"] = str(final_b2)
+        observations["cross_source"]["no_cross_tag"] = final_a2 == 333.0 and final_b2 == 444.0
+        # 跨源并发：A 不拿到 B 的值，B 不拿到 A 的值
+        if not observations["cross_source"]["no_cross_tag"]:
+            assert False, \
+                f"cross-source concurrent write leaked values: a={final_a2} b={final_b2} " \
+                f"w={observations['cross_source']}"
+        # 源端同样不串源
+        src_a = opcua_read_sync(ctx_a["endpoint"], ctx_a["node_id_str"], namespace_index=1)
+        src_b = opcua_read_sync(ctx_b["endpoint"], ctx_b["node_id_str"], namespace_index=1)
+        observations["cross_source"]["source_a"] = str(src_a)
+        observations["cross_source"]["source_b"] = str(src_b)
+        record_property("observation", json.dumps(observations, ensure_ascii=False, default=str))
+    finally:
+        _cleanup(api, ctx_a, restore_value=_default_serialized("DOUBLE"))
+        _cleanup(api, ctx_b, restore_value=_default_serialized("DOUBLE"))
+    pytest.xfail(
+        "UA-3-3-022 concurrent write race ordering / source write-back "
         "is not specified; "
         f"observed={json.dumps(observations, ensure_ascii=False, default=str)}"
     )

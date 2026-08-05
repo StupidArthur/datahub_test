@@ -8372,6 +8372,53 @@
         "destructive",
         "integration"
       ]
+    },
+    {
+      "id": "UA-3-3-021",
+      "chapter": "UA-3-3",
+      "title": "断线或禁用时写入",
+      "nodeid": "tests/integration/ua3/test_realtime_write.py::test_ua3_3_021_write_offline",
+      "preconditions": [
+        "数据源 alive=true",
+        "可写位号"
+      ],
+      "steps": [
+        "禁用数据源后写入",
+        "断线（停 mock）后写入",
+        "记录响应与恢复"
+      ],
+      "expected": [
+        "行为明确，不误报全部成功"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-3-022",
+      "chapter": "UA-3-3",
+      "title": "并发与跨源写入隔离",
+      "nodeid": "tests/integration/ua3/test_realtime_write.py::test_ua3_3_022_concurrent_cross_source",
+      "preconditions": [
+        "两个数据源 A/B",
+        "各自可写位号"
+      ],
+      "steps": [
+        "并发写同一位号",
+        "并发写不同源位号",
+        "记录竞争顺序"
+      ],
+      "expected": [
+        "不串位号",
+        "不串源",
+        "记录竞争顺序"
+      ],
+      "markers": [
+        "spec_pending",
+        "destructive",
+        "integration"
+      ]
     }
   ]
 }

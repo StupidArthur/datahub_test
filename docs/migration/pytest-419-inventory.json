@@ -71,7 +71,7 @@
     }
   ],
   "duplicates_in_source": [],
-  "pytest_total": 382,
+  "pytest_total": 384,
   "migrated": [
     "UA-1-1-01",
     "UA-1-1-02",
@@ -454,11 +454,11 @@
     "UA-3-3-017",
     "UA-3-3-018",
     "UA-3-3-019",
-    "UA-3-3-020"
+    "UA-3-3-020",
+    "UA-3-3-021",
+    "UA-3-3-022"
   ],
   "missing": [
-    "UA-3-3-021",
-    "UA-3-3-022",
     "UA-3-4-001",
     "UA-3-4-002",
     "UA-3-4-003",
@@ -1642,6 +1642,12 @@
     ],
     "UA-3-3-020": [
       "tests/integration/ua3/test_realtime_write.py::test_ua3_3_020_source_impact"
+    ],
+    "UA-3-3-021": [
+      "tests/integration/ua3/test_realtime_write.py::test_ua3_3_021_write_offline"
+    ],
+    "UA-3-3-022": [
+      "tests/integration/ua3/test_realtime_write.py::test_ua3_3_022_concurrent_cross_source"
     ]
   },
   "nodeid_to_case": {
@@ -2026,7 +2032,9 @@
     "tests/integration/ua3/test_realtime_write.py::test_ua3_3_017_return_structure": "UA-3-3-017",
     "tests/integration/ua3/test_realtime_write.py::test_ua3_3_018_write_two_reads": "UA-3-3-018",
     "tests/integration/ua3/test_realtime_write.py::test_ua3_3_019_write_history": "UA-3-3-019",
-    "tests/integration/ua3/test_realtime_write.py::test_ua3_3_020_source_impact": "UA-3-3-020"
+    "tests/integration/ua3/test_realtime_write.py::test_ua3_3_020_source_impact": "UA-3-3-020",
+    "tests/integration/ua3/test_realtime_write.py::test_ua3_3_021_write_offline": "UA-3-3-021",
+    "tests/integration/ua3/test_realtime_write.py::test_ua3_3_022_concurrent_cross_source": "UA-3-3-022"
   },
   "by_chapter": [
     {
@@ -2373,9 +2381,9 @@
     {
       "chapter": "UA-3",
       "source": 98,
-      "pytest": 61,
-      "migrated_count": 61,
-      "missing_count": 37,
+      "pytest": 63,
+      "migrated_count": 63,
+      "missing_count": 35,
       "migrated": [
         "UA-3-1-001",
         "UA-3-1-002",
@@ -2437,11 +2445,11 @@
         "UA-3-3-017",
         "UA-3-3-018",
         "UA-3-3-019",
-        "UA-3-3-020"
+        "UA-3-3-020",
+        "UA-3-3-021",
+        "UA-3-3-022"
       ],
       "missing": [
-        "UA-3-3-021",
-        "UA-3-3-022",
         "UA-3-4-001",
         "UA-3-4-002",
         "UA-3-4-003",
