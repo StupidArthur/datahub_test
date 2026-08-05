@@ -71,7 +71,7 @@
     }
   ],
   "duplicates_in_source": [],
-  "pytest_total": 345,
+  "pytest_total": 362,
   "migrated": [
     "UA-1-1-01",
     "UA-1-1-02",
@@ -417,9 +417,7 @@
     "UA-3-2-001",
     "UA-3-2-002",
     "UA-3-2-003",
-    "UA-3-2-004"
-  ],
-  "missing": [
+    "UA-3-2-004",
     "UA-3-2-005",
     "UA-3-2-006",
     "UA-3-2-007",
@@ -436,7 +434,9 @@
     "UA-3-2-018",
     "UA-3-2-019",
     "UA-3-2-020",
-    "UA-3-2-021",
+    "UA-3-2-021"
+  ],
+  "missing": [
     "UA-3-3-001",
     "UA-3-3-002",
     "UA-3-3-003",
@@ -1531,6 +1531,57 @@
     ],
     "UA-3-2-004": [
       "tests/integration/ua3/test_realtime_read.py::test_ua3_2_004_rt_multi_ds"
+    ],
+    "UA-3-2-005": [
+      "tests/integration/ua3/test_realtime_read_edge.py::test_ua3_2_005_13_types"
+    ],
+    "UA-3-2-006": [
+      "tests/integration/ua3/test_realtime_read_edge.py::test_ua3_2_006_nonexistent_name"
+    ],
+    "UA-3-2-007": [
+      "tests/integration/ua3/test_realtime_read_edge.py::test_ua3_2_007_nonexistent_id"
+    ],
+    "UA-3-2-008": [
+      "tests/integration/ua3/test_realtime_read_edge.py::test_ua3_2_008_mixed_valid_invalid"
+    ],
+    "UA-3-2-009": [
+      "tests/integration/ua3/test_realtime_read_edge.py::test_ua3_2_009_empty_selectors"
+    ],
+    "UA-3-2-010": [
+      "tests/integration/ua3/test_realtime_read_edge.py::test_ua3_2_010_duplicate_targets"
+    ],
+    "UA-3-2-011": [
+      "tests/integration/ua3/test_realtime_read_edge.py::test_ua3_2_011_multi_selector"
+    ],
+    "UA-3-2-012": [
+      "tests/integration/ua3/test_realtime_read_edge.py::test_ua3_2_012_db_by_name"
+    ],
+    "UA-3-2-013": [
+      "tests/integration/ua3/test_realtime_read_edge.py::test_ua3_2_013_db_by_id_and_group"
+    ],
+    "UA-3-2-014": [
+      "tests/integration/ua3/test_realtime_read_edge.py::test_ua3_2_014_final_value_consistent"
+    ],
+    "UA-3-2-015": [
+      "tests/integration/ua3/test_realtime_read_edge.py::test_ua3_2_015_visible_latency"
+    ],
+    "UA-3-2-016": [
+      "tests/integration/ua3/test_realtime_read_edge.py::test_ua3_2_016_disconnect_difference"
+    ],
+    "UA-3-2-017": [
+      "tests/integration/ua3/test_realtime_read_edge.py::test_ua3_2_017_query_time"
+    ],
+    "UA-3-2-018": [
+      "tests/integration/ua3/test_realtime_read_edge.py::test_ua3_2_018_option_combos"
+    ],
+    "UA-3-2-019": [
+      "tests/integration/ua3/test_realtime_read_edge.py::test_ua3_2_019_partial_source_query_time"
+    ],
+    "UA-3-2-020": [
+      "tests/integration/ua3/test_realtime_read_edge.py::test_ua3_2_020_delete_restore_read"
+    ],
+    "UA-3-2-021": [
+      "tests/integration/ua3/test_realtime_read_edge.py::test_ua3_2_021_consecutive_reads"
     ]
   },
   "nodeid_to_case": {
@@ -1878,7 +1929,24 @@
     "tests/integration/ua3/test_realtime_read.py::test_ua3_2_001_rt_by_name": "UA-3-2-001",
     "tests/integration/ua3/test_realtime_read.py::test_ua3_2_002_rt_by_id": "UA-3-2-002",
     "tests/integration/ua3/test_realtime_read.py::test_ua3_2_003_rt_by_group": "UA-3-2-003",
-    "tests/integration/ua3/test_realtime_read.py::test_ua3_2_004_rt_multi_ds": "UA-3-2-004"
+    "tests/integration/ua3/test_realtime_read.py::test_ua3_2_004_rt_multi_ds": "UA-3-2-004",
+    "tests/integration/ua3/test_realtime_read_edge.py::test_ua3_2_005_13_types": "UA-3-2-005",
+    "tests/integration/ua3/test_realtime_read_edge.py::test_ua3_2_006_nonexistent_name": "UA-3-2-006",
+    "tests/integration/ua3/test_realtime_read_edge.py::test_ua3_2_007_nonexistent_id": "UA-3-2-007",
+    "tests/integration/ua3/test_realtime_read_edge.py::test_ua3_2_008_mixed_valid_invalid": "UA-3-2-008",
+    "tests/integration/ua3/test_realtime_read_edge.py::test_ua3_2_009_empty_selectors": "UA-3-2-009",
+    "tests/integration/ua3/test_realtime_read_edge.py::test_ua3_2_010_duplicate_targets": "UA-3-2-010",
+    "tests/integration/ua3/test_realtime_read_edge.py::test_ua3_2_011_multi_selector": "UA-3-2-011",
+    "tests/integration/ua3/test_realtime_read_edge.py::test_ua3_2_012_db_by_name": "UA-3-2-012",
+    "tests/integration/ua3/test_realtime_read_edge.py::test_ua3_2_013_db_by_id_and_group": "UA-3-2-013",
+    "tests/integration/ua3/test_realtime_read_edge.py::test_ua3_2_014_final_value_consistent": "UA-3-2-014",
+    "tests/integration/ua3/test_realtime_read_edge.py::test_ua3_2_015_visible_latency": "UA-3-2-015",
+    "tests/integration/ua3/test_realtime_read_edge.py::test_ua3_2_016_disconnect_difference": "UA-3-2-016",
+    "tests/integration/ua3/test_realtime_read_edge.py::test_ua3_2_017_query_time": "UA-3-2-017",
+    "tests/integration/ua3/test_realtime_read_edge.py::test_ua3_2_018_option_combos": "UA-3-2-018",
+    "tests/integration/ua3/test_realtime_read_edge.py::test_ua3_2_019_partial_source_query_time": "UA-3-2-019",
+    "tests/integration/ua3/test_realtime_read_edge.py::test_ua3_2_020_delete_restore_read": "UA-3-2-020",
+    "tests/integration/ua3/test_realtime_read_edge.py::test_ua3_2_021_consecutive_reads": "UA-3-2-021"
   },
   "by_chapter": [
     {
@@ -2225,9 +2293,9 @@
     {
       "chapter": "UA-3",
       "source": 98,
-      "pytest": 24,
-      "migrated_count": 24,
-      "missing_count": 74,
+      "pytest": 41,
+      "migrated_count": 41,
+      "missing_count": 57,
       "migrated": [
         "UA-3-1-001",
         "UA-3-1-002",
@@ -2252,9 +2320,7 @@
         "UA-3-2-001",
         "UA-3-2-002",
         "UA-3-2-003",
-        "UA-3-2-004"
-      ],
-      "missing": [
+        "UA-3-2-004",
         "UA-3-2-005",
         "UA-3-2-006",
         "UA-3-2-007",
@@ -2271,7 +2337,9 @@
         "UA-3-2-018",
         "UA-3-2-019",
         "UA-3-2-020",
-        "UA-3-2-021",
+        "UA-3-2-021"
+      ],
+      "missing": [
         "UA-3-3-001",
         "UA-3-3-002",
         "UA-3-3-003",

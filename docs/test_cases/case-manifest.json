@@ -7580,6 +7580,368 @@
         "destructive",
         "integration"
       ]
+    },
+    {
+      "id": "UA-3-2-005",
+      "chapter": "UA-3-2",
+      "title": "实时库_13种类型与字段",
+      "nodeid": "tests/integration/ua3/test_realtime_read_edge.py::test_ua3_2_005_13_types",
+      "preconditions": [
+        "数据源 alive=true",
+        "13 种类型位号已创建"
+      ],
+      "steps": [
+        "批量查询 13 种类型位号",
+        "核对 value/dataType/quality/时间字段"
+      ],
+      "expected": [
+        "value、dataType、quality、时间字段正确"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-2-006",
+      "chapter": "UA-3-2",
+      "title": "实时库_不存在名称",
+      "nodeid": "tests/integration/ua3/test_realtime_read_edge.py::test_ua3_2_006_nonexistent_name",
+      "preconditions": [
+        "数据源 alive=true"
+      ],
+      "steps": [
+        "查询不存在的 tagName",
+        "确认明确失败或空结果"
+      ],
+      "expected": [
+        "明确失败或空结果，无 5xx"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-2-007",
+      "chapter": "UA-3-2",
+      "title": "实时库_不存在ID",
+      "nodeid": "tests/integration/ua3/test_realtime_read_edge.py::test_ua3_2_007_nonexistent_id",
+      "preconditions": [
+        "数据源 alive=true"
+      ],
+      "steps": [
+        "查询不存在的 tagInfoId",
+        "确认不返回错误位号"
+      ],
+      "expected": [
+        "不返回错误位号"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-2-008",
+      "chapter": "UA-3-2",
+      "title": "实时库_有效无效混合",
+      "nodeid": "tests/integration/ua3/test_realtime_read_edge.py::test_ua3_2_008_mixed_valid_invalid",
+      "preconditions": [
+        "数据源 alive=true",
+        "有效位号已创建"
+      ],
+      "steps": [
+        "同批查询有效和无效目标",
+        "核对有效项正确、失败项可定位"
+      ],
+      "expected": [
+        "有效项保持正确，失败项可定位"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-2-009",
+      "chapter": "UA-3-2",
+      "title": "查询条件_全部为空",
+      "nodeid": "tests/integration/ua3/test_realtime_read_edge.py::test_ua3_2_009_empty_selectors",
+      "preconditions": [
+        "数据源 alive=true"
+      ],
+      "steps": [
+        "不传名称、ID、分组查询",
+        "确认明确拒绝、不误触发全量查询"
+      ],
+      "expected": [
+        "明确拒绝，不误触发全量查询"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-2-010",
+      "chapter": "UA-3-2",
+      "title": "查询条件_重复目标",
+      "nodeid": "tests/integration/ua3/test_realtime_read_edge.py::test_ua3_2_010_duplicate_targets",
+      "preconditions": [
+        "数据源 alive=true",
+        "位号已创建"
+      ],
+      "steps": [
+        "重复传入名称或 ID",
+        "记录去重/重复规则，确认不错配"
+      ],
+      "expected": [
+        "记录去重/重复规则，不错配"
+      ],
+      "markers": [
+        "spec_pending",
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-2-011",
+      "chapter": "UA-3-2",
+      "title": "查询条件_多选择器并用",
+      "nodeid": "tests/integration/ua3/test_realtime_read_edge.py::test_ua3_2_011_multi_selector",
+      "preconditions": [
+        "数据源 alive=true",
+        "位号已创建并分配分组"
+      ],
+      "steps": [
+        "同时传名称、ID、分组",
+        "记录并集、交集或优先级规则"
+      ],
+      "expected": [
+        "记录并集、交集或优先级规则"
+      ],
+      "markers": [
+        "spec_pending",
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-2-012",
+      "chapter": "UA-3-2",
+      "title": "数据库_按名称读取",
+      "nodeid": "tests/integration/ua3/test_realtime_read_edge.py::test_ua3_2_012_db_by_name",
+      "preconditions": [
+        "数据源 alive=true",
+        "位号已创建"
+      ],
+      "steps": [
+        "isFromDB=true 查询名称",
+        "返回数据库实时值，身份正确"
+      ],
+      "expected": [
+        "返回数据库实时值，身份正确"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-2-013",
+      "chapter": "UA-3-2",
+      "title": "数据库_按ID和分组读取",
+      "nodeid": "tests/integration/ua3/test_realtime_read_edge.py::test_ua3_2_013_db_by_id_and_group",
+      "preconditions": [
+        "数据源 alive=true",
+        "位号已创建并分配分组"
+      ],
+      "steps": [
+        "分别用 ID、groupId 查询",
+        "查询范围与选择器一致"
+      ],
+      "expected": [
+        "查询范围与选择器一致"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-2-014",
+      "chapter": "UA-3-2",
+      "title": "两种方式_最终值一致",
+      "nodeid": "tests/integration/ua3/test_realtime_read_edge.py::test_ua3_2_014_final_value_consistent",
+      "preconditions": [
+        "数据源 alive=true",
+        "位号已创建"
+      ],
+      "steps": [
+        "源端停止变化后查询两种模式",
+        "允许落地窗口后值最终一致"
+      ],
+      "expected": [
+        "允许落地窗口后值最终一致"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-2-015",
+      "chapter": "UA-3-2",
+      "title": "两种方式_可见延迟",
+      "nodeid": "tests/integration/ua3/test_realtime_read_edge.py::test_ua3_2_015_visible_latency",
+      "preconditions": [
+        "数据源 alive=true",
+        "位号已创建"
+      ],
+      "steps": [
+        "源端写唯一值并轮询",
+        "记录两种模式首次可见时间差"
+      ],
+      "expected": [
+        "记录两种模式首次可见时间差"
+      ],
+      "markers": [
+        "spec_pending",
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-2-016",
+      "chapter": "UA-3-2",
+      "title": "两种方式_断线差异",
+      "nodeid": "tests/integration/ua3/test_realtime_read_edge.py::test_ua3_2_016_disconnect_difference",
+      "preconditions": [
+        "数据源 alive=true",
+        "位号已创建",
+        "RT 可读"
+      ],
+      "steps": [
+        "断线前后查询两种模式",
+        "记录缓存值、质量和时间差异"
+      ],
+      "expected": [
+        "记录缓存值、质量和时间差异"
+      ],
+      "markers": [
+        "spec_pending",
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-2-017",
+      "chapter": "UA-3-2",
+      "title": "指定时间_queryTime",
+      "nodeid": "tests/integration/ua3/test_realtime_read_edge.py::test_ua3_2_017_query_time",
+      "preconditions": [
+        "数据源 alive=true",
+        "位号已创建"
+      ],
+      "steps": [
+        "传有效 queryTime",
+        "支持时返回对应结果，身份正确"
+      ],
+      "expected": [
+        "支持时返回对应结果，身份正确"
+      ],
+      "markers": [
+        "spec_pending",
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-2-018",
+      "chapter": "UA-3-2",
+      "title": "指定时间_option组合",
+      "nodeid": "tests/integration/ua3/test_realtime_read_edge.py::test_ua3_2_018_option_combos",
+      "preconditions": [
+        "数据源 alive=true",
+        "位号已创建"
+      ],
+      "steps": [
+        "不同 option 与 queryTime",
+        "记录采样规则；服务不异常"
+      ],
+      "expected": [
+        "记录采样规则；服务不异常"
+      ],
+      "markers": [
+        "spec_pending",
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-2-019",
+      "chapter": "UA-3-2",
+      "title": "指定时间_部分源不支持",
+      "nodeid": "tests/integration/ua3/test_realtime_read_edge.py::test_ua3_2_019_partial_source_query_time",
+      "preconditions": [
+        "两个数据源 A/B",
+        "数据源 alive=true"
+      ],
+      "steps": [
+        "同批查询支持和不支持的数据源",
+        "失败项可定位，其他项正常"
+      ],
+      "expected": [
+        "失败项可定位，其他项正常"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-2-020",
+      "chapter": "UA-3-2",
+      "title": "删除恢复后的读取",
+      "nodeid": "tests/integration/ua3/test_realtime_read_edge.py::test_ua3_2_020_delete_restore_read",
+      "preconditions": [
+        "数据源 alive=true",
+        "位号已创建",
+        "RT 可读"
+      ],
+      "steps": [
+        "软删后查询，再恢复查询",
+        "删除后不正常返回；恢复后可读"
+      ],
+      "expected": [
+        "删除后不正常返回；恢复后可读"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-2-021",
+      "chapter": "UA-3-2",
+      "title": "连续读取稳定性",
+      "nodeid": "tests/integration/ua3/test_realtime_read_edge.py::test_ua3_2_021_consecutive_reads",
+      "preconditions": [
+        "数据源 alive=true",
+        "静态位号已创建"
+      ],
+      "steps": [
+        "静态数据下执行 20 次连续读取",
+        "无随机失败，集合和值稳定"
+      ],
+      "expected": [
+        "无随机失败，集合和值稳定"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
     }
   ]
 }
