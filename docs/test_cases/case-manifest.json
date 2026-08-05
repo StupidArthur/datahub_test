@@ -8593,6 +8593,286 @@
         "destructive",
         "integration"
       ]
+    },
+    {
+      "id": "UA-3-5-001",
+      "chapter": "UA-3-5",
+      "title": "实时读_实时库单个位号",
+      "nodeid": "tests/integration/ua3/test_response_time.py::test_ua3_5_001_rt_single",
+      "preconditions": [
+        "数据源 alive=true",
+        "在线可读位号"
+      ],
+      "steps": [
+        "预热 5 次",
+        "读取 1 个位号至少 30 次",
+        "逐次校验数据正确",
+        "记录延迟分布"
+      ],
+      "expected": [
+        "输出延迟分布",
+        "数据正确率 100%"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-5-002",
+      "chapter": "UA-3-5",
+      "title": "实时读_实时库100个位号",
+      "nodeid": "tests/integration/ua3/test_response_time.py::test_ua3_5_002_rt_100",
+      "preconditions": [
+        "数据源 alive=true",
+        "100 个可读位号"
+      ],
+      "steps": [
+        "预热 5 次",
+        "单请求读取 100 个位号至少 30 次",
+        "校验集合完整",
+        "记录延迟分布"
+      ],
+      "expected": [
+        "返回集合完整，无串值"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-5-003",
+      "chapter": "UA-3-5",
+      "title": "实时读_数据库单个位号",
+      "nodeid": "tests/integration/ua3/test_response_time.py::test_ua3_5_003_rt_db_single",
+      "preconditions": [
+        "数据源 alive=true",
+        "位号已采集入库"
+      ],
+      "steps": [
+        "预热 5 次",
+        "isFromDB=true 读取 1 个位号至少 30 次",
+        "校验数据正确",
+        "记录延迟分布"
+      ],
+      "expected": [
+        "输出数据库模式基线"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-5-004",
+      "chapter": "UA-3-5",
+      "title": "实时读_数据库100个位号",
+      "nodeid": "tests/integration/ua3/test_response_time.py::test_ua3_5_004_rt_db_100",
+      "preconditions": [
+        "数据源 alive=true",
+        "100 个位号已采集入库"
+      ],
+      "steps": [
+        "预热 5 次",
+        "isFromDB=true 读取 100 个位号至少 30 次",
+        "校验集合完整",
+        "记录延迟分布"
+      ],
+      "expected": [
+        "返回集合完整，无随机失败"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-5-005",
+      "chapter": "UA-3-5",
+      "title": "实时写_单个位号",
+      "nodeid": "tests/integration/ua3/test_response_time.py::test_ua3_5_005_write_single",
+      "preconditions": [
+        "数据源 alive=true",
+        "可写位号"
+      ],
+      "steps": [
+        "预热 5 次",
+        "每次写入唯一递增值至少 30 次",
+        "读回校验",
+        "记录延迟分布"
+      ],
+      "expected": [
+        "响应成功项与读回一致"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-5-006",
+      "chapter": "UA-3-5",
+      "title": "实时写_100个位号",
+      "nodeid": "tests/integration/ua3/test_response_time.py::test_ua3_5_006_write_100",
+      "preconditions": [
+        "数据源 alive=true",
+        "100 个可写位号"
+      ],
+      "steps": [
+        "预热 5 次",
+        "单请求批量写 100 个位号至少 30 次",
+        "校验成功/失败映射与读回",
+        "记录延迟分布"
+      ],
+      "expected": [
+        "成功/失败映射准确，读回正确"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-5-007",
+      "chapter": "UA-3-5",
+      "title": "历史查询_短窗口单个位号",
+      "nodeid": "tests/integration/ua3/test_response_time.py::test_ua3_5_007_history_short_single",
+      "preconditions": [
+        "方式 B 制造小结果集",
+        "数据源存在"
+      ],
+      "steps": [
+        "预热 5 次",
+        "查询短窗口至少 30 次",
+        "校验结果完整",
+        "记录延迟分布"
+      ],
+      "expected": [
+        "输出短窗口基线",
+        "结果完整"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-5-008",
+      "chapter": "UA-3-5",
+      "title": "历史查询_短窗口10个位号",
+      "nodeid": "tests/integration/ua3/test_response_time.py::test_ua3_5_008_history_short_10",
+      "preconditions": [
+        "方式 B 制造 10 位号数据",
+        "数据源存在"
+      ],
+      "steps": [
+        "预热 5 次",
+        "查询 10 个位号至少 30 次",
+        "校验无串位号与完整性",
+        "记录延迟分布"
+      ],
+      "expected": [
+        "无串位号",
+        "输出多位号基线"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-5-009",
+      "chapter": "UA-3-5",
+      "title": "历史查询_中等窗口",
+      "nodeid": "tests/integration/ua3/test_response_time.py::test_ua3_5_009_history_medium",
+      "preconditions": [
+        "方式 B 制造多页数据",
+        "数据源存在"
+      ],
+      "steps": [
+        "预热 5 次",
+        "查询多页数据至少 30 次",
+        "校验数量正确",
+        "记录延迟分布"
+      ],
+      "expected": [
+        "输出中等结果集基线",
+        "数量正确"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-5-010",
+      "chapter": "UA-3-5",
+      "title": "历史查询_后续分页",
+      "nodeid": "tests/integration/ua3/test_response_time.py::test_ua3_5_010_history_paging",
+      "preconditions": [
+        "方式 B 制造多页数据",
+        "数据源存在"
+      ],
+      "steps": [
+        "预热 5 次",
+        "测首页/中间页/尾页至少各 10 次",
+        "校验各页数据正确",
+        "记录页间延迟差异"
+      ],
+      "expected": [
+        "各页数据正确",
+        "记录页间延迟差异"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-5-011",
+      "chapter": "UA-3-5",
+      "title": "在线与断线响应差异",
+      "nodeid": "tests/integration/ua3/test_response_time.py::test_ua3_5_011_online_offline",
+      "preconditions": [
+        "数据源 alive=true",
+        "可读位号"
+      ],
+      "steps": [
+        "在线态同请求测 10 次",
+        "断线后同请求测 10 次",
+        "校验断线请求可结束且错误可定位"
+      ],
+      "expected": [
+        "断线请求可结束且错误可定位"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-5-012",
+      "chapter": "UA-3-5",
+      "title": "冷请求与热请求差异",
+      "nodeid": "tests/integration/ua3/test_response_time.py::test_ua3_5_012_cold_hot",
+      "preconditions": [
+        "数据源 alive=true",
+        "可读位号"
+      ],
+      "steps": [
+        "服务空闲后首请求",
+        "连续请求 30 次",
+        "记录冷启动影响",
+        "无请求挂死"
+      ],
+      "expected": [
+        "记录冷启动影响，无请求挂死"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
     }
   ]
 }

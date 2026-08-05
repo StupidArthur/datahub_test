@@ -71,7 +71,7 @@
     }
   ],
   "duplicates_in_source": [],
-  "pytest_total": 392,
+  "pytest_total": 404,
   "migrated": [
     "UA-1-1-01",
     "UA-1-1-02",
@@ -464,9 +464,7 @@
     "UA-3-4-005",
     "UA-3-4-006",
     "UA-3-4-007",
-    "UA-3-4-008"
-  ],
-  "missing": [
+    "UA-3-4-008",
     "UA-3-5-001",
     "UA-3-5-002",
     "UA-3-5-003",
@@ -478,7 +476,9 @@
     "UA-3-5-009",
     "UA-3-5-010",
     "UA-3-5-011",
-    "UA-3-5-012",
+    "UA-3-5-012"
+  ],
+  "missing": [
     "UA-3-6-001",
     "UA-3-6-002",
     "UA-3-6-003",
@@ -1672,6 +1672,42 @@
     ],
     "UA-3-3-022": [
       "tests/integration/ua3/test_realtime_write.py::test_ua3_3_022_concurrent_cross_source"
+    ],
+    "UA-3-5-001": [
+      "tests/integration/ua3/test_response_time.py::test_ua3_5_001_rt_single"
+    ],
+    "UA-3-5-002": [
+      "tests/integration/ua3/test_response_time.py::test_ua3_5_002_rt_100"
+    ],
+    "UA-3-5-003": [
+      "tests/integration/ua3/test_response_time.py::test_ua3_5_003_rt_db_single"
+    ],
+    "UA-3-5-004": [
+      "tests/integration/ua3/test_response_time.py::test_ua3_5_004_rt_db_100"
+    ],
+    "UA-3-5-005": [
+      "tests/integration/ua3/test_response_time.py::test_ua3_5_005_write_single"
+    ],
+    "UA-3-5-006": [
+      "tests/integration/ua3/test_response_time.py::test_ua3_5_006_write_100"
+    ],
+    "UA-3-5-007": [
+      "tests/integration/ua3/test_response_time.py::test_ua3_5_007_history_short_single"
+    ],
+    "UA-3-5-008": [
+      "tests/integration/ua3/test_response_time.py::test_ua3_5_008_history_short_10"
+    ],
+    "UA-3-5-009": [
+      "tests/integration/ua3/test_response_time.py::test_ua3_5_009_history_medium"
+    ],
+    "UA-3-5-010": [
+      "tests/integration/ua3/test_response_time.py::test_ua3_5_010_history_paging"
+    ],
+    "UA-3-5-011": [
+      "tests/integration/ua3/test_response_time.py::test_ua3_5_011_online_offline"
+    ],
+    "UA-3-5-012": [
+      "tests/integration/ua3/test_response_time.py::test_ua3_5_012_cold_hot"
     ]
   },
   "nodeid_to_case": {
@@ -2066,7 +2102,19 @@
     "tests/integration/ua3/test_realtime_write.py::test_ua3_3_019_write_history": "UA-3-3-019",
     "tests/integration/ua3/test_realtime_write.py::test_ua3_3_020_source_impact": "UA-3-3-020",
     "tests/integration/ua3/test_realtime_write.py::test_ua3_3_021_write_offline": "UA-3-3-021",
-    "tests/integration/ua3/test_realtime_write.py::test_ua3_3_022_concurrent_cross_source": "UA-3-3-022"
+    "tests/integration/ua3/test_realtime_write.py::test_ua3_3_022_concurrent_cross_source": "UA-3-3-022",
+    "tests/integration/ua3/test_response_time.py::test_ua3_5_001_rt_single": "UA-3-5-001",
+    "tests/integration/ua3/test_response_time.py::test_ua3_5_002_rt_100": "UA-3-5-002",
+    "tests/integration/ua3/test_response_time.py::test_ua3_5_003_rt_db_single": "UA-3-5-003",
+    "tests/integration/ua3/test_response_time.py::test_ua3_5_004_rt_db_100": "UA-3-5-004",
+    "tests/integration/ua3/test_response_time.py::test_ua3_5_005_write_single": "UA-3-5-005",
+    "tests/integration/ua3/test_response_time.py::test_ua3_5_006_write_100": "UA-3-5-006",
+    "tests/integration/ua3/test_response_time.py::test_ua3_5_007_history_short_single": "UA-3-5-007",
+    "tests/integration/ua3/test_response_time.py::test_ua3_5_008_history_short_10": "UA-3-5-008",
+    "tests/integration/ua3/test_response_time.py::test_ua3_5_009_history_medium": "UA-3-5-009",
+    "tests/integration/ua3/test_response_time.py::test_ua3_5_010_history_paging": "UA-3-5-010",
+    "tests/integration/ua3/test_response_time.py::test_ua3_5_011_online_offline": "UA-3-5-011",
+    "tests/integration/ua3/test_response_time.py::test_ua3_5_012_cold_hot": "UA-3-5-012"
   },
   "by_chapter": [
     {
@@ -2413,9 +2461,9 @@
     {
       "chapter": "UA-3",
       "source": 98,
-      "pytest": 71,
-      "migrated_count": 71,
-      "missing_count": 27,
+      "pytest": 83,
+      "migrated_count": 83,
+      "missing_count": 15,
       "migrated": [
         "UA-3-1-001",
         "UA-3-1-002",
@@ -2487,9 +2535,7 @@
         "UA-3-4-005",
         "UA-3-4-006",
         "UA-3-4-007",
-        "UA-3-4-008"
-      ],
-      "missing": [
+        "UA-3-4-008",
         "UA-3-5-001",
         "UA-3-5-002",
         "UA-3-5-003",
@@ -2501,7 +2547,9 @@
         "UA-3-5-009",
         "UA-3-5-010",
         "UA-3-5-011",
-        "UA-3-5-012",
+        "UA-3-5-012"
+      ],
+      "missing": [
         "UA-3-6-001",
         "UA-3-6-002",
         "UA-3-6-003",
