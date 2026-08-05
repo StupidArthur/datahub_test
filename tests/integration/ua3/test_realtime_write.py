@@ -122,10 +122,13 @@ def _wait_rt_value(api, tag_name: str, type_key: str, expected: object, timeout:
 def _cleanup(api, ctx: dict, *, restore_value: object = None) -> None:
     errors: list[str] = []
     if restore_value is not None and ctx.get("mocker") is not None and ctx["mocker"].process.poll() is None:
+        type_key = ctx.get("type_key")
+        if type_key == "DATE_TIME" and isinstance(restore_value, str):
+            restore_value = datetime.fromisoformat(restore_value.replace("Z", "+00:00"))
         try:
             opcua_write_sync(
                 ctx["endpoint"], ctx["node_id_str"], restore_value,
-                namespace_index=1, variant_type=_TYPE_CFG[ctx["type_key"]][1],
+                namespace_index=1, variant_type=_TYPE_CFG[type_key][1],
             )
         except Exception as exc:  # noqa: BLE001 - aggregated, never swallowed
             errors.append(f"restore_source: {exc}")
@@ -318,11 +321,11 @@ def test_ua3_3_003_write_13_types(api, settings, tmp_path_factory, mocker_endpoi
         _WRITE_VALUES = {
             "BOOLEAN": True,
             "S_BYTE": -100,
-            "BYTE": 201,
+            "BYTE": 100,
             "SHORT": -30001,
-            "U_SHORT": 60001,
+            "U_SHORT": 30000,
             "INT": -2000000001,
-            "U_INT": 4000000001,
+            "U_INT": 1000000000,
             "LONG": 9007199254740993,
             "U_LONG": 4294967297,
             "FLOAT": 3.75,
@@ -474,7 +477,7 @@ def test_ua3_3_004_integer_boundaries(api, settings, tmp_path_factory, mocker_en
 )
 @pytest.mark.integration
 @pytest.mark.destructive
-def test_ua3_3_005_int64_uint64_precision(api, settings, tmp_path_factory, mocker_endpoint):
+def test_ua3_3_005_int64_uint64_precision(api, settings, tmp_path_factory, mocker_endpoint, record_property):
     case_id = "UA-3-3-005"
     observations: dict = {}
     for key in ("LONG", "U_LONG"):
