@@ -299,3 +299,4 @@ XFAIL 80 道为行为未约定（overflow / coercion / whitespace / length 129 /
 - UA-2-3 全组已迁移并回归（3 FAIL：006/010 表头偏移，017 DateTime 导入拒绝）
 - UA-2-4 全组已迁移并回归（4 FAIL 产品限 + 11 XFAIL spec_pending）
 - UA-2-5 全组已迁移并回归（3 FAIL：023/026/027 收藏移除原分组归属，见 `docs/migration/ua-2-5-blockers.md`）
+- UA-3-1-016 为已知 flaky：真实环境长跑偶发 RT 恢复超时（120s 窗口），单独运行稳定 PASS，非产品缺陷（见 `docs/migration/ua-3-blockers.md` F1）
