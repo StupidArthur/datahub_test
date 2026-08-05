@@ -8419,6 +8419,180 @@
         "destructive",
         "integration"
       ]
+    },
+    {
+      "id": "UA-3-4-001",
+      "chapter": "UA-3-4",
+      "title": "基础接口_单个位号",
+      "nodeid": "tests/integration/ua3/test_history_query.py::test_ua3_4_001_basic_single_tag",
+      "preconditions": [
+        "方式 B 导入确定序列",
+        "数据源存在"
+      ],
+      "steps": [
+        "importTagValue 导入 25 点",
+        "调用 getHistoryValueFromDB",
+        "核对返回目标窗口数据"
+      ],
+      "expected": [
+        "返回目标窗口数据，身份和时间正确"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-4-002",
+      "chapter": "UA-3-4",
+      "title": "高级接口_单个位号",
+      "nodeid": "tests/integration/ua3/test_history_query.py::test_ua3_4_002_advanced_single_tag",
+      "preconditions": [
+        "方式 B 导入确定序列",
+        "数据源存在"
+      ],
+      "steps": [
+        "importTagValue 导入 25 点",
+        "调用 getHistoryValue",
+        "核对 IPage 元数据与记录"
+      ],
+      "expected": [
+        "IPage 元数据和记录正确"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-4-003",
+      "chapter": "UA-3-4",
+      "title": "两接口_基础一致性",
+      "nodeid": "tests/integration/ua3/test_history_query.py::test_ua3_4_003_interfaces_consistent",
+      "preconditions": [
+        "方式 B 导入确定序列",
+        "数据源存在"
+      ],
+      "steps": [
+        "同窗口无采样调用两个接口",
+        "比对核心点集合"
+      ],
+      "expected": [
+        "相同来源下核心点集合一致"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-4-004",
+      "chapter": "UA-3-4",
+      "title": "多个位号查询",
+      "nodeid": "tests/integration/ua3/test_history_query.py::test_ua3_4_004_multi_tag_query",
+      "preconditions": [
+        "方式 B 导入 A/B 不同值域",
+        "数据源存在"
+      ],
+      "steps": [
+        "一次查询 A、B 两个位号",
+        "按 tagName 校验记录归属"
+      ],
+      "expected": [
+        "记录按 tagName 正确归属，不串位号"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-4-005",
+      "chapter": "UA-3-4",
+      "title": "时间窗口_普通范围",
+      "nodeid": "tests/integration/ua3/test_history_query.py::test_ua3_4_005_window_ordinary",
+      "preconditions": [
+        "方式 B 导入窗口内外数据",
+        "数据源存在"
+      ],
+      "steps": [
+        "窗口内外均造数",
+        "查询窗口",
+        "断言只返回范围内数据"
+      ],
+      "expected": [
+        "只返回范围内数据，不混入窗口外数据"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-4-006",
+      "chapter": "UA-3-4",
+      "title": "时间窗口_起止边界",
+      "nodeid": "tests/integration/ua3/test_history_query.py::test_ua3_4_006_window_boundary",
+      "preconditions": [
+        "方式 B 在 begin/end 精确造点",
+        "数据源存在"
+      ],
+      "steps": [
+        "在 begin-1s / begin / end / end+1s 造点",
+        "查询 [begin, end]",
+        "记录边界闭合规则"
+      ],
+      "expected": [
+        "记录边界闭合规则"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-4-007",
+      "chapter": "UA-3-4",
+      "title": "时间窗口_空区间与未来",
+      "nodeid": "tests/integration/ua3/test_history_query.py::test_ua3_4_007_empty_and_future_window",
+      "preconditions": [
+        "方式 B 导入确定序列",
+        "数据源存在"
+      ],
+      "steps": [
+        "查询无数据区间",
+        "查询未来窗口",
+        "断言空结果且不混入窗口外数据"
+      ],
+      "expected": [
+        "空结果，不混入窗口外数据"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-4-008",
+      "chapter": "UA-3-4",
+      "title": "时间参数_非法与反向",
+      "nodeid": "tests/integration/ua3/test_history_query.py::test_ua3_4_008_invalid_and_reversed_params",
+      "preconditions": [
+        "数据源存在",
+        "位号已创建"
+      ],
+      "steps": [
+        "非法时间格式查询",
+        "begin>end 反向查询",
+        "断言明确失败且不返回错误数据"
+      ],
+      "expected": [
+        "明确失败，不返回错误数据"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
     }
   ]
 }

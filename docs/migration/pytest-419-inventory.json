@@ -71,7 +71,7 @@
     }
   ],
   "duplicates_in_source": [],
-  "pytest_total": 384,
+  "pytest_total": 392,
   "migrated": [
     "UA-1-1-01",
     "UA-1-1-02",
@@ -456,9 +456,7 @@
     "UA-3-3-019",
     "UA-3-3-020",
     "UA-3-3-021",
-    "UA-3-3-022"
-  ],
-  "missing": [
+    "UA-3-3-022",
     "UA-3-4-001",
     "UA-3-4-002",
     "UA-3-4-003",
@@ -466,7 +464,9 @@
     "UA-3-4-005",
     "UA-3-4-006",
     "UA-3-4-007",
-    "UA-3-4-008",
+    "UA-3-4-008"
+  ],
+  "missing": [
     "UA-3-5-001",
     "UA-3-5-002",
     "UA-3-5-003",
@@ -1520,6 +1520,30 @@
     "UA-3-1-020": [
       "tests/integration/ua3/test_collection_recovery.py::test_ua3_1_020_delete_restore_history"
     ],
+    "UA-3-4-001": [
+      "tests/integration/ua3/test_history_query.py::test_ua3_4_001_basic_single_tag"
+    ],
+    "UA-3-4-002": [
+      "tests/integration/ua3/test_history_query.py::test_ua3_4_002_advanced_single_tag"
+    ],
+    "UA-3-4-003": [
+      "tests/integration/ua3/test_history_query.py::test_ua3_4_003_interfaces_consistent"
+    ],
+    "UA-3-4-004": [
+      "tests/integration/ua3/test_history_query.py::test_ua3_4_004_multi_tag_query"
+    ],
+    "UA-3-4-005": [
+      "tests/integration/ua3/test_history_query.py::test_ua3_4_005_window_ordinary"
+    ],
+    "UA-3-4-006": [
+      "tests/integration/ua3/test_history_query.py::test_ua3_4_006_window_boundary"
+    ],
+    "UA-3-4-007": [
+      "tests/integration/ua3/test_history_query.py::test_ua3_4_007_empty_and_future_window"
+    ],
+    "UA-3-4-008": [
+      "tests/integration/ua3/test_history_query.py::test_ua3_4_008_invalid_and_reversed_params"
+    ],
     "UA-3-2-001": [
       "tests/integration/ua3/test_realtime_read.py::test_ua3_2_001_rt_by_name"
     ],
@@ -1992,6 +2016,14 @@
     "tests/integration/ua3/test_collection_recovery.py::test_ua3_1_018_multi_ds_isolation": "UA-3-1-018",
     "tests/integration/ua3/test_collection_recovery.py::test_ua3_1_019_history_landing": "UA-3-1-019",
     "tests/integration/ua3/test_collection_recovery.py::test_ua3_1_020_delete_restore_history": "UA-3-1-020",
+    "tests/integration/ua3/test_history_query.py::test_ua3_4_001_basic_single_tag": "UA-3-4-001",
+    "tests/integration/ua3/test_history_query.py::test_ua3_4_002_advanced_single_tag": "UA-3-4-002",
+    "tests/integration/ua3/test_history_query.py::test_ua3_4_003_interfaces_consistent": "UA-3-4-003",
+    "tests/integration/ua3/test_history_query.py::test_ua3_4_004_multi_tag_query": "UA-3-4-004",
+    "tests/integration/ua3/test_history_query.py::test_ua3_4_005_window_ordinary": "UA-3-4-005",
+    "tests/integration/ua3/test_history_query.py::test_ua3_4_006_window_boundary": "UA-3-4-006",
+    "tests/integration/ua3/test_history_query.py::test_ua3_4_007_empty_and_future_window": "UA-3-4-007",
+    "tests/integration/ua3/test_history_query.py::test_ua3_4_008_invalid_and_reversed_params": "UA-3-4-008",
     "tests/integration/ua3/test_realtime_read.py::test_ua3_2_001_rt_by_name": "UA-3-2-001",
     "tests/integration/ua3/test_realtime_read.py::test_ua3_2_002_rt_by_id": "UA-3-2-002",
     "tests/integration/ua3/test_realtime_read.py::test_ua3_2_003_rt_by_group": "UA-3-2-003",
@@ -2381,9 +2413,9 @@
     {
       "chapter": "UA-3",
       "source": 98,
-      "pytest": 63,
-      "migrated_count": 63,
-      "missing_count": 35,
+      "pytest": 71,
+      "migrated_count": 71,
+      "missing_count": 27,
       "migrated": [
         "UA-3-1-001",
         "UA-3-1-002",
@@ -2447,9 +2479,7 @@
         "UA-3-3-019",
         "UA-3-3-020",
         "UA-3-3-021",
-        "UA-3-3-022"
-      ],
-      "missing": [
+        "UA-3-3-022",
         "UA-3-4-001",
         "UA-3-4-002",
         "UA-3-4-003",
@@ -2457,7 +2487,9 @@
         "UA-3-4-005",
         "UA-3-4-006",
         "UA-3-4-007",
-        "UA-3-4-008",
+        "UA-3-4-008"
+      ],
+      "missing": [
         "UA-3-5-001",
         "UA-3-5-002",
         "UA-3-5-003",
