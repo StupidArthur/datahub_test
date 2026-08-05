@@ -7700,7 +7700,6 @@
         "记录去重/重复规则，不错配"
       ],
       "markers": [
-        "spec_pending",
         "destructive",
         "integration"
       ]
@@ -7896,6 +7895,7 @@
         "失败项可定位，其他项正常"
       ],
       "markers": [
+        "spec_pending",
         "destructive",
         "integration"
       ]

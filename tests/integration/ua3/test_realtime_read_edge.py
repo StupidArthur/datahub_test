@@ -217,20 +217,16 @@ def test_ua3_2_008_mixed_valid_invalid(api, settings, tmp_path_factory, mocker_e
         wait_rt_valid(api, tags[0]["tag_name"], timeout=60.0)
 
         bad_name = f"{settings.test_prefix}no_such_UA-3-2-008_zzz"
-        try:
-            points = rt_query(api, tag_names=[tags[0]["tag_name"], bad_name], is_from_db=False)
-            observations["returned"] = json.loads(json.dumps(points, ensure_ascii=False, default=str))
-            pt = _by_name(points, tags[0]["tag_name"])
-            assert pt and pt.get("tagValue") == 8.5, \
-                f"valid tag lost/incorrect in mixed batch: {points}"
-        except TptAPIError as exc:
-            observations["error"] = {"code": exc.code, "msg": exc.msg}
-            if _is_tag_missing(exc):
-                raise AssertionError(
-                    "product failed the whole batch on one invalid name; "
-                    "valid item not preserved"
-                ) from exc
-            raise
+        points = rt_query(api, tag_names=[tags[0]["tag_name"], bad_name], is_from_db=False)
+        observations["returned"] = json.loads(json.dumps(points, ensure_ascii=False, default=str))
+        pt = _by_name(points, tags[0]["tag_name"])
+        assert pt and pt.get("tagValue") == 8.5, \
+            f"valid tag lost/incorrect in mixed batch: {points}"
+        bad = _by_name(points, bad_name)
+        assert bad.get("isSuccess") is False, f"invalid entry not locatable: {points}"
+        msg = (bad.get("message") or "").lower()
+        assert any(sub in msg for sub in _TAG_MISSING), f"invalid entry reason unclear: {points}"
+        observations["invalid_locatable"] = True
         record_property("observation", json.dumps(observations, ensure_ascii=False, default=str))
     finally:
         _teardown(api, ctx, tags)
@@ -276,7 +272,6 @@ def test_ua3_2_009_empty_selectors(api, settings, tmp_path_factory, mocker_endpo
 )
 @pytest.mark.integration
 @pytest.mark.destructive
-@pytest.mark.spec_pending
 def test_ua3_2_010_duplicate_targets(api, settings, tmp_path_factory, mocker_endpoint, record_property):
     case_id = "UA-3-2-010"
     prefix = "ua32_010"
@@ -288,21 +283,17 @@ def test_ua3_2_010_duplicate_targets(api, settings, tmp_path_factory, mocker_end
     try:
         tags.append(add_collection_tag(api, settings, ctx, case_id, node_id_str=node_id, type_key="DOUBLE"))
         wait_rt_valid(api, tags[0]["tag_name"], timeout=60.0)
-        observations["dup_name"] = json.loads(json.dumps(
-            rt_query(api, tag_names=[tags[0]["tag_name"], tags[0]["tag_name"]], is_from_db=False),
-            ensure_ascii=False, default=str))
-        observations["dup_id"] = json.loads(json.dumps(
-            rt_query(api, tag_info_ids=[tags[0]["tag_id"], tags[0]["tag_id"]], is_from_db=False),
-            ensure_ascii=False, default=str))
-        names = {p.get("tagName") for p in observations["dup_name"]}
-        assert names == {tags[0]["tag_name"]}, f"dup-name query mismatched: {names}"
+        points = rt_query(api, tag_names=[tags[0]["tag_name"], tags[0]["tag_name"]], is_from_db=False)
+        observations["returned"] = json.loads(json.dumps(points, ensure_ascii=False, default=str))
+        assert isinstance(points, list) and len(points) == 1, \
+            f"duplicate-name query must dedupe to a single point: {points}"
+        pt = points[0]
+        assert pt.get("tagName") == tags[0]["tag_name"], f"dup query mismatched identity: {pt}"
+        assert pt.get("tagValue") == 10.0, f"dup query wrong value: {pt}"
+        observations["deduped_single_point"] = True
         record_property("observation", json.dumps(observations, ensure_ascii=False, default=str))
     finally:
         _teardown(api, ctx, tags)
-    pytest.xfail(
-        "UA-3-2-010 duplicate-target dedup rule is not specified; "
-        f"observed={json.dumps(observations, ensure_ascii=False, default=str)}"
-    )
 
 
 # ---------------------------------------------------------------------------
@@ -689,6 +680,7 @@ def test_ua3_2_018_option_combos(api, settings, tmp_path_factory, mocker_endpoin
 @pytest.mark.integration
 @pytest.mark.destructive
 @pytest.mark.slow
+@pytest.mark.spec_pending
 def test_ua3_2_019_partial_source_query_time(api, settings, tmp_path_factory, mocker_endpoint, record_property):
     from tests.support.endpoints import parse_mocker_endpoint
     from tests.support.mocker_process import find_free_port, start_mocker, write_mocker_config
@@ -732,19 +724,22 @@ def test_ua3_2_019_partial_source_query_time(api, settings, tmp_path_factory, mo
         wait_rt_valid(api, tag_b["tag_name"], timeout=60.0)
 
         q = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        try:
-            points = rt_query(api, tag_names=[tag_a["tag_name"], tag_b["tag_name"]],
-                              query_time=q, is_from_db=False)
-            observations["returned"] = json.loads(json.dumps(points, ensure_ascii=False, default=str))
-            for t in tags:
-                pt = _by_name(points, t["tag_name"])
-                assert pt, f"tag {t['tag_name']} missing from query_time batch: {points}"
-        except TptAPIError as exc:
-            observations["error"] = {"code": exc.code, "msg": exc.msg}
-            raise AssertionError(f"whole batch failed on query_time: {exc.code} {exc.msg}") from exc
+        points = rt_query(api, tag_names=[tag_a["tag_name"], tag_b["tag_name"]],
+                          query_time=q, is_from_db=False)
+        observations["returned"] = json.loads(json.dumps(points, ensure_ascii=False, default=str))
+        observations["per_item_success"] = {
+            t["tag_name"]: bool(_by_name(points, t["tag_name"]).get("isSuccess"))
+            for t in tags
+        }
         record_property("observation", json.dumps(observations, ensure_ascii=False, default=str))
     finally:
         cleanup_ua3_multi_context(api, tags=tags, ds_contexts=ctxs)
+    pytest.xfail(
+        "UA-3-2-019 appointed-time (queryTime) query is not supported by the OPC UA "
+        "source (per-item 'Not support appointed time query'); mixed supported/unsupported "
+        "scenario cannot be demonstrated with the mocker. "
+        f"observed={json.dumps(observations, ensure_ascii=False, default=str)}"
+    )
 
 
 # ---------------------------------------------------------------------------
