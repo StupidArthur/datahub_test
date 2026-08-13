@@ -8873,6 +8873,342 @@
         "destructive",
         "integration"
       ]
+    },
+    {
+      "id": "UA-3-6-001",
+      "chapter": "UA-3-6",
+      "title": "实时读_实时库并发递增",
+      "nodeid": "tests/integration/ua3/test_performance.py::test_ua3_6_001_rt_concurrency",
+      "preconditions": [
+        "数据源 alive=true",
+        "20 个在线位号"
+      ],
+      "steps": [
+        "并发 1/5/10/20/50 逐级读取",
+        "逐响应校验集合正确无串位号",
+        "记录拐点与延迟分布"
+      ],
+      "expected": [
+        "记录拐点",
+        "值不串位号"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-6-002",
+      "chapter": "UA-3-6",
+      "title": "实时读_数据库并发递增",
+      "nodeid": "tests/integration/ua3/test_performance.py::test_ua3_6_002_rt_db_concurrency",
+      "preconditions": [
+        "数据源 alive=true",
+        "20 个位号已采集入库"
+      ],
+      "steps": [
+        "isFromDB=true 并发 1/5/10/20/50 逐级读取",
+        "校验集合正确",
+        "记录与实时库差异"
+      ],
+      "expected": [
+        "记录与实时库差异",
+        "集合正确"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-6-003",
+      "chapter": "UA-3-6",
+      "title": "实时读_批大小递增",
+      "nodeid": "tests/integration/ua3/test_performance.py::test_ua3_6_003_rt_batch_size",
+      "preconditions": [
+        "数据源 alive=true",
+        "100 个在线位号"
+      ],
+      "steps": [
+        "单请求 1/10/100 个位号",
+        "校验集合完整无重复遗漏",
+        "记录批大小与延迟关系"
+      ],
+      "expected": [
+        "返回集合完整，无重复遗漏"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-6-004",
+      "chapter": "UA-3-6",
+      "title": "实时读_按分组大集合",
+      "nodeid": "tests/integration/ua3/test_performance.py::test_ua3_6_004_rt_group",
+      "preconditions": [
+        "数据源 alive=true",
+        "100 个位号已分配分组"
+      ],
+      "steps": [
+        "按 groupId 读取大分组",
+        "校验无跨组记录且数量正确",
+        "记录延迟"
+      ],
+      "expected": [
+        "无跨组记录",
+        "数量正确"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-6-005",
+      "chapter": "UA-3-6",
+      "title": "实时读_多数据源混合负载",
+      "nodeid": "tests/integration/ua3/test_performance.py::test_ua3_6_005_rt_mixed_ds",
+      "preconditions": [
+        "数据源 A、B 各自在线",
+        "各自 10 个位号"
+      ],
+      "steps": [
+        "A、B 同时并发读取",
+        "使 A 异常（禁用）",
+        "校验 B 不被拖垮且不串源"
+      ],
+      "expected": [
+        "B 不被拖垮",
+        "不串源"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-6-006",
+      "chapter": "UA-3-6",
+      "title": "实时写_不同位号并发",
+      "nodeid": "tests/integration/ua3/test_performance.py::test_ua3_6_006_write_distinct_concurrent",
+      "preconditions": [
+        "数据源 alive=true",
+        "20 个可写位号"
+      ],
+      "steps": [
+        "20 线程并发写不同位号唯一值",
+        "成功项全部可读回",
+        "记录并发写延迟"
+      ],
+      "expected": [
+        "成功项全部可读回"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-6-007",
+      "chapter": "UA-3-6",
+      "title": "实时写_批大小递增",
+      "nodeid": "tests/integration/ua3/test_performance.py::test_ua3_6_007_write_batch_size",
+      "preconditions": [
+        "数据源 alive=true",
+        "100 个可写位号"
+      ],
+      "steps": [
+        "单请求 1/10/100 位号批量写",
+        "校验成功与失败映射准确",
+        "记录批大小与延迟关系"
+      ],
+      "expected": [
+        "成功与失败映射准确"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-6-008",
+      "chapter": "UA-3-6",
+      "title": "实时写_同一位号竞争",
+      "nodeid": "tests/integration/ua3/test_performance.py::test_ua3_6_008_write_same_tag_race",
+      "preconditions": [
+        "数据源 alive=true",
+        "1 个可写位号"
+      ],
+      "steps": [
+        "10 线程并发写同一位号唯一值",
+        "记录顺序语义",
+        "最终值必须为写入值之一"
+      ],
+      "expected": [
+        "记录顺序语义",
+        "最终值可解释"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-6-009",
+      "chapter": "UA-3-6",
+      "title": "实时写_跨数据源负载",
+      "nodeid": "tests/integration/ua3/test_performance.py::test_ua3_6_009_write_cross_ds",
+      "preconditions": [
+        "数据源 A、B 各自在线",
+        "各自 1 个可写位号"
+      ],
+      "steps": [
+        "A、B 同时写入不同值",
+        "校验不串源、不互相覆盖",
+        "asyncua 确认源端"
+      ],
+      "expected": [
+        "不串源",
+        "不互相覆盖"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-6-010",
+      "chapter": "UA-3-6",
+      "title": "实时写_写后历史完整性",
+      "nodeid": "tests/integration/ua3/test_performance.py::test_ua3_6_010_write_then_history",
+      "preconditions": [
+        "数据源 alive=true",
+        "1 个可写位号"
+      ],
+      "steps": [
+        "方式 C 高负载写入唯一序列",
+        "历史中成功写入序列可核对"
+      ],
+      "expected": [
+        "历史中成功写入序列可核对"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-6-011",
+      "chapter": "UA-3-6",
+      "title": "历史查询_并发递增",
+      "nodeid": "tests/integration/ua3/test_performance.py::test_ua3_6_011_history_concurrent",
+      "preconditions": [
+        "方式 B 制造隔离历史数据",
+        "数据源存在"
+      ],
+      "steps": [
+        "并发 1/5/10/20 查询",
+        "校验无串位号且集合完整",
+        "记录 QPS/延迟"
+      ],
+      "expected": [
+        "无串位号",
+        "记录 QPS/延迟"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-6-012",
+      "chapter": "UA-3-6",
+      "title": "历史查询_数据量递增",
+      "nodeid": "tests/integration/ua3/test_performance.py::test_ua3_6_012_history_volume_inc",
+      "preconditions": [
+        "方式 B 制造递增数据量",
+        "数据源存在"
+      ],
+      "steps": [
+        "逐级增加窗口/位号/记录数",
+        "分页合集完整无重复遗漏"
+      ],
+      "expected": [
+        "分页合集完整，无重复遗漏"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-6-013",
+      "chapter": "UA-3-6",
+      "title": "历史查询_采样性能",
+      "nodeid": "tests/integration/ua3/test_performance.py::test_ua3_6_013_history_sampling",
+      "preconditions": [
+        "方式 B 制造大窗口数据",
+        "数据源存在"
+      ],
+      "steps": [
+        "同一窗口 interval=0 与 interval=N 比较",
+        "采样结果正确并记录性能差异"
+      ],
+      "expected": [
+        "采样结果正确",
+        "记录性能差异"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-6-014",
+      "chapter": "UA-3-6",
+      "title": "混合负载_读写历史同时执行",
+      "nodeid": "tests/integration/ua3/test_performance.py::test_ua3_6_014_mixed_load",
+      "preconditions": [
+        "数据源 alive=true",
+        "读位号 + 可写位号 + 历史数据"
+      ],
+      "steps": [
+        "实时读、实时写、历史查询并发运行",
+        "各类结果保持正确，无资源失控"
+      ],
+      "expected": [
+        "各类结果保持正确",
+        "无资源失控"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
+    },
+    {
+      "id": "UA-3-6-015",
+      "chapter": "UA-3-6",
+      "title": "长稳与过载恢复",
+      "nodeid": "tests/integration/ua3/test_performance.py::test_ua3_6_015_long_run_recovery",
+      "preconditions": [
+        "数据源 alive=true",
+        "读位号 + 可写位号"
+      ],
+      "steps": [
+        "持续负载",
+        "短时过载后停止请求",
+        "服务恢复正常且普通功能冒烟通过"
+      ],
+      "expected": [
+        "服务恢复正常",
+        "普通功能冒烟通过"
+      ],
+      "markers": [
+        "destructive",
+        "integration"
+      ]
     }
   ]
 }

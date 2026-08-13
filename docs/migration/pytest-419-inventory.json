@@ -71,7 +71,7 @@
     }
   ],
   "duplicates_in_source": [],
-  "pytest_total": 404,
+  "pytest_total": 419,
   "migrated": [
     "UA-1-1-01",
     "UA-1-1-02",
@@ -476,9 +476,7 @@
     "UA-3-5-009",
     "UA-3-5-010",
     "UA-3-5-011",
-    "UA-3-5-012"
-  ],
-  "missing": [
+    "UA-3-5-012",
     "UA-3-6-001",
     "UA-3-6-002",
     "UA-3-6-003",
@@ -495,6 +493,7 @@
     "UA-3-6-014",
     "UA-3-6-015"
   ],
+  "missing": [],
   "true_duplicates_in_pytest": [],
   "case_to_nodeid": {
     "UA-1-1-01": [
@@ -1544,6 +1543,51 @@
     "UA-3-4-008": [
       "tests/integration/ua3/test_history_query.py::test_ua3_4_008_invalid_and_reversed_params"
     ],
+    "UA-3-6-001": [
+      "tests/integration/ua3/test_performance.py::test_ua3_6_001_rt_concurrency"
+    ],
+    "UA-3-6-002": [
+      "tests/integration/ua3/test_performance.py::test_ua3_6_002_rt_db_concurrency"
+    ],
+    "UA-3-6-003": [
+      "tests/integration/ua3/test_performance.py::test_ua3_6_003_rt_batch_size"
+    ],
+    "UA-3-6-004": [
+      "tests/integration/ua3/test_performance.py::test_ua3_6_004_rt_group"
+    ],
+    "UA-3-6-005": [
+      "tests/integration/ua3/test_performance.py::test_ua3_6_005_rt_mixed_ds"
+    ],
+    "UA-3-6-006": [
+      "tests/integration/ua3/test_performance.py::test_ua3_6_006_write_distinct_concurrent"
+    ],
+    "UA-3-6-007": [
+      "tests/integration/ua3/test_performance.py::test_ua3_6_007_write_batch_size"
+    ],
+    "UA-3-6-008": [
+      "tests/integration/ua3/test_performance.py::test_ua3_6_008_write_same_tag_race"
+    ],
+    "UA-3-6-009": [
+      "tests/integration/ua3/test_performance.py::test_ua3_6_009_write_cross_ds"
+    ],
+    "UA-3-6-010": [
+      "tests/integration/ua3/test_performance.py::test_ua3_6_010_write_then_history"
+    ],
+    "UA-3-6-011": [
+      "tests/integration/ua3/test_performance.py::test_ua3_6_011_history_concurrent"
+    ],
+    "UA-3-6-012": [
+      "tests/integration/ua3/test_performance.py::test_ua3_6_012_history_volume_inc"
+    ],
+    "UA-3-6-013": [
+      "tests/integration/ua3/test_performance.py::test_ua3_6_013_history_sampling"
+    ],
+    "UA-3-6-014": [
+      "tests/integration/ua3/test_performance.py::test_ua3_6_014_mixed_load"
+    ],
+    "UA-3-6-015": [
+      "tests/integration/ua3/test_performance.py::test_ua3_6_015_long_run_recovery"
+    ],
     "UA-3-2-001": [
       "tests/integration/ua3/test_realtime_read.py::test_ua3_2_001_rt_by_name"
     ],
@@ -2060,6 +2104,21 @@
     "tests/integration/ua3/test_history_query.py::test_ua3_4_006_window_boundary": "UA-3-4-006",
     "tests/integration/ua3/test_history_query.py::test_ua3_4_007_empty_and_future_window": "UA-3-4-007",
     "tests/integration/ua3/test_history_query.py::test_ua3_4_008_invalid_and_reversed_params": "UA-3-4-008",
+    "tests/integration/ua3/test_performance.py::test_ua3_6_001_rt_concurrency": "UA-3-6-001",
+    "tests/integration/ua3/test_performance.py::test_ua3_6_002_rt_db_concurrency": "UA-3-6-002",
+    "tests/integration/ua3/test_performance.py::test_ua3_6_003_rt_batch_size": "UA-3-6-003",
+    "tests/integration/ua3/test_performance.py::test_ua3_6_004_rt_group": "UA-3-6-004",
+    "tests/integration/ua3/test_performance.py::test_ua3_6_005_rt_mixed_ds": "UA-3-6-005",
+    "tests/integration/ua3/test_performance.py::test_ua3_6_006_write_distinct_concurrent": "UA-3-6-006",
+    "tests/integration/ua3/test_performance.py::test_ua3_6_007_write_batch_size": "UA-3-6-007",
+    "tests/integration/ua3/test_performance.py::test_ua3_6_008_write_same_tag_race": "UA-3-6-008",
+    "tests/integration/ua3/test_performance.py::test_ua3_6_009_write_cross_ds": "UA-3-6-009",
+    "tests/integration/ua3/test_performance.py::test_ua3_6_010_write_then_history": "UA-3-6-010",
+    "tests/integration/ua3/test_performance.py::test_ua3_6_011_history_concurrent": "UA-3-6-011",
+    "tests/integration/ua3/test_performance.py::test_ua3_6_012_history_volume_inc": "UA-3-6-012",
+    "tests/integration/ua3/test_performance.py::test_ua3_6_013_history_sampling": "UA-3-6-013",
+    "tests/integration/ua3/test_performance.py::test_ua3_6_014_mixed_load": "UA-3-6-014",
+    "tests/integration/ua3/test_performance.py::test_ua3_6_015_long_run_recovery": "UA-3-6-015",
     "tests/integration/ua3/test_realtime_read.py::test_ua3_2_001_rt_by_name": "UA-3-2-001",
     "tests/integration/ua3/test_realtime_read.py::test_ua3_2_002_rt_by_id": "UA-3-2-002",
     "tests/integration/ua3/test_realtime_read.py::test_ua3_2_003_rt_by_group": "UA-3-2-003",
@@ -2461,9 +2520,9 @@
     {
       "chapter": "UA-3",
       "source": 98,
-      "pytest": 83,
-      "migrated_count": 83,
-      "missing_count": 15,
+      "pytest": 98,
+      "migrated_count": 98,
+      "missing_count": 0,
       "migrated": [
         "UA-3-1-001",
         "UA-3-1-002",
@@ -2547,9 +2606,7 @@
         "UA-3-5-009",
         "UA-3-5-010",
         "UA-3-5-011",
-        "UA-3-5-012"
-      ],
-      "missing": [
+        "UA-3-5-012",
         "UA-3-6-001",
         "UA-3-6-002",
         "UA-3-6-003",
@@ -2565,7 +2622,8 @@
         "UA-3-6-013",
         "UA-3-6-014",
         "UA-3-6-015"
-      ]
+      ],
+      "missing": []
     }
   ]
 }
