@@ -18,6 +18,7 @@ from tpt_api.types import DsSubTypes, DsTypes
 
 from tests.support.cleanup import delete_datasource_if_exists, delete_tag_if_exists
 from tests.support.endpoints import parse_mocker_endpoint
+from tests.support.infra_retry import retry_infra_noise
 from tests.support.mocker_process import (
     find_free_port,
     start_mocker,
@@ -98,10 +99,13 @@ def setup_ds_and_tag(
     if launch_mocker:
         mocker = start_mocker(cfg_path, port, host=parsed.host)
 
-    data = add_ds_info(
-        api, ds_name=ds_name,
-        ds_type=DsTypes["REAL_TIME_DB"], ds_sub_type=DsSubTypes["OPC_UA_SERVER"],
-        ds_tar_url=endpoint,
+    data = retry_infra_noise(
+        lambda: add_ds_info(
+            api, ds_name=ds_name,
+            ds_type=DsTypes["REAL_TIME_DB"], ds_sub_type=DsSubTypes["OPC_UA_SERVER"],
+            ds_tar_url=endpoint,
+        ),
+        name=f"add_ds_info:{ds_name}",
     )
     ds_id = int(data.get("id") or data.get("dsId"))
 
@@ -256,10 +260,13 @@ def setup_ds_only(
     if launch_mocker:
         mocker = start_mocker(cfg_path, port, host=parsed.host)
 
-    data = add_ds_info(
-        api, ds_name=ds_name,
-        ds_type=DsTypes["REAL_TIME_DB"], ds_sub_type=DsSubTypes["OPC_UA_SERVER"],
-        ds_tar_url=endpoint,
+    data = retry_infra_noise(
+        lambda: add_ds_info(
+            api, ds_name=ds_name,
+            ds_type=DsTypes["REAL_TIME_DB"], ds_sub_type=DsSubTypes["OPC_UA_SERVER"],
+            ds_tar_url=endpoint,
+        ),
+        name=f"add_ds_info:{ds_name}",
     )
     ds_id = int(data.get("id") or data.get("dsId"))
 

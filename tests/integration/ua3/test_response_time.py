@@ -134,7 +134,7 @@ def _stop_mocker(ctx: dict) -> None:
         ctx["mocker"] = None
 
 
-def _remove_ds(api, ds_id: int, ds_name: str, *, timeout: float = 900.0) -> None:
+def _remove_ds(api, ds_id: int, ds_name: str, *, timeout: float = 1500.0) -> None:
     """Disable and delete a mocker-free datasource, confirming both by polling.
 
     A mocker-free datasource can stay busy long after its last query (the
@@ -146,12 +146,19 @@ def _remove_ds(api, ds_id: int, ds_name: str, *, timeout: float = 900.0) -> None
     leaking it.
     """
     from tpt_api.datahub import delete_ds_info
+    from tests.support.infra_retry import is_infra_noise
 
     deadline = time.monotonic() + timeout
     last_action = time.monotonic()
     confirmed_gone_at: float | None = None
     while time.monotonic() < deadline:
-        rows = list_ds_info(api, page=1, page_size=999).get("records") or []
+        try:
+            rows = list_ds_info(api, page=1, page_size=999).get("records") or []
+        except Exception as exc:
+            if not is_infra_noise(exc):
+                raise
+            time.sleep(5.0)
+            continue
         rec = next((r for r in rows if int(r.get("id", -1)) == ds_id), None)
         gone = rec is None
         if gone:

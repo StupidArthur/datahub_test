@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 import os
+import time
 from dataclasses import dataclass
 
 import pytest
+
+from tests.support.infra_retry import is_infra_noise
 
 
 @dataclass(frozen=True)
@@ -29,6 +32,21 @@ def _load_settings() -> Settings:
     )
 
 
+def _login_with_retry(client, settings: Settings) -> None:
+    deadline = time.monotonic() + 120.0
+    last: Exception | None = None
+    while time.monotonic() < deadline:
+        try:
+            client.login(settings.user, settings.password, settings.tenant_id)
+            return
+        except Exception as exc:  # noqa: BLE001 - retried only for infra noise
+            last = exc
+            if not is_infra_noise(exc):
+                raise
+            time.sleep(8.0)
+    raise RuntimeError(f"login failed after retrying infra noise: {last!r}")
+
+
 @pytest.fixture(scope="session")
 def settings() -> Settings:
     s = _load_settings()
@@ -48,7 +66,7 @@ def api(settings: Settings):
     else:
         if not settings.user or not settings.password:
             pytest.skip("DATAHUB_USER / DATAHUB_PASSWORD not set")
-        client.login(settings.user, settings.password, settings.tenant_id)
+        _login_with_retry(client, settings)
     yield client
     client.client.close()
 

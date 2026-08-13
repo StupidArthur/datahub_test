@@ -16,6 +16,7 @@ from datetime import datetime, timezone
 from tpt_api.datahub import add_tag, get_rt_value, query_tags_with_quality
 from tpt_api.types import DataTypes, TagTypes
 
+from tests.support.infra_retry import retry_infra_noise
 from tests.support.polling import wait_until
 from tests.support.rt_helpers import get_rt_point
 from tests.support.ua2_helpers import (
@@ -127,14 +128,17 @@ def add_collection_tag(
 
     tag_name = unique_name(settings.test_prefix, f"{case_id}-tag")
     base = tag_base_name(ctx["namespace_index"], node_id_str)
-    tag_data = add_tag(
-        api, tag_name=tag_name,
-        data_type=data_type_key_to_id(type_key),
-        tag_type=TagTypes["一次位号"],
-        ds_id=ctx["ds_id"],
-        only_read=only_read,
-        tag_base_name=base,
-        frequency=frequency,
+    tag_data = retry_infra_noise(
+        lambda: add_tag(
+            api, tag_name=tag_name,
+            data_type=data_type_key_to_id(type_key),
+            tag_type=TagTypes["一次位号"],
+            ds_id=ctx["ds_id"],
+            only_read=only_read,
+            tag_base_name=base,
+            frequency=frequency,
+        ),
+        name=f"add_tag:{tag_name}",
     )
     tag_id = int(tag_data.get("id") or tag_data.get("tagId"))
     return {"tag_id": tag_id, "tag_name": tag_name, "tag_base_name": base}
